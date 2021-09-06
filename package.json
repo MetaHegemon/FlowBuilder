@@ -1,0 +1,14 @@
+{
+  "name": "flowbuilder",
+  "version": "1.0.0",
+  "description": "Flow-builder application",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node --inspect server.mjs"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "express": "^4.17.1"
+  }
+}
