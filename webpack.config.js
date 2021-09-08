@@ -3,10 +3,18 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
     mode: 'development',
-    entry: './src/index.js',
+    entry: './src/js/index.js',
     output: {
         path: path.resolve(__dirname, './dist'),
         filename: 'bundle.js'
+    },
+    module: {
+        rules: [
+            {
+                test: /\.css$/i,
+                use: ['style-loader', 'css-loader'],
+            },
+        ],
     },
     performance: {
         maxEntrypointSize: 1024000,
@@ -18,5 +26,10 @@ module.exports = {
         hot: true
     },
     devtool: 'source-map',
-    plugins: [new HtmlWebpackPlugin()]
+    plugins: [
+        new HtmlWebpackPlugin({
+            title: 'FlowBuilder',
+            template: './src/index.html'
+        }
+    )]
 }
