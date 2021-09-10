@@ -7,10 +7,8 @@ npm install
 
 ### Start app
 ```
-npm run start
+npm start
 ```
 
-### Change port into server.mjs file (if need)
-
 ### Open app in the browser (check the port)
-[localhost:8099](http://localhost:8099)
+[localhost:8099](http://localhost:9000)

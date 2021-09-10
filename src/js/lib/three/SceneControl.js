@@ -38,7 +38,8 @@ export class SceneControl {
     run (){
         this.renderResize();
         this.render();
-        this.addDebugPlane();
+        clog({scene: this.scene});
+        //this.addDebugPlane();
     }
 
     addDebugPlane(){
@@ -65,6 +66,21 @@ export class SceneControl {
         for(let i = 0; i < objects.length; i += 1){
             this.scene.add(objects[i]);
         }
-        clog(this.scene);
+    }
+
+    getCamera(){
+        return this.camera;
+    }
+
+    getScene(){
+        return this.scene;
+    }
+
+    getRenderer(){
+        return this.renderer;
+    }
+
+    getControls(){
+        return this.controls;
     }
 }

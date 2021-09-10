@@ -9,12 +9,15 @@
 //}
 
 //3.show
+
 window.clog = console.log.bind(console);
 
 import '../css/main.css';
 import {MainWindow} from './lib/webElements/MainWindow';
 import {SceneControl} from "./lib/three/SceneControl";
 import {NodeControl} from "./lib/three/NodeControl";
+import {Interactive} from "./lib/Interactive";
+
 
 //1
 const mainWindow = new MainWindow();
@@ -34,7 +37,8 @@ const flowData = {
                 {
                     id: 0,
                     name: 'float',
-                    type: 'float'
+                    type: 'float',
+                    mark: 'f0'
                 }
             ],
             position: {
@@ -50,7 +54,8 @@ const flowData = {
                 {
                     id: 0,
                     name: 'float',
-                    type: 'float'
+                    type: 'float',
+                    mark: 'f0'
                 }
             ],
             position: {
@@ -65,19 +70,22 @@ const flowData = {
                 {
                     id: 0,
                     name: 'float',
-                    type: 'float'
+                    type: 'float',
+                    mark: 'f0'
                 },
                 {
                     id: 1,
                     name: 'float',
-                    type: 'float'
+                    type: 'float',
+                    mark: 'f1'
                 }
             ],
             outputs: [
                 {
                     id: 0,
                     name: 'float',
-                    type: 'float'
+                    type: 'float',
+                    mark: 'f0'
                 }
             ],
             position: {
@@ -92,19 +100,22 @@ const flowData = {
                 {
                     id: 0,
                     name: 'float',
-                    type: 'float'
+                    type: 'float',
+                    mark: 'f0'
                 },
                 {
                     id: 1,
                     name: 'float',
-                    type: 'float'
+                    type: 'float',
+                    mark: 'f1'
                 }
             ],
             outputs: [
                 {
                     id: 0,
-                    name: 'float',
-                    type: 'float'
+                    name: 'int',
+                    type: 'int',
+                    mark: 'i0'
                 }
             ],
             position: {
@@ -125,6 +136,9 @@ const nodes = nodeControl.getNodes();
 
 sceneControl.addObjectsToScene(nodes);
 
+const interactive = new Interactive();
+interactive.setSceneComponents(mainWindow.getCanvas(), sceneControl.getCamera(), sceneControl.getScene(), sceneControl.getControls());
+interactive.setEvents();
 
 
 //3
