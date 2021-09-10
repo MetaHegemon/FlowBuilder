@@ -1,5 +1,6 @@
 export default {
     layers: [0, 1, 2, 3, 4, 5],  //слои размещения объектов в сцене. значение элемента массива означает координату по z
+    splineSegments: 100,
     nodeMesh: {
         title: {
             fontSize: 12,
@@ -13,13 +14,14 @@ export default {
             frontHeadColor: '#0a8ee5',
             frontBodyColor: '#fff',
             backMountColor: '#888888',
+            backMountSelectedColor: '#0a8ee5',
             borderSize: 2,
             roundCornerRadius: 5,
             headerLabelFontSize: 14,
             footerHeight: 10,
             footerLabelFontSize: 12,
             footerColor: '#d0d0d0',
-            footerLabelColor: 0xffffff
+            footerLabelColor: '#ffffff'
         },
         port: {
             height: 16,

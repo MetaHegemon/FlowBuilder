@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import C from './Constants';
 
 export class Interactive{
     constructor() {
@@ -19,7 +20,16 @@ export class Interactive{
         }
         this.pointerDownPos = new THREE.Vector2();
         this.hovered = [];
-        this.selected = [];
+
+        this.drawSpline = {
+            active: false,
+            points: [
+                new THREE.Vector3(),
+                new THREE.Vector3()
+            ],
+            tempVector: new THREE.Vector3(),
+            spline: null
+        }
     }
 
     setSceneComponents(canvas, camera, scene, controls){
@@ -47,13 +57,14 @@ export class Interactive{
 
         if(this.drag.active){
             this.dragObject(this.drag.object);
-        } else {
-            this.detectIntersects(e.buttons);
-
+        } else if(this.drawSpline.active){
+            this.drawLine();
+        } {
+            this.highlightObjects(e.buttons);
         }
     }
 
-    detectIntersects(buttons) {
+    highlightObjects(buttons) {
         this.intersects = this.raycaster.intersectObjects( this.scene.children, true );
 
         if (this.intersects.length > 0)
@@ -61,26 +72,21 @@ export class Interactive{
             if(buttons === 0){
                 const firstObject = this.intersects[0].object;
                 if(firstObject.name === 'portLabel'){
-                    firstObject.color = '#00a2d2';
+                    firstObject.color = C.nodeMesh.mount.backMountSelectedColor;
                     this.hovered.push(firstObject);
                     this.changePointerStyle('pointer');
                 } else if(firstObject.name === 'footerLabel'){
-                    firstObject.color = '#00a2d2';
+                    firstObject.color = C.nodeMesh.mount.backMountSelectedColor;
                     this.hovered.push(firstObject);
                     this.changePointerStyle('pointer');
                 } else if(firstObject.name === 'connector'){
-                    firstObject.color = '#00a2d2';
+                    firstObject.color = C.nodeMesh.mount.backMountSelectedColor;
                     this.hovered.push(firstObject);
                     this.changePointerStyle('pointer');
                 } else {
                     this.unhoverObjects(firstObject);
                     this.changePointerStyle('default');
                 }
-                /*const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
-                if(backMountIntersect){
-                    backMountIntersect.object.material.color = new THREE.Color(0x00a2d2);
-                    this.hovered.push(backMountIntersect.object);
-                }*/
             }
             else if (buttons === 1)
             {
@@ -89,11 +95,6 @@ export class Interactive{
                     if (backMountIntersect) {
                         this.drag.active = true;
                         this.changePointerStyle('move');
-                        return null;
-                    }
-                    const connectorIntersect = this.checkOnIntersect(this.intersects, 'connector');
-                    if(connectorIntersect){
-
                         return null;
                     }
                 }
@@ -160,10 +161,49 @@ export class Interactive{
                 const connectorIntersect = this.checkOnIntersect(this.intersects, 'connector');
                 if(connectorIntersect){
                     this.controls.enablePan = false;
+                    this.drawSpline.active = true;
 
+                    connectorIntersect.object.getWorldPosition(this.drawSpline.points[0]);
+                    this.drawSpline.points[1].x = this.pointerPosOnScene.x;
+                    this.drawSpline.points[1].y = this.pointerPosOnScene.y;
+                    this.drawSpline.points[1].z = 0;
+
+                    this.drawSpline.spline = this.getNewSpline();
+                    this.scene.add( this.drawSpline.spline.mesh );
                 }
             }
         }
+    }
+
+    drawLine(){
+        this.drawSpline.points[1].x = this.pointerPosOnScene.x;
+        this.drawSpline.points[1].y = this.pointerPosOnScene.y;
+        this.drawSpline.points[1].z = 0;
+        this.updateSplineOutline();
+
+    }
+
+    updateSplineOutline() {
+        const position = this.drawSpline.spline.mesh.geometry.attributes.position;
+        for (let i = 0; i < C.splineSegments; i++) {
+            const t = i / (C.splineSegments - 1);
+            this.drawSpline.spline.getPoint(t, this.drawSpline.tempVector);
+            position.setXYZ(i, this.drawSpline.tempVector.x, this.drawSpline.tempVector.y, this.drawSpline.tempVector.z);
+        }
+        position.needsUpdate = true;
+    }
+
+    getNewSpline(){
+        const spline = new THREE.CatmullRomCurve3( this.drawSpline.points );
+        spline.curveType = 'catmullrom';
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute( 'position', new THREE.BufferAttribute( new Float32Array( C.splineSegments * 3 ), 3 ) );
+        spline.mesh = new THREE.Line(
+            geometry,
+            new THREE.LineBasicMaterial( {color: 0xff0000, linewidth: 4, opacity: 0.5})
+        );
+
+        return spline;
     }
 
     onPointerUp(e){
@@ -173,7 +213,10 @@ export class Interactive{
             this.drag.object = null;
             this.controls.enablePan = true;
             this.changePointerStyle('default');
-        } else {
+        } else if(this.drawSpline.active){
+            this.drawSpline.active = false;
+            this.drawSpline.curve = null;
+        } {
             if(this.intersects.length > 0) {
                 if (e.button === 0) {
                     const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
@@ -184,7 +227,7 @@ export class Interactive{
                             backMountIntersect.object.material.color = new THREE.Color(backMountIntersect.object.userData.backUpColor);
                         } else {
                             node.userData.selected = true;
-                            backMountIntersect.object.material.color = new THREE.Color(0x00ff00);
+                            backMountIntersect.object.material.color = new THREE.Color(C.nodeMesh.mount.backMountSelectedColor);
                         }
                     }
                 }

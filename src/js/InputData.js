@@ -15,7 +15,7 @@ export default {
             position: {
                 x: -200,
                 y: -200
-            }
+            },
         },
         {
             name: 'Math.PI',
