@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import C from './Constants';
+import C from '../Constants';
+import {DragControl} from './DragControl';
 
 export class Interactive{
     constructor() {
@@ -10,16 +11,10 @@ export class Interactive{
         this.scene = null;
         this.controls = null;
         this.pointerPosOnScene = new THREE.Vector2();
-        this.drag = {
-            active: false,
-            offset: new THREE.Vector2(),
-            object: null,
-
-            constDelta: 5,
-            delta: new THREE.Vector2()
-        }
         this.pointerDownPos = new THREE.Vector2();
         this.hovered = [];
+
+        this.drag = new DragControl();
 
         this.drawSpline = {
             active: false,
@@ -56,15 +51,15 @@ export class Interactive{
 
 
         if(this.drag.active){
-            this.dragObject(this.drag.object);
+            this.drag.dragObject(this.pointerPosOnScene);
         } else if(this.drawSpline.active){
             this.drawLine();
         } {
-            this.highlightObjects(e.buttons);
+            this.detectIntersects(e.buttons);
         }
     }
 
-    highlightObjects(buttons) {
+    detectIntersects(buttons) {
         this.intersects = this.raycaster.intersectObjects( this.scene.children, true );
 
         if (this.intersects.length > 0)
@@ -90,10 +85,11 @@ export class Interactive{
             }
             else if (buttons === 1)
             {
-                if(this.getPointerMoveDiff().x > this.drag.constDelta || this.getPointerMoveDiff().y > this.drag.constDelta) {
+                if(this.drag.isMoved(this.pointerPosOnScene, this.pointerDownPos)) {
                     const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
                     if (backMountIntersect) {
-                        this.drag.active = true;
+                        const node = backMountIntersect.object.userData.superParent;
+                        this.drag.enable(node, this.pointerPosOnScene);
                         this.changePointerStyle('move');
                         return null;
                     }
@@ -103,13 +99,6 @@ export class Interactive{
             this.unhoverObjects(null);
             this.changePointerStyle('default');
         }
-    }
-
-    getPointerMoveDiff(){
-        return {
-            x: Math.abs(this.pointerPosOnScene.x - this.pointerDownPos.x),
-            y: Math.abs(this.pointerPosOnScene.y - this.pointerDownPos.y)
-        };
     }
 
     unhoverObjects(currentObject){
@@ -129,10 +118,6 @@ export class Interactive{
         if(this.canvas.style.cursor !== style) this.canvas.style.cursor = style;
     }
 
-    dragObject(object){
-        object.position.set(this.pointerPosOnScene.x + this.drag.offset.x, this.pointerPosOnScene.y + this.drag.offset.y, object.position.z);
-    }
-
     checkOnIntersect(intersects, name){
         let res = null;
         for(let i = 0; i < intersects.length; i += 1){
@@ -145,17 +130,14 @@ export class Interactive{
     }
 
     onPointerDown(e){
+        this.pointerDownPos.x = this.pointerPosOnScene.x;
+        this.pointerDownPos.y = this.pointerPosOnScene.y;
+
         if(this.intersects.length > 0) {
             if (e.buttons === 1) {
                 const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
                 if(backMountIntersect){
                     this.controls.enablePan = false;
-                    const node = backMountIntersect.object.userData.superParent;
-                    this.drag.object = node;
-                    this.drag.offset.x = node.position.x - this.pointerPosOnScene.x;
-                    this.drag.offset.y = node.position.y - this.pointerPosOnScene.y;
-                    this.pointerDownPos.x = this.pointerPosOnScene.x;
-                    this.pointerDownPos.y = this.pointerPosOnScene.y;
                     return null;
                 }
                 const connectorIntersect = this.checkOnIntersect(this.intersects, 'connector');
@@ -209,8 +191,7 @@ export class Interactive{
     onPointerUp(e){
         this.pointerDownPos.x = this.pointerDownPos.y = 0;
         if(this.drag.active) {
-            this.drag.active = false;
-            this.drag.object = null;
+            this.drag.disable();
             this.controls.enablePan = true;
             this.changePointerStyle('default');
         } else if(this.drawSpline.active){

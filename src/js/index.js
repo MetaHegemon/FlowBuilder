@@ -16,7 +16,7 @@ import '../css/main.css';
 import {MainWindow} from './lib/webElements/MainWindow';
 import {SceneControl} from "./lib/three/SceneControl";
 import {NodeControl} from "./lib/three/NodeControl";
-import {Interactive} from "./lib/Interactive";
+import {Interactive} from "./lib/interactive/Interactive";
 import flowData from './InputData';
 
 
