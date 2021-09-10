@@ -208,7 +208,7 @@ export class NodeControl{
         let currentYPos = - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.headerHeight - C.nodeMesh.port.height/2;
         const ports = [];
         for(let i = 0; i < inputs.length; i += 1) {
-            const portObject = this.getNewEmptyPort('left', C.nodeMesh.portTypes[inputs[i].type].color);
+            const portObject = this.getNewEmptyPort('left', inputs[i].type);
             portObject.userData.label.text = inputs[i].name;
             portObject.userData.mark.userData.label.text = inputs[i].mark;
             portObject.userData.data = inputs[i];
@@ -225,7 +225,7 @@ export class NodeControl{
             C.nodeMesh.port.height * inputs.length - C.nodeMesh.port.height/2;
         const ports = [];
         for(let i = 0; i < outputs.length; i += 1) {
-            const portObject = this.getNewEmptyPort('right', C.nodeMesh.portTypes[outputs[i].type].color);
+            const portObject = this.getNewEmptyPort('right', outputs[i].type);
             portObject.userData.label.text = outputs[i].name;
             portObject.userData.mark.userData.label.text = outputs[i].mark;
             portObject.userData.data = outputs[i];
@@ -237,26 +237,26 @@ export class NodeControl{
         return ports;
     }
 
-    getNewEmptyPort(side, color){
+    getNewEmptyPort(side, portType){
         const portObject = new THREE.Object3D();
         portObject.name = 'port';
 
-        const connector = this.getPortConnector(side, color);
+        const connector = this.getPortConnector(side, portType);
         portObject.userData.connector = connector;
         portObject.add(connector);
 
-        const mark = this.getPortMark(side, color);
+        const mark = this.getPortMark(side, portType);
         portObject.userData.mark = mark;
         portObject.add(mark);
 
-        const label = this.getPortLabel(side, color);
+        const label = this.getPortLabel(side, portType);
         portObject.userData.label = label;
         portObject.add(label);
 
         return portObject
     }
 
-    getPortConnector(side, color){
+    getPortConnector(side, portType){
         const w = C.nodeMesh.port.connectorWidth;
         const h = C.nodeMesh.port.connectorHeight;
         const r = C.nodeMesh.port.connectorCornerRadius;
@@ -272,7 +272,7 @@ export class NodeControl{
 
         const connectorMesh = new THREE.Mesh(
             new THREE.ShapeGeometry( shapeConnector ),
-            new THREE.MeshBasicMaterial({color: color})
+            new THREE.MeshBasicMaterial({color: C.nodeMesh.portTypes[portType].connectorColor})
         );
         if(side === 'right') {
             connectorMesh.rotateZ(Math.PI);
@@ -285,7 +285,7 @@ export class NodeControl{
         return connectorMesh;
     }
 
-    getPortMark(side, color){
+    getPortMark(side, portType){
         const markObject = new THREE.Object3D();
 
         const w = C.nodeMesh.port.markWidth;
@@ -303,17 +303,17 @@ export class NodeControl{
             .lineTo(0, h/2 - r);
         const markMountMesh = new THREE.Mesh(
             new THREE.ShapeGeometry( markMountShape ),
-            new THREE.MeshBasicMaterial({color: color})
+            new THREE.MeshBasicMaterial({color: C.nodeMesh.portTypes[portType].connectorColor})
         );
         markMountMesh.name = 'mark';
-        markMountMesh.userData.backUpColor = color;
+        markMountMesh.userData.backUpColor = C.nodeMesh.portTypes[portType].connectorColor;
 
         markObject.add(markMountMesh);
 
         const label = new Text();
         label.name = 'markLabel';
         label.fontSize = C.nodeMesh.port.markFontSize;
-        label.color = label.userData.backUpColor = C.nodeMesh.port.markFontColor;
+        label.color = label.userData.backUpColor = C.nodeMesh.portTypes[portType].fontColor;
         label.anchorX = 'center';
         label.anchorY = 'middle';
         label.position.set(C.nodeMesh.port.markWidth/2, 0, 0);
@@ -330,11 +330,11 @@ export class NodeControl{
         return markObject;
     }
 
-    getPortLabel(side, color){
+    getPortLabel(side, portType){
         const label = new Text();
         label.name = 'portLabel'
         label.fontSize = C.nodeMesh.port.fontSize;
-        label.color = label.userData.backUpColor = color;
+        label.color = label.userData.backUpColor = C.nodeMesh.portTypes[portType].labelColor;
         label.anchorX = side;
         label.anchorY = 'middle';
         label.position.set(side === 'left' ? C.nodeMesh.port.labelLeftMargin : -C.nodeMesh.port.labelLeftMargin, 0, 0);
@@ -347,8 +347,7 @@ export class NodeControl{
         footerLabel.name = 'footerLabel';
         footerLabel.text = 'Learn more';
         footerLabel.fontSize = 8;
-        footerLabel.color = 0x888888;
-        footerLabel.userData.backUpColor = 0x888888;
+        footerLabel.color = footerLabel.userData.backUpColor = C.nodeMesh.mount.footerLabelColor;
         footerLabel.anchorX = 'left';
         footerLabel.anchorY = 'bottom';
         footerLabel.position.set(4, -nodeShieldHeight + 1, C.layers[3]);
