@@ -3,7 +3,8 @@ export default {
     nodeMesh: {
         title: {
             fontSize: 12,
-            fontColor: '#00a2d2'
+            fontColor: '#00a2d2',
+            leftMargin: 5
         },
         mount: {
             width: 80,

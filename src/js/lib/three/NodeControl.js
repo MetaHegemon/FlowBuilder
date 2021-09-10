@@ -34,7 +34,7 @@ export class NodeControl{
         nodeObject.userData.data = data;
 
         //create title
-        const title = this.addTitle(data.name);
+        const title = this.getTitle(data.name);
         nodeObject.add(title);
 
         //create shield
@@ -80,14 +80,14 @@ export class NodeControl{
         return C.nodeMesh.mount.roundCornerRadius + C.nodeMesh.mount.headerHeight + portsHeight + C.nodeMesh.mount.footerHeight;
     }
 
-    addTitle(name) {
+    getTitle(name) {
         const title = new Text();
         title.text = name;
         title.fontSize = C.nodeMesh.title.fontSize;
         title.color = C.nodeMesh.title.fontColor;
         title.anchorX = 'left';
         title.anchorY = 'bottom';
-        title.position.set(C.nodeMesh.port.labelLeftMargin, 0, 0);
+        title.position.set(C.nodeMesh.title.leftMargin, 0, 0);
         title.name = 'title';
         return title;
     }
