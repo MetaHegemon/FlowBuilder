@@ -13,13 +13,13 @@ export class Interactive{
             active: false,
             offset: new THREE.Vector2(),
             object: null,
-            startPos: new THREE.Vector2(),
+
             constDelta: 5,
             delta: new THREE.Vector2()
         }
+        this.pointerDownPos = new THREE.Vector2();
         this.hovered = [];
-
-        this.temp = new THREE.Vector3();
+        this.selected = [];
     }
 
     setSceneComponents(canvas, camera, scene, controls){
@@ -60,7 +60,6 @@ export class Interactive{
         {
             if(buttons === 0){
                 const firstObject = this.intersects[0].object;
-                clog(firstObject.name);
                 if(firstObject.name === 'portLabel'){
                     firstObject.color = '#00a2d2';
                     this.hovered.push(firstObject);
@@ -77,17 +76,15 @@ export class Interactive{
                     this.unhoverObjects(firstObject);
                     this.changePointerStyle('default');
                 }
-                const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
+                /*const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
                 if(backMountIntersect){
                     backMountIntersect.object.material.color = new THREE.Color(0x00a2d2);
                     this.hovered.push(backMountIntersect.object);
-                }
+                }*/
             }
             else if (buttons === 1)
             {
-                const diffX = Math.abs(this.pointerPosOnScene.x - this.drag.startPos.x);
-                const diffY = Math.abs(this.pointerPosOnScene.y - this.drag.startPos.y);
-                if(diffX > this.drag.constDelta || diffY > this.drag.constDelta) {
+                if(this.getPointerMoveDiff().x > this.drag.constDelta || this.getPointerMoveDiff().y > this.drag.constDelta) {
                     const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
                     if (backMountIntersect) {
                         this.drag.active = true;
@@ -96,12 +93,7 @@ export class Interactive{
                     }
                     const connectorIntersect = this.checkOnIntersect(this.intersects, 'connector');
                     if(connectorIntersect){
-                        if(this.curve){
-                            this.curve.curve.points[1].x = this.pointerPosOnScene.x;
-                            this.curve.curve.points[1].y = this.pointerPosOnScene.y;
-                            const points = this.curve.curve.getPoints(50);
-                            this.curve.mesh.geometry.setFromPoints(points);
-                        }
+
                         return null;
                     }
                 }
@@ -110,6 +102,13 @@ export class Interactive{
             this.unhoverObjects(null);
             this.changePointerStyle('default');
         }
+    }
+
+    getPointerMoveDiff(){
+        return {
+            x: Math.abs(this.pointerPosOnScene.x - this.pointerDownPos.x),
+            y: Math.abs(this.pointerPosOnScene.y - this.pointerDownPos.y)
+        };
     }
 
     unhoverObjects(currentObject){
@@ -154,47 +153,42 @@ export class Interactive{
                     this.drag.object = node;
                     this.drag.offset.x = node.position.x - this.pointerPosOnScene.x;
                     this.drag.offset.y = node.position.y - this.pointerPosOnScene.y;
-                    this.drag.startPos.x = this.pointerPosOnScene.x;
-                    this.drag.startPos.y = this.pointerPosOnScene.y;
+                    this.pointerDownPos.x = this.pointerPosOnScene.x;
+                    this.pointerDownPos.y = this.pointerPosOnScene.y;
                     return null;
                 }
                 const connectorIntersect = this.checkOnIntersect(this.intersects, 'connector');
                 if(connectorIntersect){
                     this.controls.enablePan = false;
-                    const pos = new THREE.Vector3();
-                    connectorIntersect.object.getWorldPosition(pos);
-                    this.curve = this.getNewCurve(
-                        new THREE.Vector2(connectorIntersect.object.position.x, connectorIntersect.object.position.y),
-                        new THREE.Vector2(this.pointerPosOnScene.x, this.pointerPosOnScene.y)
-                    );
-                    clog(this.curve);
-                    this.scene.add(this.curve.mesh);
+
                 }
             }
         }
     }
 
-    getNewCurve(point1, point2){
-        const spline = {};
-
-        spline.curve = new THREE.SplineCurve( [point1, point2] );
-
-        const points = spline.curve.getPoints( 50 );
-        const geometry = new THREE.BufferGeometry().setFromPoints( points );
-
-        const material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
-
-        spline.mesh = new THREE.Line( geometry, material );
-
-        return spline;
-    }
-
-    onPointerUp(){
+    onPointerUp(e){
+        this.pointerDownPos.x = this.pointerDownPos.y = 0;
         if(this.drag.active) {
             this.drag.active = false;
             this.drag.object = null;
             this.controls.enablePan = true;
             this.changePointerStyle('default');
+        } else {
+            if(this.intersects.length > 0) {
+                if (e.button === 0) {
+                    const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
+                    if(backMountIntersect){
+                        const node = backMountIntersect.object.userData.superParent;
+                        if(node.userData.selected){
+                            node.userData.selected = false;
+                            backMountIntersect.object.material.color = new THREE.Color(backMountIntersect.object.userData.backUpColor);
+                        } else {
+                            node.userData.selected = true;
+                            backMountIntersect.object.material.color = new THREE.Color(0x00ff00);
+                        }
+                    }
+                }
+            }
         }
         this.controls.enablePan = true;
     }

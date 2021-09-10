@@ -11,7 +11,7 @@ export default {
             headerHeight: 20,
             frontHeadColor: '#00a2d2',
             frontBodyColor: '#fff',
-            backColor: '#2a2a2a',
+            backMountColor: '#2a2a2a',
             borderSize: 2,
             roundCornerRadius: 5,
             headerLabelFontSize: 14,

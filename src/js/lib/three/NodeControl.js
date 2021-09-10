@@ -62,14 +62,15 @@ export class NodeControl{
         const footer = this.getFooter(nodeShieldHeight);
         nodeObject.add(footer);
 
-
-
         nodeObject.position.set(data.position.x, data.position.y, C.layers[0]);
 
+        //set superParent for children
         nodeObject.traverse(function(object){
             if(object.name === 'node') return null;
             object.userData.superParent = nodeObject;
         });
+
+        nodeObject.userData.selected = false;
 
         return nodeObject;
     }
@@ -95,9 +96,9 @@ export class NodeControl{
         const mount = this.getNewBackMountMesh({
             w: C.nodeMesh.mount.width,
             h: height,
-            color: C.nodeMesh.mount.backColor
+            color: C.nodeMesh.mount.backMountColor
         });
-        mount.userData.backUpColor = C.nodeMesh.mount.backColor;
+        mount.userData.backUpColor = C.nodeMesh.mount.backMountColor;
         mount.name = 'backMount';
         mount.visible = true;
 
