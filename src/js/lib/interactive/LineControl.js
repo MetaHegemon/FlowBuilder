@@ -10,10 +10,17 @@ export default class{
 
     enable(connector) {
         this.active = true;
-        this.line = new Line();
-        this.line.setConnector1(connector);
+        const port = connector.userData.port;
+        const lines = port.userData.lines;
+        if(port.userData.direction === 'input' && lines.length > 0){
+            this.line = port.userData.lines[0];
+            this.line.setConnector2(null);
+            port.userData.lines = [];
+        } else {
+            this.line = new Line();
+            this.line.setConnector1(connector);
+        }
         const mesh = this.line.getLineMesh();
-        this.removeLineForInputPort(connector.userData.port);
         this.scene.add(mesh);
     }
 
