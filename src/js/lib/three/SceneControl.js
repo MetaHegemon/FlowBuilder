@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 
-export class SceneControl {
+export default class {
     constructor(canvas){
         this.canvas = canvas;
         this.renderer = new THREE.WebGLRenderer({

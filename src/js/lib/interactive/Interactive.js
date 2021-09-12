@@ -1,8 +1,12 @@
 import * as THREE from 'three';
 import C from '../Constants';
-import {DragControl} from './DragControl';
+import DragControl from './DragControl';
+import LineControl from './LineControl';
 
-export class Interactive{
+const Drag = new DragControl();
+const Line = new LineControl();
+
+export default class{
     constructor() {
         this.raycaster = new THREE.Raycaster();
         this.intersects = [];
@@ -13,18 +17,6 @@ export class Interactive{
         this.pointerPosOnScene = new THREE.Vector2();
         this.pointerDownPos = new THREE.Vector2();
         this.hovered = [];
-
-        this.drag = new DragControl();
-
-        this.drawSpline = {
-            active: false,
-            points: [
-                new THREE.Vector3(),
-                new THREE.Vector3()
-            ],
-            tempVector: new THREE.Vector3(),
-            spline: null
-        }
     }
 
     setSceneComponents(canvas, camera, scene, controls){
@@ -32,6 +24,7 @@ export class Interactive{
         this.camera = camera;
         this.scene = scene;
         this.controls = controls;
+        Line.setScene(scene);
     }
 
     setEvents(){
@@ -49,12 +42,12 @@ export class Interactive{
         this.pointerPosOnScene.x = this.raycaster.ray.origin.x;
         this.pointerPosOnScene.y = this.raycaster.ray.origin.y;
 
-
-        if(this.drag.active){
-            this.drag.dragObject(this.pointerPosOnScene);
-        } else if(this.drawSpline.active){
-            this.drawLine();
-        } {
+        if(Drag.active){
+            Drag.dragObject(this.pointerPosOnScene);
+            Line.refreshLines(); //only if drag node
+        } else if(Line.active){
+            Line.drawLineFromConnector(this.pointerPosOnScene.x, this.pointerPosOnScene.y);
+        } else {
             this.detectIntersects(e.buttons);
         }
     }
@@ -85,14 +78,18 @@ export class Interactive{
             }
             else if (buttons === 1)
             {
-                if(this.drag.isMoved(this.pointerPosOnScene, this.pointerDownPos)) {
+                if(Drag.isMoved(this.pointerPosOnScene, this.pointerDownPos)) {
                     const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
                     if (backMountIntersect) {
                         const node = backMountIntersect.object.userData.superParent;
-                        this.drag.enable(node, this.pointerPosOnScene);
+                        Drag.enable(node, this.pointerPosOnScene);
                         this.changePointerStyle('move');
                         return null;
                     }
+                }
+                const firstObject = this.intersects[0].object;
+                if(firstObject.name === 'connector'){
+                    Line.enable(firstObject);
                 }
             }
         } else {
@@ -143,60 +140,20 @@ export class Interactive{
                 const connectorIntersect = this.checkOnIntersect(this.intersects, 'connector');
                 if(connectorIntersect){
                     this.controls.enablePan = false;
-                    this.drawSpline.active = true;
-
-                    connectorIntersect.object.getWorldPosition(this.drawSpline.points[0]);
-                    this.drawSpline.points[1].x = this.pointerPosOnScene.x;
-                    this.drawSpline.points[1].y = this.pointerPosOnScene.y;
-                    this.drawSpline.points[1].z = 0;
-
-                    this.drawSpline.spline = this.getNewSpline();
-                    this.scene.add( this.drawSpline.spline.mesh );
+                    Line.enable(connectorIntersect.object);
                 }
             }
         }
     }
 
-    drawLine(){
-        this.drawSpline.points[1].x = this.pointerPosOnScene.x;
-        this.drawSpline.points[1].y = this.pointerPosOnScene.y;
-        this.drawSpline.points[1].z = 0;
-        this.updateSplineOutline();
-
-    }
-
-    updateSplineOutline() {
-        const position = this.drawSpline.spline.mesh.geometry.attributes.position;
-        for (let i = 0; i < C.splineSegments; i++) {
-            const t = i / (C.splineSegments - 1);
-            this.drawSpline.spline.getPoint(t, this.drawSpline.tempVector);
-            position.setXYZ(i, this.drawSpline.tempVector.x, this.drawSpline.tempVector.y, this.drawSpline.tempVector.z);
-        }
-        position.needsUpdate = true;
-    }
-
-    getNewSpline(){
-        const spline = new THREE.CatmullRomCurve3( this.drawSpline.points );
-        spline.curveType = 'catmullrom';
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute( 'position', new THREE.BufferAttribute( new Float32Array( C.splineSegments * 3 ), 3 ) );
-        spline.mesh = new THREE.Line(
-            geometry,
-            new THREE.LineBasicMaterial( {color: 0xff0000, linewidth: 4, opacity: 0.5})
-        );
-
-        return spline;
-    }
-
     onPointerUp(e){
         this.pointerDownPos.x = this.pointerDownPos.y = 0;
-        if(this.drag.active) {
-            this.drag.disable();
+        if(Drag.active) {
+            Drag.disable();
             this.controls.enablePan = true;
             this.changePointerStyle('default');
-        } else if(this.drawSpline.active){
-            this.drawSpline.active = false;
-            this.drawSpline.curve = null;
+        } else if(Line.active){
+            Line.disable();
         } {
             if(this.intersects.length > 0) {
                 if (e.button === 0) {

@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import {Text} from 'troika-three-text';
 import C from "../Constants";
-export class NodeControl{
+
+export default class {
     constructor() {
         this.nodeData = [];
         this.nodeObjects = [];
@@ -212,6 +213,7 @@ export class NodeControl{
             portObject.userData.label.text = inputs[i].name;
             portObject.userData.mark.userData.label.text = inputs[i].mark;
             portObject.userData.data = inputs[i];
+            portObject.userData.direction = 'input';
             portObject.position.set(0, currentYPos, C.layers[3]);
             currentYPos -= C.nodeMesh.port.height;
             ports.push(portObject);

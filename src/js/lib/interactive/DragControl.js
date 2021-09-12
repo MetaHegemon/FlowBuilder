@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export class DragControl{
+export default class{
     constructor() {
         this.active = false;
         this.offset = new THREE.Vector2();
