@@ -3,13 +3,12 @@ export default {
     splineSegments: 100,
     nodeMesh: {
         title: {
-            fontSize: 12,
+            fontSize: 10,
             fontColor: '#0a8ee5',
             leftMargin: 5
         },
         mount: {
             width: 80,
-            height: 200,
             headerHeight: 20,
             frontHeadColor: '#0a8ee5',
             frontBodyColor: '#fff',

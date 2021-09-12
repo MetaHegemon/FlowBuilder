@@ -53,11 +53,13 @@ export default class {
         for(let i = 0; i < inputs.length; i += 1){
             nodeObject.add(inputs[i]);
         }
+        nodeObject.userData.inPorts = inputs;
 
         const outputs = this.getOutputPorts(data.outputs, data.inputs);
         for(let i = 0; i < outputs.length; i += 1){
             nodeObject.add(outputs[i]);
         }
+        nodeObject.userData.outPorts = outputs;
 
         //footer
         const footer = this.getFooter(nodeShieldHeight);

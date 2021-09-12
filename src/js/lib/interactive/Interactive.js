@@ -44,7 +44,7 @@ export default class{
 
         if(Drag.active){
             Drag.dragObject(this.pointerPosOnScene);
-            lineControl.refreshLines(); //only if drag node
+            lineControl.refreshLines(Drag.getObject());
         } else if(lineControl.active) {
             this.intersects = this.raycaster.intersectObjects(this.scene.children, true);
             if (
@@ -53,9 +53,9 @@ export default class{
                 lineControl.canBeConnected(this.intersects[0].object)
             ) {
                 const pos = lineControl.getPositionOfConnector(this.intersects[0].object);
-                lineControl.drawLineFromConnector(pos.x, pos.y);
+                lineControl.drawLineFromPos(pos.x, pos.y);
             } else {
-                lineControl.drawLineFromConnector(this.pointerPosOnScene.x, this.pointerPosOnScene.y);
+                lineControl.drawLineFromPos(this.pointerPosOnScene.x, this.pointerPosOnScene.y);
             }
         } else {
             this.detectIntersects(e.buttons);

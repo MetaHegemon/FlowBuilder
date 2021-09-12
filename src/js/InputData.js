@@ -73,12 +73,6 @@ export default {
                     name: 'float',
                     type: 'float',
                     mark: 'f0'
-                },
-                {
-                    id: 1,
-                    name: 'float',
-                    type: 'float',
-                    mark: 'f1'
                 }
             ],
             outputs: [

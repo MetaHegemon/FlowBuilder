@@ -13,12 +13,91 @@ export default class{
         this.line = new Line();
         this.line.setConnector1(connector);
         const mesh = this.line.getLineMesh();
+        this.removeLineForInputPort(connector.userData.port);
         this.scene.add(mesh);
     }
 
     disable(){
         this.active = false;
         this.scene.remove(this.line.getLineMesh());
+    }
+
+    removeLineForInputPort(port){
+        if(port.userData.direction === 'input'){
+            for(let i = 0; i < port.userData.lines.length; i += 1) {
+                this.scene.remove(port.userData.lines[i].getLineMesh());
+            }
+            port.userData.lines = [];
+        }
+    }
+
+    getPositionOfConnector(connector){
+        const pos = new THREE.Vector3();
+        connector.getWorldPosition(pos);
+        return pos;
+    }
+
+    setScene(scene){
+        this.scene = scene;
+    }
+
+    drawLineFromPos(ex, ey){
+        const connector1 = this.line.getConnector1();
+        const port1 = connector1.userData.port;
+
+        const pos = this.getPositionOfConnector(connector1);
+        if(port1.userData.direction === 'input'){
+            this.line.setPos1(ex, ey);
+            this.line.setPos2(pos.x, pos.y);
+            this.line.updateLine();
+        } else {
+            this.line.setPos1(pos.x, pos.y);
+            this.line.setPos2(ex, ey);
+            this.line.updateLine();
+        }
+    }
+
+    // обновляет линии
+    refreshLines(object) {
+        const inPorts = object.userData.inPorts;
+        const outPorts = object.userData.outPorts;
+        const ports = [...inPorts, ...outPorts];
+
+        for(let i = 0; i < ports.length; i += 1){
+            const connector = ports[i].userData.connector;
+            const pos = new THREE.Vector3();
+            connector.getWorldPosition(pos);
+            const lines = ports[i].userData.lines;
+            for(let j = 0; j < lines.length; j += 1){
+                if(ports[i].userData.direction === 'output'){
+                    lines[j].setPos1(pos.x, pos.y);
+                    lines[j].updateLine();
+                } else {
+                    lines[j].setPos2(pos.x, pos.y);
+                    lines[j].updateLine();
+                }
+            }
+        }
+    }
+
+    canBeConnected(connector2){
+        let result = false;
+        const connector1 = this.line.getConnector1()
+        const node1 = connector1.userData.superParent;
+        const node2 = connector2.userData.superParent;
+        const port1 = connector1.userData.port;
+        const port2 = connector2.userData.port;
+
+        if(
+            node1 !== node2 &&
+            port1.userData.direction !== port2.userData.direction &&
+            port1.userData.data.type === port2.userData.data.type &&
+            !(port2.userData.direction === 'input' && port2.userData.lines.length > 0)
+        ){
+            result = true;
+        }
+
+        return result;
     }
 
     connect(connector2){
@@ -43,97 +122,7 @@ export default class{
         this.line.setPos2(pos2.x, pos2.y);
         this.line.updateLine();
 
-/*
-        this.line.setConnector2(connector2);
-        const connector1 = this.line.getConnector1();
-        const pos1 = this.getPositionOfConnector(connector1);
-        const pos2 = this.getPositionOfConnector(connector2);
-        const port1 = connector1.userData.port;
-        const port2 = connector2.userData.port;
-
-        const port1 = connector1.userData.port;
-        const port2 = connector2.userData.port;
-
-        this.line.setPos1(pos1.x, pos1.y);
-        this.line.setPos2(pos2.x, pos2.y);
-        this.line.updateLine();*/
-
-        port1.userData.lines.push(Line);
-        port2.userData.lines.push(Line);
-    }
-
-    canBeConnected(connector2){
-        let result = false;
-        const connector1 = this.line.getConnector1()
-        const node1 = connector1.userData.superParent;
-        const node2 = connector2.userData.superParent;
-        const port1 = connector1.userData.port;
-        const port2 = connector2.userData.port;
-
-        if(node1 !== node2 && port1.userData.direction !== port2.userData.direction && port1.userData.data.type === port2.userData.data.type){
-            result = true;
-        }
-
-        return result;
-    }
-
-    getPositionOfConnector(connector){
-        const pos = new THREE.Vector3();
-        connector.getWorldPosition(pos);
-        return pos;
-    }
-
-    setScene(scene){
-        this.scene = scene;
-    }
-
-    drawLineFromConnector(ex, ey){
-        const connector1 = this.line.getConnector1();
-        const port1 = connector1.userData.port;
-
-        const pos = this.getPositionOfConnector(connector1);
-        if(port1.userData.direction === 'input'){
-            this.line.setPos1(ex, ey);
-            this.line.setPos2(pos.x, pos.y);
-            this.line.updateLine();
-        } else {
-            this.line.setPos1(pos.x, pos.y);
-            this.line.setPos2(ex, ey);
-            this.line.updateLine();
-        }
-    }
-
-    // создает линии из точки входа и выхода объекта
-    makeLines(b) { //по окончании
-        console.log('makeLines');
-        let sx = 0
-        let sy = 0
-        for (let i = 0; i < b.out.length; i++) {
-            let a = b.out[i]
-            if (a.l !== null) {
-                a.l.dispose()
-                a.l = null
-            }
-            if (a.c !== 0) {
-                this.getOutPosition(b, i)
-                sx = this._p[0]
-                sy = this._p[1]
-                let o = this.objects.get(a.c)
-                this.getInPosition(o, a.n)
-
-                a.l = this.makeCurve(sx, sy, this._p[0], this._p[1])
-            }
-        }
-    }
-
-    // обновляет линии
-    refreshLines(b) {
-        this.makeLines(b)
-        for (let i = 0; i < b.in.length; i++) {
-            let a = b.in[i]
-            if (a.c !== 0) {
-                this.makeLines(this.objects.get(a.c))
-            }
-        }
+        port1.userData.lines.push(this.line);
+        port2.userData.lines.push(this.line);
     }
 }

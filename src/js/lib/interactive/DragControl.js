@@ -16,6 +16,10 @@ export default class{
         return Math.abs(currentPos.x - startPos.x) > this.constDelta || Math.abs(currentPos.y - startPos.y) > this.constDelta;
     }
 
+    getObject(){
+        return this.object;
+    }
+
     enable(object, pos){
         this.active = true;
         this.object = object;
