@@ -19,7 +19,6 @@ export default class{
         } else {
             this.line = new Line();
             this.line.setConnector1(connector);
-            this.line.forgetConnectors();
         }
         const mesh = this.line.getLineMesh();
         this.scene.add(mesh);
@@ -132,7 +131,5 @@ export default class{
 
         port1.userData.lines.push(this.line);
         port2.userData.lines.push(this.line);
-
-        this.line.saveConnectors();
     }
 }

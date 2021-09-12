@@ -38,7 +38,6 @@ export default class {
     run (){
         this.renderResize();
         this.render();
-        clog({scene: this.scene});
         //this.addDebugPlane();
     }
 

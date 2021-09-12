@@ -1,6 +1,7 @@
 export default {
     layers: [1, 2, 3, 4, 5, 6],  //слои размещения объектов в сцене. значение элемента массива означает координату по z
     splineSegments: 100,
+    deltaOnPointerInteractive: 3,
     nodeMesh: {
         title: {
             fontSize: 10,

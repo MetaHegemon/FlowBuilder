@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import DragControl from './DragControl';
 import LineControl from './LineControl';
+import C from "../Constants";
 
 const Drag = new DragControl();
 const lineControl = new LineControl();
@@ -15,8 +16,12 @@ export default class{
         this.controls = null;
         this.pointerPosOnScene = new THREE.Vector2();
         this.pointerDownPos = new THREE.Vector2();
+        this.cameraDownPos = new THREE.Vector2();
         this.hovered = [];
-        this.selected = [];
+        this.selected = {
+            lines: [],
+            nodes: []
+        };
     }
 
     setSceneComponents(canvas, camera, scene, controls){
@@ -71,11 +76,11 @@ export default class{
             if(buttons === 0){
                 const firstObject = this.intersects[0].object;
                 if(firstObject.name === 'portLabel'){
-                    firstObject.color = firstObject.userData.hoverColor;
+                    firstObject.userData.methods.hover();
                     this.hovered.push(firstObject);
                     this.changePointerStyle('pointer');
                 } else if(firstObject.name === 'footerLabel'){
-                    firstObject.color = firstObject.userData.hoverColor;
+                    firstObject.userData.methods.hover();
                     this.hovered.push(firstObject);
                     this.changePointerStyle('pointer');
                 } else if(firstObject.name === 'connector'){
@@ -89,7 +94,7 @@ export default class{
             }
             else if (buttons === 1)
             {
-                if(Drag.isMoved(this.pointerPosOnScene, this.pointerDownPos)) {
+                if(this.isMoved(this.pointerPosOnScene, this.pointerDownPos)) {
                     const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
                     if (backMountIntersect) {
                         const node = backMountIntersect.object.userData.superParent;
@@ -112,11 +117,7 @@ export default class{
     unhoverObjects(currentObject){
         for(let i = 0; i < this.hovered.length; i += 1) {
             if (this.hovered[i] === currentObject) continue;
-            if(this.hovered[i].name === 'backMount'){
-                this.hovered[i].material.color.setStyle(this.hovered[i].userData.originColor);
-            } else {
-                this.hovered[i].color = this.hovered[i].userData.originColor;
-            }
+            this.hovered[i].userData.methods.unhover();
             this.hovered.splice(i, 1);
             i -= 1;
         }
@@ -138,6 +139,9 @@ export default class{
     }
 
     onPointerDown(e){
+        this.cameraDownPos.x = this.camera.position.x;
+        this.cameraDownPos.y = this.camera.position.y;
+
         this.pointerDownPos.x = this.pointerPosOnScene.x;
         this.pointerDownPos.y = this.pointerPosOnScene.y;
 
@@ -158,7 +162,6 @@ export default class{
     }
 
     onPointerUp(e){
-        this.pointerDownPos.x = this.pointerDownPos.y = 0;
         if(Drag.active) {
             Drag.disable();
             this.changePointerStyle('default');
@@ -180,41 +183,98 @@ export default class{
                 if (e.button === 0) {
                     const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
                     if(backMountIntersect){
-                        this.selectNode(backMountIntersect.object);
+                        this.onNodeClick(backMountIntersect.object.userData.superParent);
+                        this.controls.enablePan = true;
                         return null;
                     }
                     const lineIntersect = this.checkOnIntersect(this.intersects, 'line');
                     if(lineIntersect){
-                        this.selectLine(lineIntersect.object);
+                        this.onLineClick(lineIntersect.object);
                         return null;
+                    }
+                }
+            } else {
+                if (e.button === 0) {
+                    if(!this.isMoved(this.camera.position, this.cameraDownPos)){
+                        this.unselectAll();
                     }
                 }
             }
         }
-
+        this.pointerDownPos.x = this.pointerDownPos.y = 0;
     }
 
-    selectNode (backMountMesh) {
-        const node = backMountMesh.userData.superParent;
-        if (node.userData.selected) {
-            node.userData.selected = false;
-            backMountMesh.material.color.setStyle(backMountMesh.userData.originColor);
-        } else {
-            node.userData.selected = true;
+    isMoved(currentPos, startPos){
+        return Math.abs(currentPos.x - startPos.x) > C.deltaOnPointerInteractive ||
+            Math.abs(currentPos.y - startPos.y) > C.deltaOnPointerInteractive;
+    }
 
-            //this.selectedNodes.push(node);
-            backMountMesh.material.color.setStyle(backMountMesh.userData.selectedColor);
+    onNodeClick (node) {
+        if (node.userData.selected) {
+            for(let i = 0; i < this.selected.nodes.length; i += 1){
+                if(this.selected.nodes[i].uuid === node.uuid){
+                    this.selected.nodes.splice(i, 1);
+                    break;
+                }
+            }
+            this.unselectNode(node);
+        } else {
+            this.selected.nodes.push(node);
+            this.selectNode(node);
+        }
+    }
+
+    selectNode(node){
+        node.userData.methods.select();
+    }
+
+    unselectNode(node){
+        node.userData.methods.unselect();
+    }
+
+    onLineClick(lineMesh){
+        if(lineMesh.userData.selected){
+            for(let i = 0; i < this.selected.lines.length; i += 1){
+                if(this.selected.lines[i].uuid === lineMesh.uuid){
+                    this.selected.lines.splice(i, 1);
+                    break;
+                }
+            }
+            this.unselectLine(lineMesh);
+        } else {
+            this.selected.lines.push(lineMesh);
+            this.selectLine(lineMesh);
         }
     }
 
     selectLine(lineMesh){
-        lineMesh.userData.selected = false;
-        const connector1 = lineMesh.userData.connector1;
-        const connector2 = lineMesh.userData.connector2;
-        lineMesh.material.color.setStyle(lineMesh.userData.selectedColor);
-        connector1.material.color.setStyle(connector1.userData.selectedColor);
-        connector2.material.color.setStyle(connector2.userData.selectedColor);
+        const connector1 = lineMesh.userData.methods.getConnector1();
+        const connector2 = lineMesh.userData.methods.getConnector2();
 
+        lineMesh.userData.methods.select();
+        connector1.userData.methods.select();
+        connector2.userData.methods.select();
+    }
+
+    unselectLine(lineMesh){
+        const connector1 = lineMesh.userData.methods.getConnector1();
+        const connector2 = lineMesh.userData.methods.getConnector2();
+
+        lineMesh.userData.methods.unselect();
+        connector1.userData.methods.unselect();
+        connector2.userData.methods.unselect();
+    }
+
+    unselectAll(){
+        for(let i = 0; i < this.selected.nodes.length; i += 1){
+            this.unselectNode(this.selected.nodes[i]);
+        }
+        this.selected.nodes = [];
+
+        for(let i = 0; i < this.selected.lines.length; i += 1){
+            this.unselectLine(this.selected.lines[i]);
+        }
+        this.selected.lines = [];
     }
 }
 

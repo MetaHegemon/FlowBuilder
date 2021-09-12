@@ -5,15 +5,10 @@ export default class{
         this.active = false;
         this.offset = new THREE.Vector2();
         this.object = null;
-        this.constDelta = 3;
     }
 
     dragObject(pos){
         this.object.position.set(pos.x + this.offset.x, pos.y + this.offset.y, this.object.position.z);
-    }
-
-    isMoved(currentPos, startPos){
-        return Math.abs(currentPos.x - startPos.x) > this.constDelta || Math.abs(currentPos.y - startPos.y) > this.constDelta;
     }
 
     getObject(){

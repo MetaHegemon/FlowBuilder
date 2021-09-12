@@ -7,21 +7,41 @@ import C from './../Constants';
 export default class {
     constructor(){
         this.geometry = new LineGeometry();
-        this.geometry.setPositions([0, 0, 0, 0, 0, 0]);
-        this.material = new LineMaterial({
-            color: C.nodeMesh.line.color,
-            linewidth: 0.002
-        });
-        this.line = new Line2(this.geometry, this.material);
-        this.line.userData.originColor = C.nodeMesh.line.color;
-        this.line.userData.selectedColor = C.nodeMesh.line.selectedColor;
-        this.line.name = 'line';
-        this.line.userData.selected = false;
+        this.line = this.create();
+
 
         this.connector1 = null;
         this.connector2 = null;
         this.pos1 = new THREE.Vector2();
         this.pos2 = new THREE.Vector2();
+    }
+
+    create(){
+        this.geometry.setPositions([0, 0, 0, 0, 0, 0]);
+        const material = new LineMaterial({
+            color: C.nodeMesh.line.color,
+            linewidth: 0.002
+        });
+        const line = new Line2(this.geometry, material);
+        line.name = 'line';
+        line.userData.selected = false;
+
+        line.userData.methods = {};
+
+        line.userData.methods.select = () => {
+            line.userData.selected = true;
+            line.material.color.setStyle(C.nodeMesh.line.selectedColor);
+        }
+
+        line.userData.methods.unselect = () => {
+            line.userData.selected = false;
+            line.material.color.setStyle(C.nodeMesh.line.color);
+        }
+
+        line.userData.methods.getConnector1 = ()=>this.getConnector1();
+        line.userData.methods.getConnector2 = ()=>this.getConnector2();
+
+        return line;
     }
 
     setConnector1(connector){
@@ -95,15 +115,5 @@ export default class {
         const geometry = new LineGeometry()
         geometry.setPositions(p);
         this.line.geometry = geometry;
-    }
-
-    saveConnectors(){
-        this.line.userData.connector1 = this.connector1;
-        this.line.userData.connector2 = this.connector2;
-    }
-
-    forgetConnectors(){
-        this.line.userData.connector1 = null;
-        this.line.userData.connector2 = null;
     }
 }
