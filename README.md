@@ -11,4 +11,4 @@ npm start
 ```
 
 ### Open app in the browser (check the port)
-[localhost:8099](http://localhost:9000)
+[localhost:9000](http://localhost:9000)
