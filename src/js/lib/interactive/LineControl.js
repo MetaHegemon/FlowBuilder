@@ -1,40 +1,62 @@
 import * as THREE from 'three';
-import {Line2} from 'three/examples/jsm/lines/Line2';
-import {LineGeometry} from 'three/examples/jsm/lines/LineGeometry';
-import {LineMaterial} from 'three/examples/jsm/lines/LineMaterial';
+import Line from '../three/Line';
 
 export default class{
     constructor() {
         this.active = false;
         this.scene = null;
-        this.direction = null;
-        this.geometry = new LineGeometry();
-        this.geometry.setPositions([0, 0, 0, 0, 0, 0]);
-        this.material = new LineMaterial({color: 0x2a2a2a, linewidth: 0.002});
-        this.line = new Line2(this.geometry, this.material);
-
-        this.connector1 = null;
-        this.connector1Pos = new THREE.Vector3();
-        this.connector2 = null;
-        this.connector2Pos = new THREE.Vector3();
-
-
-
-        this.lineData = null;
+        this.line = null;
     }
 
     enable(connector) {
-        clog(connector);
         this.active = true;
-        this.connector1 = connector;
-        this.connector1.getWorldPosition(this.connector1Pos);
-        this.scene.add(this.line);
+        this.line = new Line();
+        this.line.setConnector1(connector);
+        const mesh = this.line.getLineMesh();
+        this.scene.add(mesh);
     }
 
     disable(){
         this.active = false;
-        this.scene.remove(this.line);
-        this.line.geometry = new LineGeometry();
+        this.scene.remove(this.line.getLineMesh());
+    }
+
+    connect(connector2){
+        this.active = false;
+        this.line.setConnector2(connector2);
+        const connector1 = this.line.getConnector1();
+        const pos1 = this.getPositionOfConnector(connector1);
+        const pos2 = this.getPositionOfConnector(connector2);
+        const port1 = connector1.userData.port;
+        const port2 = connector2.userData.port;
+
+        this.line.setPos1(pos1.x, pos1.y);
+        this.line.setPos2(pos2.x, pos2.y);
+        this.line.updateLine();
+
+        port1.userData.line = Line;
+        port2.userData.line = Line;
+    }
+
+    canBeConnected(connector2){
+        let result = false;
+        const connector1 = this.line.getConnector1()
+        const node1 = connector1.userData.superParent;
+        const node2 = connector2.userData.superParent;
+        const port1 = connector1.userData.port;
+        const port2 = connector2.userData.port;
+
+        if(node1 !== node2 && port1.userData.direction !== port2.userData.direction && port1.userData.data.type === port2.userData.data.type){
+            result = true;
+        }
+
+        return result;
+    }
+
+    getPositionOfConnector(connector){
+        const pos = new THREE.Vector3();
+        connector.getWorldPosition(pos);
+        return pos;
     }
 
     setScene(scene){
@@ -42,51 +64,21 @@ export default class{
     }
 
     drawLineFromConnector(ex, ey){
-        if(this.connector1.userData.direction === 'input'){
-            this.updateLine(ex, ey, this.connector1Pos.x, this.connector1Pos.y);
+        const connector1 = this.line.getConnector1();
+        const port1 = connector1.userData.port;
+
+        const pos = this.getPositionOfConnector(connector1);
+        if(port1.userData.direction === 'input'){
+            this.line.setPos1(ex, ey);
+            this.line.setPos2(pos.x, pos.y);
+            this.line.updateLine();
         } else {
-            this.updateLine(this.connector1Pos.x, this.connector1Pos.y, ex, ey);
+            this.line.setPos1(pos.x, pos.y);
+            this.line.setPos2(ex, ey);
+            this.line.updateLine();
         }
     }
-    // выстраивает кривую линию
-    updateLine(sx, sy, ex, ey) {
 
-        console.log('makeCurve');
-        let p = []
-
-        let dx = Math.max(Math.abs(ex - sx), 0.1)
-
-        let a = [sx + dx * 0.5, sy]
-        let b = [ex - dx * 0.5, ey]
-
-        let steps = 50
-
-        p.push(sx, sy, 0)
-        for (let i = 1; i < steps; i++) {
-            let t = i / steps
-            let x1 = sx + (a[0] - sx) * t
-            let y1 = sy + (a[1] - sy) * t
-            let x2 = a[0] + (b[0] - a[0]) * t
-            let y2 = a[1] + (b[1] - a[1]) * t
-            let x3 = b[0] + (ex - b[0]) * t
-            let y3 = b[1] + (ey - b[1]) * t
-
-            let x4 = x1 + (x2 - x1) * t
-            let y4 = y1 + (y2 - y1) * t
-            let x5 = x2 + (x3 - x2) * t
-            let y5 = y2 + (y3 - y2) * t
-
-            let x6 = x4 + (x5 - x4) * t
-            let y6 = y4 + (y5 - y4) * t
-
-            p.push(x6, y6, 0);
-        }
-        p.push(ex, ey, 0);
-
-        const geometry = new LineGeometry()
-        geometry.setPositions(p);
-        this.line.geometry = geometry;
-    }
 
     // создает линии из точки входа и выхода объекта
     makeLines(b) { //по окончании

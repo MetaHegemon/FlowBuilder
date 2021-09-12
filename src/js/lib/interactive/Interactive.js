@@ -4,13 +4,13 @@ import DragControl from './DragControl';
 import LineControl from './LineControl';
 
 const Drag = new DragControl();
-const Line = new LineControl();
+const lineControl = new LineControl();
 
 export default class{
     constructor() {
         this.raycaster = new THREE.Raycaster();
         this.intersects = [];
-        this.pointerPos = new THREE.Vector2;
+        this.pointerPos = new THREE.Vector2();
         this.camera = null;
         this.scene = null;
         this.controls = null;
@@ -24,7 +24,7 @@ export default class{
         this.camera = camera;
         this.scene = scene;
         this.controls = controls;
-        Line.setScene(scene);
+        lineControl.setScene(scene);
     }
 
     setEvents(){
@@ -44,9 +44,19 @@ export default class{
 
         if(Drag.active){
             Drag.dragObject(this.pointerPosOnScene);
-            Line.refreshLines(); //only if drag node
-        } else if(Line.active){
-            Line.drawLineFromConnector(this.pointerPosOnScene.x, this.pointerPosOnScene.y);
+            lineControl.refreshLines(); //only if drag node
+        } else if(lineControl.active) {
+            this.intersects = this.raycaster.intersectObjects(this.scene.children, true);
+            if (
+                this.intersects.length > 0 &&
+                this.intersects[0].object.name === 'connector' &&
+                lineControl.canBeConnected(this.intersects[0].object)
+            ) {
+                const pos = lineControl.getPositionOfConnector(this.intersects[0].object);
+                lineControl.drawLineFromConnector(pos.x, pos.y);
+            } else {
+                lineControl.drawLineFromConnector(this.pointerPosOnScene.x, this.pointerPosOnScene.y);
+            }
         } else {
             this.detectIntersects(e.buttons);
         }
@@ -89,7 +99,7 @@ export default class{
                 }
                 const firstObject = this.intersects[0].object;
                 if(firstObject.name === 'connector'){
-                    Line.enable(firstObject);
+                    lineControl.enable(firstObject);
                 }
             }
         } else {
@@ -140,7 +150,7 @@ export default class{
                 const connectorIntersect = this.checkOnIntersect(this.intersects, 'connector');
                 if(connectorIntersect){
                     this.controls.enablePan = false;
-                    Line.enable(connectorIntersect.object);
+                    lineControl.enable(connectorIntersect.object);
                 }
             }
         }
@@ -152,8 +162,17 @@ export default class{
             Drag.disable();
             this.controls.enablePan = true;
             this.changePointerStyle('default');
-        } else if(Line.active){
-            Line.disable();
+        } else if(lineControl.active){
+            this.intersects = this.raycaster.intersectObjects(this.scene.children, true);
+            if (
+                this.intersects.length > 0 &&
+                this.intersects[0].object.name === 'connector' &&
+                lineControl.canBeConnected(this.intersects[0].object)
+            ) {
+                lineControl.connect(this.intersects[0].object);
+            } else {
+                lineControl.disable();
+            }
         } {
             if(this.intersects.length > 0) {
                 if (e.button === 0) {
