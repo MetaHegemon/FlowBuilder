@@ -19,12 +19,9 @@ import NodeControl from "./lib/three/NodeControl";
 import Interactive from "./lib/interactive/Interactive";
 import flowData from './InputData';
 
-
 const mainWindow = new MainWindow();
 mainWindow.createWindow(document.documentElement.clientWidth, document.documentElement.clientHeight);
 document.body.append(mainWindow.getWindow());
-
-
 
 const nodeControl = new NodeControl();
 nodeControl.setData(flowData.nodes);

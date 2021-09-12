@@ -13,6 +13,7 @@ export class MainWindow{
         this.window.style.height = '100%';
 
         this.createCanvas(width, height);
+
         this.window.append(this.canvas);
     }
 

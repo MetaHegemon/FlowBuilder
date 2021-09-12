@@ -12,13 +12,13 @@ export default class {
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.autoClear = true;
 
-        const frustumSize = 1;
+        this.frustumSize = 1;
         const aspect = this.canvas.width/this.canvas.height;
         this.camera = new THREE.OrthographicCamera(
-            frustumSize * aspect / -2,
-            frustumSize * aspect / 2,
-            frustumSize/2,
-            frustumSize/-2,
+            this.frustumSize * aspect / -2,
+            this.frustumSize * aspect / 2,
+            this.frustumSize/2,
+            this.frustumSize/-2,
             1,
             1000
         );
@@ -33,6 +33,8 @@ export default class {
 
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0xf0f2f5);
+
+        new ResizeObserver(()=>this.renderResize()).observe(this.canvas.parentNode);
     }
 
     run (){
@@ -50,10 +52,18 @@ export default class {
     }
 
     renderResize() {
+        this.canvas.width = this.canvas.parentNode.clientWidth;
+        this.canvas.height = this.canvas.parentNode.clientHeight;
+
         const aspect = this.canvas.width / this.canvas.height;
         this.renderer.setSize(this.canvas.width, this.canvas.height);
         this.camera.aspect = aspect;
-        this.camera.updateProjectionMatrix()
+
+        this.camera.left = this.frustumSize * aspect / -2;
+        this.camera.right = this.frustumSize * aspect / 2;
+        this.camera.top = this.frustumSize/2;
+        this.camera.bottom = this.frustumSize/-2;
+        this.camera.updateProjectionMatrix();
     }
 
     render(){
