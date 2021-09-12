@@ -173,7 +173,7 @@ export default class{
             } else {
                 lineControl.disable();
             }
-        } {
+        } else {
             if(this.intersects.length > 0) {
                 if (e.button === 0) {
                     const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
