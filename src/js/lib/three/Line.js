@@ -2,14 +2,21 @@ import * as THREE from 'three';
 import {LineGeometry} from "three/examples/jsm/lines/LineGeometry";
 import {LineMaterial} from "three/examples/jsm/lines/LineMaterial";
 import {Line2} from "three/examples/jsm/lines/Line2";
+import C from './../Constants';
 
 export default class {
     constructor(){
         this.geometry = new LineGeometry();
         this.geometry.setPositions([0, 0, 0, 0, 0, 0]);
-        this.material = new LineMaterial({color: 0x2a2a2a, linewidth: 0.002});
+        this.material = new LineMaterial({
+            color: C.nodeMesh.line.color,
+            linewidth: 0.002
+        });
         this.line = new Line2(this.geometry, this.material);
+        this.line.userData.originColor = C.nodeMesh.line.color;
+        this.line.userData.selectedColor = C.nodeMesh.line.selectedColor;
         this.line.name = 'line';
+        this.line.userData.selected = false;
 
         this.connector1 = null;
         this.connector2 = null;
@@ -88,5 +95,15 @@ export default class {
         const geometry = new LineGeometry()
         geometry.setPositions(p);
         this.line.geometry = geometry;
+    }
+
+    saveConnectors(){
+        this.line.userData.connector1 = this.connector1;
+        this.line.userData.connector2 = this.connector2;
+    }
+
+    forgetConnectors(){
+        this.line.userData.connector1 = null;
+        this.line.userData.connector2 = null;
     }
 }

@@ -20,13 +20,16 @@ export default {
             footerHeight: 10,
             footerLabelFontSize: 12,
             footerColor: '#d0d0d0',
-            footerLabelColor: '#ffffff'
+            footerLabelColor: '#ffffff',
+            footerLabelHoverColor: '#0a8ee5'
         },
         port: {
             height: 16,
             connectorWidth: 8,
             connectorHeight: 8,
+            connectorSelectedColor: '#00ff00',
             labelLeftMargin: 14,
+            labelHoverColor: '#0a8ee5',
             fontSize: 10,
             connectorCornerRadius: 3,
             markWidth: 8,
@@ -35,16 +38,22 @@ export default {
             markFontSize: 7,
             markLeftMargin: 3
         },
+        line: {
+            color: '#2a2a2a',
+            selectedColor: '#00ff00'
+        },
         portTypes: {
             float: {
                 connectorColor: '#ee6f6f',
                 labelColor: '#2a2a2a',
-                fontColor: '#ffffff'
+                fontColor: '#ffffff',
+                markColor: '#ee6f6f'
             },
             int: {
                 connectorColor: '#4483f5',
                 labelColor: '#2a2a2a',
-                fontColor: '#ffffff'
+                fontColor: '#ffffff',
+                markColor: '#4483f5'
             }
         }
     }

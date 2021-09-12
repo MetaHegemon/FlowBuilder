@@ -101,7 +101,8 @@ export default class {
             h: height,
             color: C.nodeMesh.mount.backMountColor
         });
-        mount.userData.backUpColor = C.nodeMesh.mount.backMountColor;
+        mount.userData.selectedColor = C.nodeMesh.mount.backMountSelectedColor;
+        mount.userData.originColor = C.nodeMesh.mount.backMountColor;
         mount.name = 'backMount';
         mount.visible = true;
 
@@ -289,6 +290,8 @@ export default class {
         } else {
             connectorMesh.position.set(-w, 0 ,0);
         }
+        connectorMesh.userData.originColor = C.nodeMesh.portTypes[portType].connectorColor;
+        connectorMesh.userData.selectedColor = C.nodeMesh.port.connectorSelectedColor;
         connectorMesh.name = 'connector';
 
         return connectorMesh;
@@ -312,17 +315,18 @@ export default class {
             .lineTo(0, h/2 - r);
         const markMountMesh = new THREE.Mesh(
             new THREE.ShapeGeometry( markMountShape ),
-            new THREE.MeshBasicMaterial({color: C.nodeMesh.portTypes[portType].connectorColor})
+            new THREE.MeshBasicMaterial({color: C.nodeMesh.portTypes[portType].markColor})
         );
         markMountMesh.name = 'mark';
-        markMountMesh.userData.backUpColor = C.nodeMesh.portTypes[portType].connectorColor;
+        markMountMesh.userData.originColor = C.nodeMesh.portTypes[portType].markColor;
 
         markObject.add(markMountMesh);
 
         const label = new Text();
         label.name = 'markLabel';
         label.fontSize = C.nodeMesh.port.markFontSize;
-        label.color = label.userData.backUpColor = C.nodeMesh.portTypes[portType].fontColor;
+        label.color = C.nodeMesh.portTypes[portType].fontColor;
+        label.userData.originColor = C.nodeMesh.portTypes[portType].fontColor
         label.anchorX = 'center';
         label.anchorY = 'middle';
         label.position.set(C.nodeMesh.port.markWidth/2, 0, 0);
@@ -343,7 +347,9 @@ export default class {
         const label = new Text();
         label.name = 'portLabel';
         label.fontSize = C.nodeMesh.port.fontSize;
-        label.color = label.userData.backUpColor = C.nodeMesh.portTypes[portType].labelColor;
+        label.color = C.nodeMesh.portTypes[portType].labelColor;
+        label.userData.originColor = C.nodeMesh.portTypes[portType].labelColor;
+        label.userData.hoverColor = C.nodeMesh.port.labelHoverColor;
         label.anchorX = direction === 'input' ? 'left' : 'right';
         label.anchorY = 'middle';
         label.position.set(direction === 'input' ? C.nodeMesh.port.labelLeftMargin : -C.nodeMesh.port.labelLeftMargin, 0, 0);
@@ -356,7 +362,9 @@ export default class {
         footerLabel.name = 'footerLabel';
         footerLabel.text = 'Learn more';
         footerLabel.fontSize = 8;
-        footerLabel.color = footerLabel.userData.backUpColor = C.nodeMesh.mount.footerLabelColor;
+        footerLabel.color = C.nodeMesh.mount.footerLabelColor;
+        footerLabel.userData.originColor = C.nodeMesh.mount.footerLabelColor;
+        footerLabel.userData.hoverColor = C.nodeMesh.mount.footerLabelHoverColor;
         footerLabel.anchorX = 'left';
         footerLabel.anchorY = 'bottom';
         footerLabel.position.set(4, -nodeShieldHeight + 1, C.layers[3]);

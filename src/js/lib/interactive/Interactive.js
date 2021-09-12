@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import C from '../Constants';
 import DragControl from './DragControl';
 import LineControl from './LineControl';
 
@@ -17,6 +16,7 @@ export default class{
         this.pointerPosOnScene = new THREE.Vector2();
         this.pointerDownPos = new THREE.Vector2();
         this.hovered = [];
+        this.selected = [];
     }
 
     setSceneComponents(canvas, camera, scene, controls){
@@ -46,6 +46,7 @@ export default class{
             Drag.dragObject(this.pointerPosOnScene);
             lineControl.refreshLines(Drag.getObject());
         } else if(lineControl.active) {
+            //TODO find only first intersect
             this.intersects = this.raycaster.intersectObjects(this.scene.children, true);
             if (
                 this.intersects.length > 0 &&
@@ -70,16 +71,16 @@ export default class{
             if(buttons === 0){
                 const firstObject = this.intersects[0].object;
                 if(firstObject.name === 'portLabel'){
-                    firstObject.color = C.nodeMesh.mount.backMountSelectedColor;
+                    firstObject.color = firstObject.userData.hoverColor;
                     this.hovered.push(firstObject);
                     this.changePointerStyle('pointer');
                 } else if(firstObject.name === 'footerLabel'){
-                    firstObject.color = C.nodeMesh.mount.backMountSelectedColor;
+                    firstObject.color = firstObject.userData.hoverColor;
                     this.hovered.push(firstObject);
                     this.changePointerStyle('pointer');
                 } else if(firstObject.name === 'connector'){
-                    firstObject.color = C.nodeMesh.mount.backMountSelectedColor;
-                    this.hovered.push(firstObject);
+                    this.changePointerStyle('pointer');
+                } else if(firstObject.name === 'line'){
                     this.changePointerStyle('pointer');
                 } else {
                     this.unhoverObjects(firstObject);
@@ -112,9 +113,9 @@ export default class{
         for(let i = 0; i < this.hovered.length; i += 1) {
             if (this.hovered[i] === currentObject) continue;
             if(this.hovered[i].name === 'backMount'){
-                this.hovered[i].material.color = new THREE.Color(this.hovered[i].userData.backUpColor);
+                this.hovered[i].material.color.setStyle(this.hovered[i].userData.originColor);
             } else {
-                this.hovered[i].color = this.hovered[i].userData.backUpColor;
+                this.hovered[i].color = this.hovered[i].userData.originColor;
             }
             this.hovered.splice(i, 1);
             i -= 1;
@@ -160,8 +161,8 @@ export default class{
         this.pointerDownPos.x = this.pointerDownPos.y = 0;
         if(Drag.active) {
             Drag.disable();
-            this.controls.enablePan = true;
             this.changePointerStyle('default');
+            this.controls.enablePan = true;
         } else if(lineControl.active){
             this.intersects = this.raycaster.intersectObjects(this.scene.children, true);
             if (
@@ -173,24 +174,47 @@ export default class{
             } else {
                 lineControl.disable();
             }
+            this.controls.enablePan = true;
         } else {
             if(this.intersects.length > 0) {
                 if (e.button === 0) {
                     const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
                     if(backMountIntersect){
-                        const node = backMountIntersect.object.userData.superParent;
-                        if(node.userData.selected){
-                            node.userData.selected = false;
-                            backMountIntersect.object.material.color = new THREE.Color(backMountIntersect.object.userData.backUpColor);
-                        } else {
-                            node.userData.selected = true;
-                            backMountIntersect.object.material.color = new THREE.Color(C.nodeMesh.mount.backMountSelectedColor);
-                        }
+                        this.selectNode(backMountIntersect.object);
+                        return null;
+                    }
+                    const lineIntersect = this.checkOnIntersect(this.intersects, 'line');
+                    if(lineIntersect){
+                        this.selectLine(lineIntersect.object);
+                        return null;
                     }
                 }
             }
         }
-        this.controls.enablePan = true;
+
+    }
+
+    selectNode (backMountMesh) {
+        const node = backMountMesh.userData.superParent;
+        if (node.userData.selected) {
+            node.userData.selected = false;
+            backMountMesh.material.color.setStyle(backMountMesh.userData.originColor);
+        } else {
+            node.userData.selected = true;
+
+            //this.selectedNodes.push(node);
+            backMountMesh.material.color.setStyle(backMountMesh.userData.selectedColor);
+        }
+    }
+
+    selectLine(lineMesh){
+        lineMesh.userData.selected = false;
+        const connector1 = lineMesh.userData.connector1;
+        const connector2 = lineMesh.userData.connector2;
+        lineMesh.material.color.setStyle(lineMesh.userData.selectedColor);
+        connector1.material.color.setStyle(connector1.userData.selectedColor);
+        connector2.material.color.setStyle(connector2.userData.selectedColor);
+
     }
 }
 
