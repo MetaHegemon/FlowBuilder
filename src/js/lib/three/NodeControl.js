@@ -215,7 +215,7 @@ export default class {
             portObject.userData.connector.userData.port = portObject;
             portObject.userData.data = inputs[i];
             portObject.userData.direction = 'input';
-            portObject.line = null;
+            portObject.userData.lines = [];
             portObject.position.set(0, currentYPos, C.layers[3]);
             currentYPos -= C.nodeMesh.port.height;
             ports.push(portObject);
@@ -235,7 +235,7 @@ export default class {
             portObject.userData.connector.userData.port = portObject;
             portObject.userData.data = outputs[i];
             portObject.userData.direction = 'output';
-            portObject.line = null;
+            portObject.userData.lines = [];
             portObject.position.set(C.nodeMesh.mount.width, currentYPos, C.layers[3]);
             currentYPos -= C.nodeMesh.port.height;
             ports.push(portObject);

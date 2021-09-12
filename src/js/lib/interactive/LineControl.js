@@ -23,6 +23,27 @@ export default class{
 
     connect(connector2){
         this.active = false;
+        let pos1, pos2;
+        const connector1 = this.line.getConnector1();
+        const port1 = connector1.userData.port;
+        const port2 = connector2.userData.port;
+        //set output connector as first
+        if(port1.userData.direction === 'output'){
+            this.line.setConnector1(connector1);
+            this.line.setConnector2(connector2);
+            pos1 = this.getPositionOfConnector(connector1);
+            pos2 = this.getPositionOfConnector(connector2);
+        } else {
+            this.line.setConnector1(connector2);
+            this.line.setConnector2(connector1);
+            pos1 = this.getPositionOfConnector(connector2);
+            pos2 = this.getPositionOfConnector(connector1);
+        }
+        this.line.setPos1(pos1.x, pos1.y);
+        this.line.setPos2(pos2.x, pos2.y);
+        this.line.updateLine();
+
+/*
         this.line.setConnector2(connector2);
         const connector1 = this.line.getConnector1();
         const pos1 = this.getPositionOfConnector(connector1);
@@ -30,12 +51,15 @@ export default class{
         const port1 = connector1.userData.port;
         const port2 = connector2.userData.port;
 
+        const port1 = connector1.userData.port;
+        const port2 = connector2.userData.port;
+
         this.line.setPos1(pos1.x, pos1.y);
         this.line.setPos2(pos2.x, pos2.y);
-        this.line.updateLine();
+        this.line.updateLine();*/
 
-        port1.userData.line = Line;
-        port2.userData.line = Line;
+        port1.userData.lines.push(Line);
+        port2.userData.lines.push(Line);
     }
 
     canBeConnected(connector2){
@@ -78,7 +102,6 @@ export default class{
             this.line.updateLine();
         }
     }
-
 
     // создает линии из точки входа и выхода объекта
     makeLines(b) { //по окончании
