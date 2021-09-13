@@ -180,15 +180,17 @@ export default class{
             this.controls.enablePan = true;
         } else {
             if(this.intersects.length > 0) {
+                clog(e);
                 if (e.button === 0) {
                     const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
-                    if(backMountIntersect){
-                        this.onNodeClick(backMountIntersect.object.userData.superParent);
+                    if (backMountIntersect) {
+                        this.onNodeClick(backMountIntersect.object.userData.superParent, e.shiftKey);
                         this.controls.enablePan = true;
                         return null;
                     }
+
                     const lineIntersect = this.checkOnIntersect(this.intersects, 'line');
-                    if(lineIntersect){
+                    if (lineIntersect) {
                         this.onLineClick(lineIntersect.object);
                         return null;
                     }
@@ -209,17 +211,41 @@ export default class{
             Math.abs(currentPos.y - startPos.y) > C.deltaOnPointerInteractive;
     }
 
-    onNodeClick (node) {
+    onNodeClick (node, isMultipleSelect) {
         if (node.userData.selected) {
-            for(let i = 0; i < this.selected.nodes.length; i += 1){
-                if(this.selected.nodes[i].uuid === node.uuid){
-                    this.selected.nodes.splice(i, 1);
-                    break;
+            if(isMultipleSelect) {
+                for (let i = 0; i < this.selected.nodes.length; i += 1) {
+                    if (this.selected.nodes[i].uuid === node.uuid) {
+                        this.selected.nodes.splice(i, 1);
+                        break;
+                    }
+                }
+                this.unselectNode(node);
+            } else {
+                if(this.selected.nodes.length > 1){
+                    for (let i = 0; i < this.selected.nodes.length; i += 1) {
+                        if (this.selected.nodes[i].uuid === node.uuid) continue;
+                        this.unselectNode(this.selected.nodes[i]);
+                        this.selected.nodes.splice(i, 1);
+                        i -= 1;
+                    }
+                } else {
+                    this.selected.nodes = [];
+                    this.unselectNode(node);
                 }
             }
-            this.unselectNode(node);
         } else {
-            this.selected.nodes.push(node);
+            if(isMultipleSelect) {
+                this.selected.nodes.push(node);
+            } else {
+                for (let i = 0; i < this.selected.nodes.length; i += 1) {
+                    if (this.selected.nodes[i].uuid === node.uuid) continue;
+                    this.unselectNode(this.selected.nodes[i]);
+                    this.selected.nodes.splice(i, 1);
+                    i -= 1;
+                }
+                this.selected.nodes.push(node);
+            }
             this.selectNode(node);
         }
     }
@@ -229,6 +255,7 @@ export default class{
     }
 
     unselectNode(node){
+        clog(node);
         node.userData.methods.unselect();
     }
 
