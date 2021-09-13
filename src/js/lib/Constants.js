@@ -57,5 +57,10 @@ export default {
                 markColor: '#4483f5'
             }
         }
+    },
+    three: {
+        maxZoom: 0.2,
+        dampingFactor: 0.4,
+        zoomSpeed: 0.002
     }
 };
