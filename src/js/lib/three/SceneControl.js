@@ -33,23 +33,37 @@ export default class {
 
         //pan
         this.pan = true;
+        this.spaceBarActive = false;
         this.cameraPosTo = {x: 0, y: 0};
         this.pointerLastPos = {x: 0, y: 0};
-
+        document.addEventListener('keydown', (e) => this.onKeyDown(e), false);
+        document.addEventListener('keyup', (e) => this.onKeyUp(e));
         this.canvas.addEventListener('pointermove', (e) => this.onMouseMove(e));
 
+        this.canvas.addEventListener('contextmenu', (e) => this.onContextMenu(e));
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0xf0f2f5);
 
         new ResizeObserver(()=>this.renderResize()).observe(this.canvas.parentNode);
     }
 
+    onContextMenu(e){
+         e.preventDefault();
+    }
+
+    onKeyDown(e){
+        if(e.code === 'Space') this.spaceBarActive = true;
+    }
+
+    onKeyUp(e){
+        if(e.code === 'Space') this.spaceBarActive = false;
+    }
+
     onMouseMove(e){
+        const currentPosX = (e.pageX / this.canvas.width) * 2 - 1;
+        const currentPosY = -(e.pageY / this.canvas.height) * 2 + 1;
 
-        const currentPosX = (e.layerX / this.canvas.width) * 2 - 1;
-        const currentPosY = -(e.layerY / this.canvas.height) * 2 + 1;
-
-        if(e.buttons === 1 && this.pan) {
+        if((e.buttons === 1 && this.pan && this.spaceBarActive) || (e.buttons === 4  && this.pan)) {
             let dx = (this.pointerLastPos.x - currentPosX)/this.camera.zoom;
             let dy = (this.pointerLastPos.y - currentPosY)/this.camera.zoom;
 
