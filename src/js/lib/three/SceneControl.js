@@ -45,7 +45,7 @@ export default class {
     }
 
     onWheel(e) {
-        this.zoomTo = Math.max((this.frustumSize + e.deltaY * C.three.zoomSpeed * this.frustumSize), C.three.maxZoom);
+        this.zoomTo = Math.min(Math.max((this.frustumSize + e.deltaY * C.three.zoomSpeed * this.frustumSize), C.three.maxZoom), C.three.minZoom);
     }
 
     run (){

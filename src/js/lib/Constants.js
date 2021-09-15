@@ -60,7 +60,8 @@ export default {
     },
     three: {
         maxZoom: 0.2,
-        dampingFactor: 0.4,
+        minZoom: 10,
+        dampingFactor: 0.15, //bigger than shorter inertia
         zoomSpeed: 0.002
     }
 };
