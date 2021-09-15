@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import C from './../Constants';
 
 export default class {
@@ -27,21 +26,40 @@ export default class {
         this.camera.lookAt(0,0,0);
         this.camera.zoom = 0.0015;
 
-        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.enableZoom = false;
-
+        //zoom
         this.zoomTo = 1;
         this.zoomStep = null;
         this.canvas.addEventListener('wheel', (e)=> this.onWheel(e));
 
-        this.controls.enableRotate = true;
-        this.controls.screenSpacePanning = true;
-        this.controls.mouseButtons = { LEFT: THREE.MOUSE.RIGHT, MIDDLE: THREE.MOUSE.MIDDLE, RIGHT: THREE.MOUSE.LEFT };
+        //pan
+        this.enablePan = true;
+        this.cameraPosTo = {x: 0, y: 0};
+        this.pointerLastPos = {x: 0, y: 0};
+
+        this.canvas.addEventListener('pointermove', (e) => this.onMouseMove(e));
 
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0xf0f2f5);
 
         new ResizeObserver(()=>this.renderResize()).observe(this.canvas.parentNode);
+    }
+
+    onMouseMove(e){
+        const currentPosX = (e.layerX / this.canvas.width) * 2 - 1;
+        const currentPosY = -(e.layerY / this.canvas.height) * 2 + 1;
+
+        if(e.buttons === 1 && this.scene.enablePan) {
+            let dx = (this.pointerLastPos.x - currentPosX)/this.camera.zoom;
+            let dy = (this.pointerLastPos.y - currentPosY)/this.camera.zoom;
+
+            this.cameraPosTo.x = this.cameraPosTo.x + dx * this.camera.right;
+            this.cameraPosTo.y = this.cameraPosTo.y + dy * this.camera.top;
+
+            this.camera.position.x = this.camera.position.x + (this.cameraPosTo.x - this.camera.position.x);
+            this.camera.position.y = this.camera.position.y + (this.cameraPosTo.y - this.camera.position.y);
+        }
+        this.pointerLastPos.x = currentPosX;
+        this.pointerLastPos.y = currentPosY;
     }
 
     onWheel(e) {
@@ -114,9 +132,5 @@ export default class {
 
     getRenderer(){
         return this.renderer;
-    }
-
-    getControls(){
-        return this.controls;
     }
 }

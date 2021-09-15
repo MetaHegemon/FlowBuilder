@@ -59,9 +59,9 @@ export default {
         }
     },
     three: {
-        maxZoom: 0.2,
-        minZoom: 10,
-        dampingFactor: 0.15, //bigger than shorter inertia
+        maxZoom: 0.2,               //how near camera can zoom
+        minZoom: 10,                //how far camera can zoom
+        dampingFactor: 0.15,        //bigger than shorter inertia
         zoomSpeed: 0.002
     }
 };

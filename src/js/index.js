@@ -32,7 +32,7 @@ const sceneControl = new SceneControl(mainWindow.getCanvas());
 sceneControl.addObjectsToScene(nodes);
 
 const interactive = new Interactive();
-interactive.setSceneComponents(mainWindow.getCanvas(), sceneControl.getCamera(), sceneControl.getScene(), sceneControl.getControls());
+interactive.setSceneComponents(mainWindow.getCanvas(), sceneControl.getCamera(), sceneControl.getScene());
 interactive.setEvents();
 
 //3
