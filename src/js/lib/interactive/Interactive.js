@@ -155,6 +155,7 @@ export default class{
                 const connectorIntersect = this.checkOnIntersect(this.intersects, 'connector');
                 if(connectorIntersect){
                     this.controls.enablePan = false;
+                    this.unselectAllLines();
                     lineControl.enable(connectorIntersect.object);
                 }
             }
@@ -180,7 +181,6 @@ export default class{
             this.controls.enablePan = true;
         } else {
             if(this.intersects.length > 0) {
-                clog(e);
                 if (e.button === 0) {
                     const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
                     if (backMountIntersect) {
@@ -293,11 +293,18 @@ export default class{
     }
 
     unselectAll(){
+        this.unselectAllNodes();
+        this.unselectAllLines();
+    }
+
+    unselectAllNodes(){
         for(let i = 0; i < this.selected.nodes.length; i += 1){
             this.unselectNode(this.selected.nodes[i]);
         }
         this.selected.nodes = [];
+    }
 
+    unselectAllLines(){
         for(let i = 0; i < this.selected.lines.length; i += 1){
             this.unselectLine(this.selected.lines[i]);
         }
