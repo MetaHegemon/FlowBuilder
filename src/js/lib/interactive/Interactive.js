@@ -23,11 +23,12 @@ export default class{
         };
     }
 
-    setSceneComponents(canvas, camera, scene){
+    setSceneComponents(canvas, sceneControl){
         this.canvas = canvas;
-        this.camera = camera;
-        this.scene = scene;
-        lineControl.setScene(scene);
+        this.sceneControl = sceneControl;
+        this.camera = sceneControl.getCamera();
+        this.scene = sceneControl.getScene();
+        lineControl.setScene(this.scene);
     }
 
     setEvents(){
@@ -148,12 +149,12 @@ export default class{
             if (e.buttons === 1) {
                 const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
                 if(backMountIntersect){
-                    this.scene.enablePan = false;
+                    this.sceneControl.disablePan();
                     return null;
                 }
                 const connectorIntersect = this.checkOnIntersect(this.intersects, 'connector');
                 if(connectorIntersect){
-                    this.scene.enablePan = false;
+                    this.sceneControl.disablePan();
                     this.unselectAllLines();
                     lineControl.enable(connectorIntersect.object);
                 }
@@ -165,7 +166,7 @@ export default class{
         if(Drag.active) {
             Drag.disable();
             this.changePointerStyle('default');
-            this.scene.enablePan = true;
+            this.sceneControl.enablePan();
         } else if(lineControl.active){
             this.intersects = this.raycaster.intersectObjects(this.scene.children, true);
             if (
@@ -177,14 +178,14 @@ export default class{
             } else {
                 lineControl.disable();
             }
-            this.scene.enablePan = true;
+            this.sceneControl.enablePan();
         } else {
             if(this.intersects.length > 0) {
                 if (e.button === 0) {
                     const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
                     if (backMountIntersect) {
                         this.onNodeClick(backMountIntersect.object.userData.superParent, e.shiftKey);
-                        this.scene.enablePan = true;
+                        this.sceneControl.enablePan();
                         return null;
                     }
 

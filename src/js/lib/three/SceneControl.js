@@ -32,7 +32,7 @@ export default class {
         this.canvas.addEventListener('wheel', (e)=> this.onWheel(e));
 
         //pan
-        this.enablePan = true;
+        this.pan = true;
         this.cameraPosTo = {x: 0, y: 0};
         this.pointerLastPos = {x: 0, y: 0};
 
@@ -45,10 +45,11 @@ export default class {
     }
 
     onMouseMove(e){
+
         const currentPosX = (e.layerX / this.canvas.width) * 2 - 1;
         const currentPosY = -(e.layerY / this.canvas.height) * 2 + 1;
 
-        if(e.buttons === 1 && this.scene.enablePan) {
+        if(e.buttons === 1 && this.pan) {
             let dx = (this.pointerLastPos.x - currentPosX)/this.camera.zoom;
             let dy = (this.pointerLastPos.y - currentPosY)/this.camera.zoom;
 
@@ -128,6 +129,14 @@ export default class {
 
     getScene(){
         return this.scene;
+    }
+
+    enablePan(){
+        this.pan = true;
+    }
+
+    disablePan(){
+        this.pan = false;
     }
 
     getRenderer(){
