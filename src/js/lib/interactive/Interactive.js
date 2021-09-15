@@ -184,7 +184,7 @@ export default class{
                 if (e.button === 0) {
                     const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
                     if (backMountIntersect) {
-                        this.onNodeClick(backMountIntersect.object.userData.superParent, e.shiftKey);
+                        this.onNodeClick(backMountIntersect.object.userData.superParent, e.shiftKey, e.ctrlKey);
                         this.sceneControl.enablePan();
                         return null;
                     }
@@ -211,16 +211,22 @@ export default class{
             Math.abs(currentPos.y - startPos.y) > C.deltaOnPointerInteractive;
     }
 
-    onNodeClick (node, isMultipleSelect) {
+    onNodeClick (node, shiftKey, ctrlKey) {
+        clog(this.selected);
         if (node.userData.selected) {
-            if(isMultipleSelect) {
+            clog(shiftKey, ctrlKey);
+
+            if(ctrlKey) {
                 for (let i = 0; i < this.selected.nodes.length; i += 1) {
                     if (this.selected.nodes[i].uuid === node.uuid) {
                         this.selected.nodes.splice(i, 1);
+                        clog({unselect: this.selected.nodes[i]});
                         break;
                     }
                 }
                 this.unselectNode(node);
+            } else if(shiftKey){
+
             } else {
                 if(this.selected.nodes.length > 1){
                     for (let i = 0; i < this.selected.nodes.length; i += 1) {
@@ -235,7 +241,7 @@ export default class{
                 }
             }
         } else {
-            if(isMultipleSelect) {
+            if(shiftKey || ctrlKey) {
                 this.selected.nodes.push(node);
             } else {
                 for (let i = 0; i < this.selected.nodes.length; i += 1) {
