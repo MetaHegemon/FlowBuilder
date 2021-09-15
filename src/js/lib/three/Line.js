@@ -7,11 +7,10 @@ import C from './../Constants';
 export default class {
     constructor(){
         this.geometry = new LineGeometry();
-        this.line = this.create();
+        this.mLine = this.create();
 
-
-        this.connector1 = null;
-        this.connector2 = null;
+        this.port1 = null;
+        this.port2 = null;
         this.pos1 = new THREE.Vector2();
         this.pos2 = new THREE.Vector2();
     }
@@ -22,46 +21,43 @@ export default class {
             color: C.nodeMesh.line.color,
             linewidth: 0.002
         });
-        const line = new Line2(this.geometry, material);
-        line.name = 'line';
-        line.userData.selected = false;
+        const mLine = new Line2(this.geometry, material);
+        mLine.name = 'line';
+        mLine.userData.selected = false;
 
-        line.userData.methods = {};
+        mLine.userData.class = this;
 
-        line.userData.methods.select = () => {
-            line.userData.selected = true;
-            line.material.color.setStyle(C.nodeMesh.line.selectedColor);
-        }
-
-        line.userData.methods.unselect = () => {
-            line.userData.selected = false;
-            line.material.color.setStyle(C.nodeMesh.line.color);
-        }
-
-        line.userData.methods.getConnector1 = ()=>this.getConnector1();
-        line.userData.methods.getConnector2 = ()=>this.getConnector2();
-
-        return line;
+        return mLine;
     }
 
-    setConnector1(connector){
-        this.connector1 = connector;
+    select = () => {
+        this.mLine.userData.selected = true;
+        this.mLine.material.color.setStyle(C.nodeMesh.line.selectedColor);
     }
 
-    setConnector2(connector){
-        this.connector2 = connector;
+    unselect = () => {
+        this.mLine.userData.selected = false;
+        this.mLine.material.color.setStyle(C.nodeMesh.line.color);
     }
 
-    getConnector1(){
-        return this.connector1;
+    setCPort1(port){
+        this.port1 = port;
     }
 
-    getConnector2(){
-        return this.connector2;
+    setCPort2(port){
+        this.port2 = port;
     }
 
-    getLineMesh(){
-        return this.line;
+    getCPort1(){
+        return this.port1;
+    }
+
+    getCPort2(){
+        return this.port2;
+    }
+
+    getMLine(){
+        return this.mLine;
     }
 
     setPos1(x, y){
@@ -114,6 +110,6 @@ export default class {
 
         const geometry = new LineGeometry()
         geometry.setPositions(p);
-        this.line.geometry = geometry;
+        this.mLine.geometry = geometry;
     }
 }

@@ -58,7 +58,8 @@ export default class{
                 this.intersects[0].object.name === 'connector' &&
                 lineControl.canBeConnected(this.intersects[0].object)
             ) {
-                const pos = lineControl.getPositionOfConnector(this.intersects[0].object);
+                const cPort = this.intersects[0].object.userData.class;
+                const pos = cPort.getConnectorPos();
                 lineControl.drawLineFromPos(pos.x, pos.y);
             } else {
                 lineControl.drawLineFromPos(this.pointerPosOnScene.x, this.pointerPosOnScene.y);
@@ -251,12 +252,11 @@ export default class{
     }
 
     selectNode(node){
-        node.userData.methods.select();
+        node.userData.class.selectNode();
     }
 
     unselectNode(node){
-        clog(node);
-        node.userData.methods.unselect();
+        node.userData.class.unselectNode();
     }
 
     onLineClick(lineMesh){
@@ -275,21 +275,21 @@ export default class{
     }
 
     selectLine(lineMesh){
-        const connector1 = lineMesh.userData.methods.getConnector1();
-        const connector2 = lineMesh.userData.methods.getConnector2();
-
-        lineMesh.userData.methods.select();
-        connector1.userData.methods.select();
-        connector2.userData.methods.select();
+        const cLine = lineMesh.userData.class;
+        cLine.select();
+        const cPort1 = cLine.getCPort1();
+        cPort1.selectConnector();
+        const cPort2 = cLine.getCPort2();
+        cPort2.selectConnector();
     }
 
     unselectLine(lineMesh){
-        const connector1 = lineMesh.userData.methods.getConnector1();
-        const connector2 = lineMesh.userData.methods.getConnector2();
-
-        lineMesh.userData.methods.unselect();
-        connector1.userData.methods.unselect();
-        connector2.userData.methods.unselect();
+        const cLine = lineMesh.userData.class;
+        cLine.unselect();
+        const cPort1 = cLine.getCPort1();
+        cPort1.unselectConnector();
+        const cPort2 = cLine.getCPort2();
+        cPort2.unselectConnector();
     }
 
     unselectAll(){

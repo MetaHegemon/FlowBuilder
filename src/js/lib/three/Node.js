@@ -1,10 +1,12 @@
 import * as THREE from "three";
-import C from "../Constants";
+import Port from './Port';
+import C from "./../Constants";
 import {Text} from "troika-three-text";
 
 export default class{
     constructor(data){
         this.backMountMesh = null;
+        this.cPorts = [];
         this.data = data;
         this.mesh = this.create();
     }
@@ -36,15 +38,15 @@ export default class{
         //ports
         const inputs = this.createInputPorts(this.data.inputs);
         for (let i = 0; i < inputs.length; i += 1) {
-            nodeObject.add(inputs[i]);
+            nodeObject.add(inputs[i].getMPort());
+            this.cPorts.push(inputs[i]);
         }
-        nodeObject.userData.inPorts = inputs;
 
         const outputs = this.createOutputPorts(this.data.outputs, this.data.inputs);
         for (let i = 0; i < outputs.length; i += 1) {
-            nodeObject.add(outputs[i]);
+            nodeObject.add(outputs[i].getMPort());
+            this.cPorts.push(outputs[i]);
         }
-        nodeObject.userData.outPorts = outputs;
 
         //footer
         const footer = this.createFooter(nodeShieldHeight);
@@ -59,19 +61,48 @@ export default class{
         });
 
         nodeObject.userData.selected = false;
-
-        nodeObject.userData.methods = {};
-        nodeObject.userData.methods.select = ()=>{
-            nodeObject.userData.selected = true;
-            this.backMountMesh.material.color.setStyle(C.nodeMesh.mount.backMountSelectedColor);
-        }
-
-        nodeObject.userData.methods.unselect = ()=>{
-            nodeObject.userData.selected = false;
-            this.backMountMesh.material.color.setStyle(C.nodeMesh.mount.backMountColor);
-        }
+        nodeObject.userData.class = this;
 
         return nodeObject;
+    }
+
+    createInputPorts(inputs) {
+        let currentYPos = - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.headerHeight - C.nodeMesh.port.height/2;
+        const cPorts = [];
+        for(let i = 0; i < inputs.length; i += 1) {
+            const cPort = new Port('input', inputs[i], this);
+            const portObject = cPort.getMPort();
+            portObject.position.set(0, currentYPos, C.layers[3]);
+            currentYPos -= C.nodeMesh.port.height;
+
+            cPorts.push(cPort);
+        }
+        return cPorts;
+    }
+
+    createOutputPorts (outputs, inputs){
+        let currentYPos = - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.headerHeight -
+            C.nodeMesh.port.height * inputs.length - C.nodeMesh.port.height/2;
+        const cPorts = [];
+        for(let i = 0; i < outputs.length; i += 1) {
+            const cPort = new Port('output', outputs[i], this);
+            const portObject = cPort.getMPort();
+            portObject.position.set(C.nodeMesh.mount.width, currentYPos, C.layers[3]);
+            currentYPos -= C.nodeMesh.port.height;
+            cPorts.push(cPort);
+        }
+
+        return cPorts;
+    }
+
+    selectNode = ()=>{
+        this.mesh.userData.selected = true;
+        this.backMountMesh.material.color.setStyle(C.nodeMesh.mount.backMountSelectedColor);
+    }
+
+    unselectNode = ()=>{
+        this.mesh.userData.selected = false;
+        this.backMountMesh.material.color.setStyle(C.nodeMesh.mount.backMountColor);
     }
 
     calcNodeShieldHeight(portsCount) {
@@ -202,171 +233,7 @@ export default class{
         return frontMountObject;
     }
 
-    createInputPorts (inputs){
-        let currentYPos = - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.headerHeight - C.nodeMesh.port.height/2;
-        const ports = [];
-        for(let i = 0; i < inputs.length; i += 1) {
-            const portObject = this.createEmptyPort('input', inputs[i].type);
-            portObject.userData.label.text = inputs[i].name;
-            portObject.userData.mark.userData.label.text = inputs[i].mark;
-            portObject.userData.connector.userData.port = portObject;
-            portObject.userData.data = inputs[i];
-            portObject.userData.direction = 'input';
-            portObject.userData.lines = [];
-            portObject.position.set(0, currentYPos, C.layers[3]);
-            currentYPos -= C.nodeMesh.port.height;
-            ports.push(portObject);
-        }
 
-        return ports;
-    }
-
-    createOutputPorts (outputs, inputs){
-        let currentYPos = - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.headerHeight -
-            C.nodeMesh.port.height * inputs.length - C.nodeMesh.port.height/2;
-        const ports = [];
-        for(let i = 0; i < outputs.length; i += 1) {
-            const portObject = this.createEmptyPort('output', outputs[i].type);
-            portObject.userData.label.text = outputs[i].name;
-            portObject.userData.mark.userData.label.text = outputs[i].mark;
-            portObject.userData.connector.userData.port = portObject;
-            portObject.userData.data = outputs[i];
-            portObject.userData.direction = 'output';
-            portObject.userData.lines = [];
-            portObject.position.set(C.nodeMesh.mount.width, currentYPos, C.layers[3]);
-            currentYPos -= C.nodeMesh.port.height;
-            ports.push(portObject);
-        }
-
-        return ports;
-    }
-
-    createEmptyPort(direction, portType){
-        const portObject = new THREE.Object3D();
-        portObject.name = 'port';
-
-        const connector = this.createPortConnector(direction, portType);
-        portObject.userData.connector = connector;
-        portObject.add(connector);
-
-        const mark = this.createPortMark(direction, portType);
-        portObject.userData.mark = mark;
-        portObject.add(mark);
-
-        const label = this.createPortLabel(direction, portType);
-        portObject.userData.label = label;
-        portObject.add(label);
-
-        return portObject
-    }
-
-    createPortConnector(direction, portType){
-        const w = C.nodeMesh.port.connectorWidth;
-        const h = C.nodeMesh.port.connectorHeight;
-        const r = C.nodeMesh.port.connectorCornerRadius;
-
-        const shapeConnector = new THREE.Shape()
-            .moveTo(0, h/2 - r)
-            .lineTo(0, -h/2 + r)
-            .quadraticCurveTo(0, -h/2, r, -h/2)
-            .lineTo(w, -h/2)
-            .lineTo( w, h/2)
-            .lineTo(r, h/2)
-            .quadraticCurveTo(0, h/2, 0, h/2 - r);
-
-        const connectorMesh = new THREE.Mesh(
-            new THREE.ShapeGeometry( shapeConnector ),
-            new THREE.MeshBasicMaterial({color: C.nodeMesh.portTypes[portType].connectorColor})
-        );
-        if(direction === 'output') {
-            connectorMesh.rotateZ(Math.PI);
-            connectorMesh.position.set(w, 0 ,0);
-        } else {
-            connectorMesh.position.set(-w, 0 ,0);
-        }
-
-        connectorMesh.name = 'connector';
-        connectorMesh.userData.selected = false;
-
-        //set methods
-        connectorMesh.userData.methods = {};
-        connectorMesh.userData.methods.select = ()=>{
-            connectorMesh.userData.selected = true;
-            connectorMesh.material.color.setStyle(C.nodeMesh.port.connectorSelectedColor);
-        };
-        connectorMesh.userData.methods.unselect = ()=>{
-            connectorMesh.userData.selected = false;
-            connectorMesh.material.color.setStyle(C.nodeMesh.portTypes[portType].connectorColor);
-        };
-
-        return connectorMesh;
-    }
-
-    createPortMark(direction, portType){
-        const markObject = new THREE.Object3D();
-
-        const w = C.nodeMesh.port.markWidth;
-        const h = C.nodeMesh.port.markHeight;
-        const r = C.nodeMesh.port.markCornerRadius;
-        const markMountShape = new THREE.Shape()
-            .moveTo(0, h/2-r)
-            .quadraticCurveTo(0, h/2, r, h/2)
-            .lineTo(w - r, h/2)
-            .quadraticCurveTo(w, h/2, w, h/2 - r)
-            .lineTo(w, -h/2 + r)
-            .quadraticCurveTo(w, -h/2, w-r, -h/2)
-            .lineTo(r, -h/2, 0, -h/2 + r)
-            .quadraticCurveTo(0, -h/2, 0, -h/2 + r)
-            .lineTo(0, h/2 - r);
-        const markMountMesh = new THREE.Mesh(
-            new THREE.ShapeGeometry( markMountShape ),
-            new THREE.MeshBasicMaterial({color: C.nodeMesh.portTypes[portType].markColor})
-        );
-        markMountMesh.name = 'mark';
-        markMountMesh.userData.originColor = C.nodeMesh.portTypes[portType].markColor;
-
-        markObject.add(markMountMesh);
-
-        const label = new Text();
-        label.name = 'markLabel';
-        label.fontSize = C.nodeMesh.port.markFontSize;
-        label.color = C.nodeMesh.portTypes[portType].fontColor;
-        label.userData.originColor = C.nodeMesh.portTypes[portType].fontColor
-        label.anchorX = 'center';
-        label.anchorY = 'middle';
-        label.position.set(C.nodeMesh.port.markWidth/2, 0, 0);
-
-        markObject.userData.label = label;
-        markObject.add(label);
-
-        markObject.position.set(
-            direction === 'input' ? C.nodeMesh.port.markLeftMargin : -C.nodeMesh.port.markLeftMargin - C.nodeMesh.port.markWidth,
-            0,
-            0
-        );
-
-        return markObject;
-    }
-
-    createPortLabel(direction, portType){
-        const label = new Text();
-        label.name = 'portLabel';
-        label.fontSize = C.nodeMesh.port.fontSize;
-        label.color = C.nodeMesh.portTypes[portType].labelColor;
-        label.anchorX = direction === 'input' ? 'left' : 'right';
-        label.anchorY = 'middle';
-        label.position.set(direction === 'input' ? C.nodeMesh.port.labelLeftMargin : -C.nodeMesh.port.labelLeftMargin, 0, 0);
-
-        label.userData.methods = {};
-        label.userData.methods.hover = ()=>{
-            label.color = C.nodeMesh.port.labelHoverColor;
-        }
-        label.userData.methods.unhover = ()=>{
-            label.color = C.nodeMesh.portTypes[portType].labelColor;
-        }
-
-        return label;
-    }
 
     createFooter(nodeShieldHeight){
         const footerLabel = new Text();
