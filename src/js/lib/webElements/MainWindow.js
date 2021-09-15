@@ -1,6 +1,7 @@
 import '../../../css/main_window.css';
+import C from './../Constants';
 
-export class MainWindow{
+export default class {
     constructor(){
         this.window = null;
         this.canvas = null;
@@ -9,8 +10,9 @@ export class MainWindow{
     createWindow (width, height){
         this.window = document.createElement('div', );
         this.window.classList.add('main-window');
-        this.window.style.width = '100%';
-        this.window.style.height = '100%';
+        this.window.style.backgroundColor = C.scene.backgroundColor;
+
+        clog(this.window.style.backgroundColor);
 
         this.createCanvas(width, height);
 

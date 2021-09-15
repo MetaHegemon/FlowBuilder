@@ -42,9 +42,17 @@ export default class {
 
         this.canvas.addEventListener('contextmenu', (e) => this.onContextMenu(e));
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0xf0f2f5);
+        this.scene.background = new THREE.Color(C.scene.backgroundColor);
 
-        new ResizeObserver(()=>this.renderResize()).observe(this.canvas.parentNode);
+        //
+        this.resizeTimer = null;
+        new ResizeObserver(()=>{
+            const _this = this;
+            clearTimeout(this.resizeTimer);
+            this.resizeTimer = setTimeout(() => {
+                _this.renderResize();
+            }, 100);
+        }).observe(this.canvas.parentNode);
     }
 
     onContextMenu(e){
@@ -102,8 +110,6 @@ export default class {
         const aspect = this.canvas.width / this.canvas.height;
         this.renderer.setSize(this.canvas.width, this.canvas.height);
         this.camera.aspect = aspect;
-
-        //this.frustumSize = this.frustumSize + (this.frustumSizeTo - this.frustumSize) * 0.2
 
         this.camera.left = this.frustumSize * aspect / -2;
         this.camera.right = this.frustumSize * aspect / 2;

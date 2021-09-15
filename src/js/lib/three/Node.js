@@ -6,6 +6,7 @@ import {Text} from "troika-three-text";
 export default class{
     constructor(data){
         this.backMountMesh = null;
+        this.title = null;
         this.cPorts = [];
         this.data = data;
         this.mesh = this.create();
@@ -22,8 +23,12 @@ export default class{
         nodeObject.userData.data = this.data;
 
         //create title
-        const title = this.createTitle(this.data.name);
-        nodeObject.add(title);
+        this.title = this.createTitle(this.data.name);
+        nodeObject.add(this.title);
+
+        //create indicator
+        const indicator = this.createIndicator(this.data.indicator);
+        nodeObject.add(indicator);
 
         //create shield
         const shieldObject = new THREE.Object3D();
@@ -98,11 +103,13 @@ export default class{
     selectNode = ()=>{
         this.mesh.userData.selected = true;
         this.backMountMesh.material.color.setStyle(C.nodeMesh.mount.backMountSelectedColor);
+        this.title.color = C.nodeMesh.title.fontSelectedColor;
     }
 
     unselectNode = ()=>{
         this.mesh.userData.selected = false;
         this.backMountMesh.material.color.setStyle(C.nodeMesh.mount.backMountColor);
+        this.title.color = C.nodeMesh.title.fontColor;
     }
 
     calcNodeShieldHeight(portsCount) {
@@ -119,6 +126,18 @@ export default class{
         title.anchorY = 'bottom';
         title.position.set(C.nodeMesh.title.leftMargin, 0, 0);
         title.name = 'title';
+        return title;
+    }
+
+    createIndicator(name){
+        const title = new Text();
+        title.text = name;
+        title.fontSize = C.nodeMesh.indicator.fontSize;
+        title.color = C.nodeMesh.indicator.fontColor;
+        title.anchorX = 'right';
+        title.anchorY = 'bottom';
+        title.position.set(C.nodeMesh.mount.width - C.nodeMesh.indicator.rightMargin, 0, 0);
+        title.name = 'indicator';
         return title;
     }
 

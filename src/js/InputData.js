@@ -2,6 +2,7 @@ export default {
     nodes: [
         {
             name: 'Math.E',
+            indicator: 'A',
             code: 'function(){return Math.E;}',
             inputs: [],
             outputs: [
@@ -19,6 +20,7 @@ export default {
         },
         {
             name: 'Math.PI',
+            indicator: 'B',
             code: 'function(){return Math.PI;}',
             inputs: [],
             outputs: [
@@ -36,6 +38,7 @@ export default {
         },
         {
             name: 'Addition',
+            indicator: 'C',
             code: 'function(x,y){return x+y;}',
             inputs: [
                 {
@@ -66,6 +69,7 @@ export default {
         },
         {
             name: 'Math.floor',
+            indicator: 'D',
             code: 'function(x){return Math.floor(x);}',
             inputs: [
                 {

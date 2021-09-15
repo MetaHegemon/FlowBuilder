@@ -5,8 +5,14 @@ export default {
     nodeMesh: {
         title: {
             fontSize: 10,
-            fontColor: '#0a8ee5',
+            fontColor: '#000000',
+            fontSelectedColor: '#0a8ee5',
             leftMargin: 5
+        },
+        indicator: {
+            fontSize: 10,
+            fontColor: '#000000',
+            rightMargin: 2
         },
         mount: {
             width: 80,
@@ -57,6 +63,9 @@ export default {
                 markColor: '#4483f5'
             }
         }
+    },
+    scene: {
+        backgroundColor: '#f0f2f5'
     },
     three: {
         maxZoom: 0.2,               //how near camera can zoom
