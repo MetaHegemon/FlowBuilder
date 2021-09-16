@@ -2,9 +2,13 @@ import * as THREE from 'three';
 import DragControl from './DragControl';
 import LineControl from './LineControl';
 import C from "../Constants";
+import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox';
+import { SelectionHelper } from 'three/examples/jsm/interactive/SelectionHelper';
 
 const Drag = new DragControl();
 const lineControl = new LineControl();
+let selectionBox = null;
+let selectionHelper = null;
 
 export default class{
     constructor() {
@@ -15,12 +19,12 @@ export default class{
         this.scene = null;
         this.pointerPosOnScene = new THREE.Vector2();
         this.pointerDownPos = new THREE.Vector2();
-        this.cameraDownPos = new THREE.Vector2();
         this.hovered = [];
         this.selected = {
             lines: [],
-            nodes: []
+            cNodes: []
         };
+        this.selectedOnPointerDown = null;
     }
 
     setSceneComponents(canvas, sceneControl){
@@ -28,7 +32,11 @@ export default class{
         this.sceneControl = sceneControl;
         this.camera = sceneControl.getCamera();
         this.scene = sceneControl.getScene();
+        this.renderer = sceneControl.getRenderer();
         lineControl.setScene(this.scene);
+
+        selectionBox = new SelectionBox( this.camera, this.scene );
+        selectionHelper = new SelectionHelper( selectionBox, this.renderer, 'selectBox' );
     }
 
     setEvents(){
@@ -37,19 +45,19 @@ export default class{
         this.canvas.addEventListener('pointerup', (e)=>this.onPointerUp(e));
     }
 
-    onPointerMove(e){
-        this.pointerPos.x = ( e.clientX / this.canvas.clientWidth ) * 2 - 1;
-        this.pointerPos.y = -( e.clientY / this.canvas.clientHeight ) * 2 + 1;
+    onPointerMove(e) {
+        this.pointerPos.x = (e.clientX / this.canvas.clientWidth) * 2 - 1;
+        this.pointerPos.y = -(e.clientY / this.canvas.clientHeight) * 2 + 1;
 
-        this.raycaster.setFromCamera( this.pointerPos, this.camera );
+        this.raycaster.setFromCamera(this.pointerPos, this.camera);
 
         this.pointerPosOnScene.x = this.raycaster.ray.origin.x;
         this.pointerPosOnScene.y = this.raycaster.ray.origin.y;
 
-        if(Drag.active){
+        if (Drag.active) {
             Drag.dragObject(this.pointerPosOnScene);
             lineControl.refreshLines(Drag.getObject());
-        } else if(lineControl.active) {
+        } else if (lineControl.active) {
             //TODO find only first intersect
             this.intersects = this.raycaster.intersectObjects(this.scene.children, true);
             if (
@@ -64,54 +72,64 @@ export default class{
                 lineControl.drawLineFromPos(this.pointerPosOnScene.x, this.pointerPosOnScene.y);
             }
         } else {
-            this.detectIntersects(e.buttons);
-        }
-    }
-
-    detectIntersects(buttons) {
-        this.intersects = this.raycaster.intersectObjects( this.scene.children, true );
-
-        if (this.intersects.length > 0)
-        {
-            if(buttons === 0){
-                const firstObject = this.intersects[0].object;
-                if(firstObject.name === 'portLabel'){
-                    firstObject.userData.methods.hover();
-                    this.hovered.push(firstObject);
-                    this.sceneControl.setCursor('pointer');
-                } else if(firstObject.name === 'footerLabel'){
-                    firstObject.userData.methods.hover();
-                    this.hovered.push(firstObject);
-                    this.sceneControl.setCursor('pointer');
-                } else if(firstObject.name === 'connector'){
-                    this.sceneControl.setCursor('pointer');
-                } else if(firstObject.name === 'line'){
-                    this.sceneControl.setCursor('pointer');
+            this.intersects = this.raycaster.intersectObjects(this.scene.children, true);
+            if (e.buttons === 0) {
+                if (this.intersects.length > 0) {
+                    const firstObject = this.intersects[0].object;
+                    if (firstObject.name === 'portLabel') {
+                        firstObject.userData.methods.hover();
+                        this.hovered.push(firstObject);
+                        this.sceneControl.setCursor('pointer');
+                    } else if (firstObject.name === 'footerLabel') {
+                        firstObject.userData.methods.hover();
+                        this.hovered.push(firstObject);
+                        this.sceneControl.setCursor('pointer');
+                    } else if (firstObject.name === 'connector') {
+                        this.sceneControl.setCursor('pointer');
+                    } else if (firstObject.name === 'line') {
+                        this.sceneControl.setCursor('pointer');
+                    } else {
+                        this.unhoverObjects(firstObject);
+                        this.sceneControl.resetCursor();
+                    }
                 } else {
-                    this.unhoverObjects(firstObject);
+                    this.unhoverObjects(null);
                     this.sceneControl.resetCursor();
                 }
-            }
-            else if (buttons === 1)
-            {
-                if(this.isMoved(this.pointerPosOnScene, this.pointerDownPos)) {
-                    const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
-                    if (backMountIntersect) {
-                        const node = backMountIntersect.object.userData.superParent;
-                        Drag.enable(node, this.pointerPosOnScene);
-                        this.sceneControl.setCursor('move');
-                        return null;
+            } else if (e.buttons === 1) {
+                if(this.selectedOnPointerDown) {
+                    if (this.selectedOnPointerDown.name === 'node') {
+                        if (this.isMoved(this.pointerPosOnScene, this.pointerDownPos)) {
+                            const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
+                            if (backMountIntersect) {
+                                const node = backMountIntersect.object.userData.superParent;
+                                Drag.enable(node, this.pointerPosOnScene);
+                                this.sceneControl.setCursor('move');
+                                return null;
+                            }
+                        }
+                    } else if(this.selectedOnPointerDown.name === 'connector') {
+                        const firstObject = this.intersects[0].object;
+                        if (firstObject.name === 'connector') {
+                            lineControl.enable(firstObject);
+                        }
                     }
+                } else {
+                        this.unselectAllNodes();
+                        selectionBox.endPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5);
+                        const allSelected = selectionBox.select();
+                        for(let i = 0; i < allSelected.length; i += 1){
+                            if(allSelected[i].name !== 'backMount') continue;
+                            const cNode = allSelected[i].userData.class;
+                            this.addCNodeToSelected(cNode);
+                        }
+                        for(let i = 0; i < this.selected.cNodes.length; i += 1){
+                            this.selected.cNodes[i].select();
+                        }
                 }
-                const firstObject = this.intersects[0].object;
-                if(firstObject.name === 'connector'){
-                    lineControl.enable(firstObject);
-                }
-            }
-        } else {
-            this.unhoverObjects(null);
+            } else {
 
-            this.sceneControl.resetCursor();
+            }
         }
     }
 
@@ -136,9 +154,6 @@ export default class{
     }
 
     onPointerDown(e){
-        this.cameraDownPos.x = this.camera.position.x;
-        this.cameraDownPos.y = this.camera.position.y;
-
         this.pointerDownPos.x = this.pointerPosOnScene.x;
         this.pointerDownPos.y = this.pointerPosOnScene.y;
 
@@ -146,20 +161,26 @@ export default class{
             if (e.buttons === 1) {
                 const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
                 if(backMountIntersect){
+                    this.selectedOnPointerDown = backMountIntersect.object.userData.class.getMNode();
                     this.sceneControl.disablePan();
                     return null;
                 }
                 const connectorIntersect = this.checkOnIntersect(this.intersects, 'connector');
                 if(connectorIntersect){
+                    this.selectedOnPointerDown = connectorIntersect.object;
                     this.sceneControl.disablePan();
                     this.unselectAllLines();
                     lineControl.enable(connectorIntersect.object);
                 }
             }
+        } else {
+            this.unselectAll();
+            selectionBox.startPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5 );
         }
     }
 
     onPointerUp(e){
+        this.selectedOnPointerDown = null;
         if(Drag.active) {
             Drag.disable();
             this.sceneControl.resetCursor();
@@ -181,7 +202,8 @@ export default class{
                 if (e.button === 0) {
                     const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
                     if (backMountIntersect) {
-                        this.onNodeClick(backMountIntersect.object.userData.superParent, e.shiftKey, e.ctrlKey);
+                        const cNode = backMountIntersect.object.userData.class;
+                        this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
                         this.sceneControl.enablePan();
                         return null;
                     }
@@ -194,9 +216,8 @@ export default class{
                 }
             } else {
                 if (e.button === 0) {
-                    if(!this.isMoved(this.camera.position, this.cameraDownPos)){
-                        this.unselectAll();
-                    }
+                    //selectionBox.endPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5);
+                    //const allSelected = selectionBox.select();
                 }
             }
         }
@@ -208,57 +229,59 @@ export default class{
             Math.abs(currentPos.y - startPos.y) > C.deltaOnPointerInteractive;
     }
 
-    onNodeClick (node, shiftKey, ctrlKey) {
-        clog(this.selected);
-        if (node.userData.selected) {
-            clog(shiftKey, ctrlKey);
-
+    onNodeClick (cNode, shiftKey, ctrlKey) {
+        if (cNode.selected) {
             if(ctrlKey) {
-                for (let i = 0; i < this.selected.nodes.length; i += 1) {
-                    if (this.selected.nodes[i].uuid === node.uuid) {
-                        this.selected.nodes.splice(i, 1);
-                        clog({unselect: this.selected.nodes[i]});
+                for (let i = 0; i < this.selected.cNodes.length; i += 1) {
+                    if (this.selected.cNodes[i] === cNode) {
+                        this.selected.cNodes.splice(i, 1);
                         break;
                     }
                 }
-                this.unselectNode(node);
+                cNode.unselect();
             } else if(shiftKey){
 
             } else {
-                if(this.selected.nodes.length > 1){
-                    for (let i = 0; i < this.selected.nodes.length; i += 1) {
-                        if (this.selected.nodes[i].uuid === node.uuid) continue;
-                        this.unselectNode(this.selected.nodes[i]);
-                        this.selected.nodes.splice(i, 1);
+                if(this.selected.cNodes.length > 1){
+                    for (let i = 0; i < this.selected.cNodes.length; i += 1) {
+                        if (this.selected.cNodes[i] === cNode) continue;
+                        this.selected.cNodes[i].unselect();
+                        this.selected.cNodes.splice(i, 1);
                         i -= 1;
                     }
                 } else {
-                    this.selected.nodes = [];
-                    this.unselectNode(node);
+                    this.selected.cNodes = [];
+                    cNode.unselect();
                 }
             }
         } else {
             if(shiftKey || ctrlKey) {
-                this.selected.nodes.push(node);
+                this.addCNodeToSelected(cNode);
+
             } else {
-                for (let i = 0; i < this.selected.nodes.length; i += 1) {
-                    if (this.selected.nodes[i].uuid === node.uuid) continue;
-                    this.unselectNode(this.selected.nodes[i]);
-                    this.selected.nodes.splice(i, 1);
+                for (let i = 0; i < this.selected.cNodes.length; i += 1) {
+                    if (this.selected.cNodes[i] === cNode) continue;
+                    this.selected.cNodes[i].unselect();
+                    this.selected.cNodes.splice(i, 1);
                     i -= 1;
                 }
-                this.selected.nodes.push(node);
+                this.addCNodeToSelected(cNode);
             }
-            this.selectNode(node);
+            cNode.select();
         }
     }
 
-    selectNode(node){
-        node.userData.class.selectNode();
-    }
-
-    unselectNode(node){
-        node.userData.class.unselectNode();
+    addCNodeToSelected(cNode){
+        let isExist = false;
+        for(let i = 0; i < this.selected.cNodes.length; i += 1){
+            if(this.selected.cNodes[i] === cNode) {
+                isExist = false;
+                break;
+            }
+        }
+        if(!isExist) {
+            this.selected.cNodes.push(cNode);
+        }
     }
 
     onLineClick(lineMesh){
@@ -300,10 +323,10 @@ export default class{
     }
 
     unselectAllNodes(){
-        for(let i = 0; i < this.selected.nodes.length; i += 1){
-            this.unselectNode(this.selected.nodes[i]);
+        for(let i = 0; i < this.selected.cNodes.length; i += 1){
+            this.selected.cNodes[i].unselect();
         }
-        this.selected.nodes = [];
+        this.selected.cNodes = [];
     }
 
     unselectAllLines(){

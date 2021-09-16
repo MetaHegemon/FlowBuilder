@@ -5,6 +5,7 @@ import {Text} from "troika-three-text";
 
 export default class{
     constructor(data){
+        this.selected = false;
         this.backMountMesh = null;
         this.title = null;
         this.cPorts = [];
@@ -32,7 +33,7 @@ export default class{
 
         //create shield
         const shieldObject = new THREE.Object3D();
-        const backMount = this.createBackMount(nodeShieldHeight);
+        const backMount = this.backMountMesh = this.createBackMountMesh(nodeShieldHeight);
         shieldObject.add(backMount);
         const frontMount = this.createFrontMount(nodeShieldHeight);
         shieldObject.add(frontMount);
@@ -65,7 +66,6 @@ export default class{
             object.userData.superParent = nodeObject;
         });
 
-        nodeObject.userData.selected = false;
         nodeObject.userData.class = this;
 
         return nodeObject;
@@ -100,18 +100,6 @@ export default class{
         return cPorts;
     }
 
-    selectNode = ()=>{
-        this.mesh.userData.selected = true;
-        this.backMountMesh.material.color.setStyle(C.nodeMesh.mount.backMountSelectedColor);
-        this.title.color = C.nodeMesh.title.fontSelectedColor;
-    }
-
-    unselectNode = ()=>{
-        this.mesh.userData.selected = false;
-        this.backMountMesh.material.color.setStyle(C.nodeMesh.mount.backMountColor);
-        this.title.color = C.nodeMesh.title.fontColor;
-    }
-
     calcNodeShieldHeight(portsCount) {
         const portsHeight = portsCount * C.nodeMesh.port.height;
         return C.nodeMesh.mount.roundCornerRadius + C.nodeMesh.mount.headerHeight + portsHeight + C.nodeMesh.mount.footerHeight;
@@ -141,23 +129,10 @@ export default class{
         return title;
     }
 
-    createBackMount (height) {
-        const mount = this.backMountMesh = this.createBackMountMesh({
-            w: C.nodeMesh.mount.width,
-            h: height,
-            color: C.nodeMesh.mount.backMountColor
-        });
-        mount.name = 'backMount';
-        mount.visible = true;
+    createBackMountMesh(h){
+        const w = C.nodeMesh.mount.width;
+        const color = C.nodeMesh.mount.backMountColor;
 
-        return mount;
-    }
-
-    createBackMountMesh(settings){
-        //w - width, h - height, color - color
-        const h = settings.h;
-        const w = settings.w;
-        const color = settings.color;
         const radius = C.nodeMesh.mount.roundCornerRadius;
 
         const shape = new THREE.Shape();
@@ -176,7 +151,11 @@ export default class{
         const geometry = new THREE.ShapeGeometry( shape );
         const material = new THREE.MeshBasicMaterial({color: color ? color : 'red'});
 
-        return new THREE.Mesh( geometry, material);
+        const mesh = new THREE.Mesh( geometry, material);
+        mesh.name = 'backMount';
+        mesh.userData.class = this;
+
+        return mesh;
     }
 
     createFrontMount (height) {
@@ -252,8 +231,6 @@ export default class{
         return frontMountObject;
     }
 
-
-
     createFooter(nodeShieldHeight){
         const footerLabel = new Text();
         footerLabel.name = 'footerLabel';
@@ -273,5 +250,21 @@ export default class{
         }
 
         return footerLabel;
+    }
+
+    select = ()=>{
+        this.selected = true;
+        this.backMountMesh.material.color.setStyle(C.nodeMesh.mount.backMountSelectedColor);
+        this.title.color = C.nodeMesh.title.fontSelectedColor;
+    }
+
+    unselect = ()=>{
+        this.selected = false;
+        this.backMountMesh.material.color.setStyle(C.nodeMesh.mount.backMountColor);
+        this.title.color = C.nodeMesh.title.fontColor;
+    }
+
+    getMNode(){
+        return this.mesh;
     }
 }
