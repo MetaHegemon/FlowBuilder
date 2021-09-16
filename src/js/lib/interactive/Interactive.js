@@ -78,18 +78,18 @@ export default class{
                 if(firstObject.name === 'portLabel'){
                     firstObject.userData.methods.hover();
                     this.hovered.push(firstObject);
-                    this.changePointerStyle('pointer');
+                    this.sceneControl.setCursor('pointer');
                 } else if(firstObject.name === 'footerLabel'){
                     firstObject.userData.methods.hover();
                     this.hovered.push(firstObject);
-                    this.changePointerStyle('pointer');
+                    this.sceneControl.setCursor('pointer');
                 } else if(firstObject.name === 'connector'){
-                    this.changePointerStyle('pointer');
+                    this.sceneControl.setCursor('pointer');
                 } else if(firstObject.name === 'line'){
-                    this.changePointerStyle('pointer');
+                    this.sceneControl.setCursor('pointer');
                 } else {
                     this.unhoverObjects(firstObject);
-                    this.changePointerStyle('default');
+                    this.sceneControl.resetCursor();
                 }
             }
             else if (buttons === 1)
@@ -99,7 +99,7 @@ export default class{
                     if (backMountIntersect) {
                         const node = backMountIntersect.object.userData.superParent;
                         Drag.enable(node, this.pointerPosOnScene);
-                        this.changePointerStyle('move');
+                        this.sceneControl.setCursor('move');
                         return null;
                     }
                 }
@@ -110,7 +110,8 @@ export default class{
             }
         } else {
             this.unhoverObjects(null);
-            this.changePointerStyle('default');
+
+            this.sceneControl.resetCursor();
         }
     }
 
@@ -121,10 +122,6 @@ export default class{
             this.hovered.splice(i, 1);
             i -= 1;
         }
-    }
-
-    changePointerStyle(style){
-        if(this.canvas.style.cursor !== style) this.canvas.style.cursor = style;
     }
 
     checkOnIntersect(intersects, name){
@@ -165,7 +162,7 @@ export default class{
     onPointerUp(e){
         if(Drag.active) {
             Drag.disable();
-            this.changePointerStyle('default');
+            this.sceneControl.resetCursor();
             this.sceneControl.enablePan();
         } else if(lineControl.active){
             this.intersects = this.raycaster.intersectObjects(this.scene.children, true);
