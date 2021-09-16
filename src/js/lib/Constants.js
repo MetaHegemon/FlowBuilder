@@ -23,9 +23,17 @@ export default {
             fontColor: '#000000',
             rightMargin: 2
         },
+        header: {
+            height: 20,
+            triangle: {
+                fontSize: 7,
+                fontColor: '#000000',
+                leftMargin: 5,
+                topMargin: 1
+            }
+        },
         mount: {
             width: 80,
-            headerHeight: 20,
             frontHeadColor: '#0a8ee5',
             frontBodyColor: '#fff',
             backMountColor: '#888888',

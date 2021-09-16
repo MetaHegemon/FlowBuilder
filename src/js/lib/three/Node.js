@@ -21,7 +21,6 @@ export default class{
         nodeObject.updateWorldMatrix();
         nodeObject.updateMatrix();
         nodeObject.name = 'node';
-        nodeObject.userData.data = this.data;
 
         //create title
         this.title = this.createTitle(this.data.name);
@@ -40,6 +39,9 @@ export default class{
         nodeObject.add(shieldObject);
 
         //header
+        const header = this.createHeaderElements();
+        clog(header);
+        nodeObject.add(header);
 
         //ports
         const inputs = this.createInputPorts(this.data.inputs);
@@ -71,8 +73,33 @@ export default class{
         return nodeObject;
     }
 
+    createHeaderElements(){
+        const header = new THREE.Object3D();
+
+        const triangle = this.createTriangle();
+        header.add(triangle);
+        header.position.set(0, -C.nodeMesh.header.height/2, C.layers[3]);
+
+        return header;
+    }
+
+    createTriangle(){
+        const triangle = new Text();
+        triangle.text = '';
+        triangle.font = C.fontPaths.awSolid;
+        triangle.fontSize = C.nodeMesh.header.triangle.fontSize;
+        triangle.color = C.nodeMesh.header.triangle.fontColor;
+        triangle.anchorX = 'right';
+        triangle.anchorY = 'bottom';
+        triangle.rotateZ(Math.PI);
+        triangle.position.set(C.nodeMesh.header.triangle.leftMargin, -C.nodeMesh.header.triangle.topMargin, 0);
+        triangle.name = 'indicator';
+
+        return triangle;
+    }
+
     createInputPorts(inputs) {
-        let currentYPos = - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.headerHeight - C.nodeMesh.port.height/2;
+        let currentYPos = - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.header.height - C.nodeMesh.port.height/2;
         const cPorts = [];
         for(let i = 0; i < inputs.length; i += 1) {
             const cPort = new Port('input', inputs[i], this);
@@ -86,7 +113,7 @@ export default class{
     }
 
     createOutputPorts (outputs, inputs){
-        let currentYPos = - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.headerHeight -
+        let currentYPos = - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.header.height -
             C.nodeMesh.port.height * inputs.length - C.nodeMesh.port.height/2;
         const cPorts = [];
         for(let i = 0; i < outputs.length; i += 1) {
@@ -102,7 +129,7 @@ export default class{
 
     calcNodeShieldHeight(portsCount) {
         const portsHeight = portsCount * C.nodeMesh.port.height;
-        return C.nodeMesh.mount.roundCornerRadius + C.nodeMesh.mount.headerHeight + portsHeight + C.nodeMesh.mount.footerHeight;
+        return C.nodeMesh.mount.roundCornerRadius + C.nodeMesh.header.height + portsHeight + C.nodeMesh.mount.footerHeight;
     }
 
     createTitle(name) {
