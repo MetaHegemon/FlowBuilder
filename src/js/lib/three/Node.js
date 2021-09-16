@@ -108,6 +108,7 @@ export default class{
     createTitle(name) {
         const title = new Text();
         title.text = name;
+        title.font = C.fontPaths.main;
         title.fontSize = C.nodeMesh.title.fontSize;
         title.color = C.nodeMesh.title.fontColor;
         title.anchorX = 'left';
@@ -120,6 +121,7 @@ export default class{
     createIndicator(name){
         const title = new Text();
         title.text = name;
+        title.font = C.fontPaths.main;
         title.fontSize = C.nodeMesh.indicator.fontSize;
         title.color = C.nodeMesh.indicator.fontColor;
         title.anchorX = 'right';
@@ -235,6 +237,7 @@ export default class{
         const footerLabel = new Text();
         footerLabel.name = 'footerLabel';
         footerLabel.text = 'Learn more';
+        footerLabel.font = C.fontPaths.main;
         footerLabel.fontSize = 8;
         footerLabel.color = C.nodeMesh.mount.footerLabelColor;
         footerLabel.anchorX = 'left';

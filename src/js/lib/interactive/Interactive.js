@@ -3,7 +3,7 @@ import DragControl from './DragControl';
 import LineControl from './LineControl';
 import C from "../Constants";
 import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox';
-import { SelectionHelper } from 'three/examples/jsm/interactive/SelectionHelper';
+import  SelectionHelper  from './SelectHelper';
 
 const Drag = new DragControl();
 const lineControl = new LineControl();
@@ -97,7 +97,7 @@ export default class{
                     this.sceneControl.resetCursor();
                 }
             } else if (e.buttons === 1) {
-                if(this.selectedOnPointerDown) {
+                if (this.selectedOnPointerDown) {
                     if (this.selectedOnPointerDown.name === 'node') {
                         if (this.isMoved(this.pointerPosOnScene, this.pointerDownPos)) {
                             const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
@@ -108,24 +108,25 @@ export default class{
                                 return null;
                             }
                         }
-                    } else if(this.selectedOnPointerDown.name === 'connector') {
+                    } else if (this.selectedOnPointerDown.name === 'connector') {
                         const firstObject = this.intersects[0].object;
                         if (firstObject.name === 'connector') {
                             lineControl.enable(firstObject);
                         }
                     }
                 } else {
-                        this.unselectAllNodes();
-                        selectionBox.endPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5);
-                        const allSelected = selectionBox.select();
-                        for(let i = 0; i < allSelected.length; i += 1){
-                            if(allSelected[i].name !== 'backMount') continue;
-                            const cNode = allSelected[i].userData.class;
-                            this.addCNodeToSelected(cNode);
-                        }
-                        for(let i = 0; i < this.selected.cNodes.length; i += 1){
-                            this.selected.cNodes[i].select();
-                        }
+                    selectionHelper.onSelectMove(e);
+                    this.unselectAllNodes();
+                    selectionBox.endPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5);
+                    const allSelected = selectionBox.select();
+                    for (let i = 0; i < allSelected.length; i += 1) {
+                        if (allSelected[i].name !== 'backMount') continue;
+                        const cNode = allSelected[i].userData.class;
+                        this.addCNodeToSelected(cNode);
+                    }
+                    for (let i = 0; i < this.selected.cNodes.length; i += 1) {
+                        this.selected.cNodes[i].select();
+                    }
                 }
             } else {
 
@@ -175,6 +176,9 @@ export default class{
             }
         } else {
             this.unselectAll();
+            clog('down');
+
+            selectionHelper.onSelectStart(e);
             selectionBox.startPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5 );
         }
     }
@@ -216,6 +220,8 @@ export default class{
                 }
             } else {
                 if (e.button === 0) {
+                    selectionHelper.onSelectOver(e);
+
                     //selectionBox.endPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5);
                     //const allSelected = selectionBox.select();
                 }

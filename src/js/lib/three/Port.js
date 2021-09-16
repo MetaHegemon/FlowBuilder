@@ -93,6 +93,7 @@ export default class {
         const label = new Text();
         label.text = this.data.mark;
         label.name = 'markLabel';
+        label.font = C.fontPaths.main;
         label.fontSize = C.nodeMesh.port.markFontSize;
         label.color = C.nodeMesh.portTypes[this.data.type].fontColor;
         label.userData.originColor = C.nodeMesh.portTypes[this.data.type].fontColor
@@ -116,6 +117,7 @@ export default class {
         const label = new Text();
         label.text = this.data.name;
         label.name = 'portLabel';
+        label.font = C.fontPaths.main;
         label.fontSize = C.nodeMesh.port.fontSize;
         label.color = C.nodeMesh.portTypes[this.data.type].labelColor;
         label.anchorX = this.direction === 'input' ? 'left' : 'right';

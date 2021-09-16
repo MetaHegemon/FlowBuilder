@@ -2,6 +2,15 @@ export default {
     layers: [1, 2, 3, 4, 5, 6],  //слои размещения объектов в сцене. значение элемента массива означает координату по z
     splineSegments: 100,
     deltaOnPointerInteractive: 3,
+
+    fontPaths: {
+        main: './fonts/Roboto-Regular.ttf',
+        awSolid: './fonts/fa-solid-900.ttf',
+        awLight: './fa-light-300.ttf',
+        awRegular: './fa-regular-400.ttf',
+        awBrands: './fa-brands-400.ttf',
+        awDuotone: './fa-duotone-900.ttf'
+    },
     nodeMesh: {
         title: {
             fontSize: 10,

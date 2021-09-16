@@ -5,7 +5,7 @@ module.exports = {
     mode: 'development',
     entry: './src/js/index.js',
     output: {
-        path: path.resolve(__dirname, './dist'),
+        path: path.resolve(__dirname, 'dist'),
         filename: 'bundle.js'
     },
     module: {
@@ -14,6 +14,10 @@ module.exports = {
                 test: /\.css$/i,
                 use: ['style-loader', 'css-loader'],
             },
+            {
+                test: /\.(jpe?g|gif|png|svg|woff|ttf|wav|mp3)$/,
+                type: "asset/resource"
+            }
         ],
     },
     performance: {
@@ -30,6 +34,6 @@ module.exports = {
         new HtmlWebpackPlugin({
             title: 'FlowBuilder',
             template: './src/index.html'
-        }
-    )]
+        }),
+    ]
 }
