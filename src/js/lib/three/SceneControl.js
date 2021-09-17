@@ -31,19 +31,6 @@ export default class {
         this.zoomStep = null;
         this.canvas.addEventListener('wheel', (e)=> this.onWheel(e));
 
-        //pan
-        this.pan = true;
-        this.spaceBarActive = false;
-        this.cameraPosTo = {x: 0, y: 0};
-        this.pointerPos = {x: 0, y: 0};
-        this.pointerLastPos = {x: 0, y: 0};
-        document.addEventListener('keydown', (e) => this.onKeyDown(e), false);
-        document.addEventListener('keyup', (e) => this.onKeyUp(e));
-        this.canvas.addEventListener('pointermove', (e) => this.onPointerMove(e));
-        this.canvas.addEventListener('pointerup', (e) => this.onPointerUp(e));
-
-
-        this.canvas.addEventListener('contextmenu', (e) => this.onContextMenu(e));
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(C.scene.backgroundColor);
 
@@ -57,38 +44,6 @@ export default class {
             }, 100);
         }).observe(this.canvas.parentNode);
 
-    }
-
-    onContextMenu(e){
-         e.preventDefault();
-    }
-
-    onKeyDown(e){
-        if(e.code === 'Space') this.spaceBarActive = true;
-    }
-
-    onKeyUp(e){
-        if(e.code === 'Space') this.spaceBarActive = false;
-    }
-
-    onPointerMove(e){
-        this.pointerPos.x = (e.pageX / this.canvas.width) * 2 - 1;
-        this.pointerPos.y = -(e.pageY / this.canvas.height) * 2 + 1;
-
-        if((e.buttons === 1 && this.pan && this.spaceBarActive) || (e.buttons === 4  && this.pan)) {
-            this.isPaningNow = true;
-            this.setCursor('grabbing');
-            let dx = (this.pointerLastPos.x - this.pointerPos.x)/this.camera.zoom;
-            let dy = (this.pointerLastPos.y - this.pointerPos.y)/this.camera.zoom;
-
-            this.cameraPosTo.x = this.cameraPosTo.x + dx * this.camera.right;
-            this.cameraPosTo.y = this.cameraPosTo.y + dy * this.camera.top;
-
-            this.camera.position.x = this.camera.position.x + (this.cameraPosTo.x - this.camera.position.x);
-            this.camera.position.y = this.camera.position.y + (this.cameraPosTo.y - this.camera.position.y);
-        }
-        this.pointerLastPos.x = this.pointerPos.x;
-        this.pointerLastPos.y = this.pointerPos.y;
     }
 
     onPointerUp(e){
@@ -169,14 +124,6 @@ export default class {
 
     getScene(){
         return this.scene;
-    }
-
-    enablePan(){
-        this.pan = true;
-    }
-
-    disablePan(){
-        this.pan = false;
     }
 
     getRenderer(){
