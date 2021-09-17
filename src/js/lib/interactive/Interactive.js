@@ -45,6 +45,35 @@ export default class{
         this.canvas.addEventListener('pointerup', (e)=>this.onPointerUp(e));
     }
 
+    onPointerDown(e){
+        this.pointerDownPos.x = this.pointerPosOnScene.x;
+        this.pointerDownPos.y = this.pointerPosOnScene.y;
+
+        if(this.intersects.length > 0) {
+            if (e.buttons === 1) {
+                const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
+                if(backMountIntersect){
+                    this.selectedOnPointerDown = backMountIntersect.object.userData.class.getMNode();
+                    this.sceneControl.disablePan();
+                    return null;
+                }
+                const connectorIntersect = this.checkOnIntersect(this.intersects, 'connector');
+                if(connectorIntersect){
+                    this.selectedOnPointerDown = connectorIntersect.object;
+                    this.sceneControl.disablePan();
+                    this.unselectAllLines();
+                    lineControl.enable(connectorIntersect.object);
+                }
+            }
+        } else {
+            if(!this.sceneControl.isPaning()) {
+                this.unselectAll();
+                selectionHelper.onSelectStart(e);
+                selectionBox.startPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5);
+            }
+        }
+    }
+
     onPointerMove(e) {
         this.pointerPos.x = (e.clientX / this.canvas.clientWidth) * 2 - 1;
         this.pointerPos.y = -(e.clientY / this.canvas.clientHeight) * 2 + 1;
@@ -88,6 +117,12 @@ export default class{
                         this.sceneControl.setCursor('pointer');
                     } else if (firstObject.name === 'line') {
                         this.sceneControl.setCursor('pointer');
+                    } else if (firstObject.name === 'collapseButton') {
+                        this.sceneControl.setCursor('pointer');
+                    } else if (firstObject.name === 'playButton') {
+                        this.sceneControl.setCursor('pointer');
+                    } else if (firstObject.name === 'menuButton') {
+                        this.sceneControl.setCursor('pointer');
                     } else {
                         this.unhoverObjects(firstObject);
                         this.sceneControl.resetCursor();
@@ -115,71 +150,24 @@ export default class{
                         }
                     }
                 } else {
-                    selectionHelper.onSelectMove(e);
-                    this.unselectAllNodes();
-                    selectionBox.endPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5);
-                    const allSelected = selectionBox.select();
-                    for (let i = 0; i < allSelected.length; i += 1) {
-                        if (allSelected[i].name !== 'backMount') continue;
-                        const cNode = allSelected[i].userData.class;
-                        this.addCNodeToSelected(cNode);
-                    }
-                    for (let i = 0; i < this.selected.cNodes.length; i += 1) {
-                        this.selected.cNodes[i].select();
+                    if(!this.sceneControl.isPaning()) {
+                        selectionHelper.onSelectMove(e);
+                        this.unselectAllNodes();
+                        selectionBox.endPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5);
+                        const allSelected = selectionBox.select();
+                        for (let i = 0; i < allSelected.length; i += 1) {
+                            if (allSelected[i].name !== 'backMount') continue;
+                            const cNode = allSelected[i].userData.class;
+                            this.addCNodeToSelected(cNode);
+                        }
+                        for (let i = 0; i < this.selected.cNodes.length; i += 1) {
+                            this.selected.cNodes[i].select();
+                        }
                     }
                 }
             } else {
 
             }
-        }
-    }
-
-    unhoverObjects(currentObject){
-        for(let i = 0; i < this.hovered.length; i += 1) {
-            if (this.hovered[i] === currentObject) continue;
-            this.hovered[i].userData.methods.unhover();
-            this.hovered.splice(i, 1);
-            i -= 1;
-        }
-    }
-
-    checkOnIntersect(intersects, name){
-        let res = null;
-        for(let i = 0; i < intersects.length; i += 1){
-            if(intersects[i].object.name === name){
-                res = intersects[i];
-                break;
-            }
-        }
-        return res;
-    }
-
-    onPointerDown(e){
-        this.pointerDownPos.x = this.pointerPosOnScene.x;
-        this.pointerDownPos.y = this.pointerPosOnScene.y;
-
-        if(this.intersects.length > 0) {
-            if (e.buttons === 1) {
-                const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
-                if(backMountIntersect){
-                    this.selectedOnPointerDown = backMountIntersect.object.userData.class.getMNode();
-                    this.sceneControl.disablePan();
-                    return null;
-                }
-                const connectorIntersect = this.checkOnIntersect(this.intersects, 'connector');
-                if(connectorIntersect){
-                    this.selectedOnPointerDown = connectorIntersect.object;
-                    this.sceneControl.disablePan();
-                    this.unselectAllLines();
-                    lineControl.enable(connectorIntersect.object);
-                }
-            }
-        } else {
-            this.unselectAll();
-            clog('down');
-
-            selectionHelper.onSelectStart(e);
-            selectionBox.startPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5 );
         }
     }
 
@@ -204,18 +192,21 @@ export default class{
         } else {
             if(this.intersects.length > 0) {
                 if (e.button === 0) {
-                    const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
-                    if (backMountIntersect) {
-                        const cNode = backMountIntersect.object.userData.class;
-                        this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
-                        this.sceneControl.enablePan();
-                        return null;
-                    }
-
-                    const lineIntersect = this.checkOnIntersect(this.intersects, 'line');
-                    if (lineIntersect) {
-                        this.onLineClick(lineIntersect.object);
-                        return null;
+                    if (this.intersects[0].object.name === 'collapseButton') {
+                        this.onCollapseButtonClick(this.intersects[0].object);
+                    } else if (this.intersects[0].object.name === 'playButton') {
+                        this.onPlayButtonClick(this.intersects[0].object);
+                    } else if (this.intersects[0].object.name === 'menuButton') {
+                        this.onMenuButtonClick(this.intersects[0].object);
+                    } else {
+                        const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
+                        if (backMountIntersect) {
+                            const cNode = backMountIntersect.object.userData.class;
+                            this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
+                            this.sceneControl.enablePan();
+                        } else if(this.intersects[0].object.name === 'line') {
+                            this.onLineClick(this.intersects[0].object);
+                        }
                     }
                 }
             } else {
@@ -228,6 +219,39 @@ export default class{
             }
         }
         this.pointerDownPos.x = this.pointerDownPos.y = 0;
+    }
+
+    onCollapseButtonClick(mCollapse){
+        clog('collapse');
+    }
+
+    onPlayButtonClick(mPlay){
+        const cNode = mPlay.userData.class;
+        cNode.play(mPlay);
+    }
+
+    onMenuButtonClick(mMenu){
+        clog('menu click');
+    }
+
+    unhoverObjects(currentObject){
+        for(let i = 0; i < this.hovered.length; i += 1) {
+            if (this.hovered[i] === currentObject) continue;
+            this.hovered[i].userData.methods.unhover();
+            this.hovered.splice(i, 1);
+            i -= 1;
+        }
+    }
+
+    checkOnIntersect(intersects, name){
+        let res = null;
+        for(let i = 0; i < intersects.length; i += 1){
+            if(intersects[i].object.name === name){
+                res = intersects[i];
+                break;
+            }
+        }
+        return res;
     }
 
     isMoved(currentPos, startPos){

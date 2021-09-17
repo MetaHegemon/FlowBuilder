@@ -25,11 +25,23 @@ export default {
         },
         header: {
             height: 20,
-            triangle: {
-                fontSize: 7,
+            collapse: {
+                fontSize: 9,
                 fontColor: '#000000',
                 leftMargin: 5,
-                topMargin: 1
+                topMargin: 0
+            },
+            play: {
+                fontSize: 11,
+                fontColor: '#000000',
+                rightMargin: 10,
+                topMargin: 0
+            },
+            menu: {
+                fontSize: 11,
+                fontColor: '#000000',
+                rightMargin: 4,
+                topMargin: 0
             }
         },
         mount: {

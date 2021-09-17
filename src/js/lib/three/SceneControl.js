@@ -92,7 +92,7 @@ export default class {
     }
 
     onPointerUp(e){
-        if(e.button === 0 || e.button === 1){
+        if(this.isPaningNow === true && (e.button === 0 || e.button === 1)){
             this.isPaningNow = false;
             this.resetCursor();
         }
@@ -100,6 +100,10 @@ export default class {
 
     onWheel(e) {
         this.zoomTo = Math.min(Math.max((this.frustumSize + e.deltaY * C.three.zoomSpeed * this.frustumSize), C.three.maxZoom), C.three.minZoom);
+    }
+
+    isPaning(){
+        return this.isPaningNow;
     }
 
     run (){

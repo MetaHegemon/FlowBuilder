@@ -6,6 +6,7 @@ import {Text} from "troika-three-text";
 export default class{
     constructor(data){
         this.selected = false;
+        this.playing = false;
         this.backMountMesh = null;
         this.title = null;
         this.cPorts = [];
@@ -39,7 +40,7 @@ export default class{
         nodeObject.add(shieldObject);
 
         //header
-        const header = this.createHeaderElements();
+        const header = this.createHeaderButtons();
         clog(header);
         nodeObject.add(header);
 
@@ -73,29 +74,71 @@ export default class{
         return nodeObject;
     }
 
-    createHeaderElements(){
+    createHeaderButtons(){
         const header = new THREE.Object3D();
 
-        const triangle = this.createTriangle();
-        header.add(triangle);
+        //triangle
+        const collapse = this.createCollapseButton();
+        header.add(collapse);
+        header.position.set(0, -C.nodeMesh.header.height/2, C.layers[3]);
+
+        //play
+        const play = this.createPlayButton();
+        header.add(play);
+        header.position.set(0, -C.nodeMesh.header.height/2, C.layers[3]);
+
+        //menu
+        const menu = this.createMenuButton();
+        header.add(menu);
         header.position.set(0, -C.nodeMesh.header.height/2, C.layers[3]);
 
         return header;
     }
 
-    createTriangle(){
-        const triangle = new Text();
-        triangle.text = '';
-        triangle.font = C.fontPaths.awSolid;
-        triangle.fontSize = C.nodeMesh.header.triangle.fontSize;
-        triangle.color = C.nodeMesh.header.triangle.fontColor;
-        triangle.anchorX = 'right';
-        triangle.anchorY = 'bottom';
-        triangle.rotateZ(Math.PI);
-        triangle.position.set(C.nodeMesh.header.triangle.leftMargin, -C.nodeMesh.header.triangle.topMargin, 0);
-        triangle.name = 'indicator';
+    createCollapseButton(){
+        const collapse = new Text();
+        collapse.text = '';
+        collapse.font = C.fontPaths.awSolid;
+        collapse.fontSize = C.nodeMesh.header.collapse.fontSize;
+        collapse.color = C.nodeMesh.header.collapse.fontColor;
+        collapse.anchorX = 'right';
+        collapse.anchorY = 'bottom';
+        collapse.rotateZ(Math.PI);
+        collapse.position.set(C.nodeMesh.header.collapse.leftMargin, -C.nodeMesh.header.collapse.topMargin, 0);
+        collapse.name = 'collapseButton';
+        collapse.userData.class = this;
 
-        return triangle;
+        return collapse;
+    }
+
+    createPlayButton(){
+        const play = new Text();
+        play.text = '';
+        play.font = C.fontPaths.awSolid;
+        play.fontSize = C.nodeMesh.header.play.fontSize;
+        play.color = C.nodeMesh.header.play.fontColor;
+        play.anchorX = 'right';
+        play.anchorY = 'top';
+        play.position.set(C.nodeMesh.mount.width - C.nodeMesh.header.play.rightMargin, -C.nodeMesh.header.play.topMargin, 0);
+        play.name = 'playButton';
+        play.userData.class = this;
+
+        return play;
+    }
+
+    createMenuButton(){
+        const menu = new Text();
+        menu.text = '';
+        menu.font = C.fontPaths.awSolid;
+        menu.fontSize = C.nodeMesh.header.menu.fontSize;
+        menu.color = C.nodeMesh.header.menu.fontColor;
+        menu.anchorX = 'right';
+        menu.anchorY = 'top';
+        menu.position.set(C.nodeMesh.mount.width - C.nodeMesh.header.menu.rightMargin, -C.nodeMesh.header.menu.topMargin, 0);
+        menu.name = 'menuButton';
+        menu.userData.class = this;
+
+        return menu;
     }
 
     createInputPorts(inputs) {
@@ -280,6 +323,17 @@ export default class{
         }
 
         return footerLabel;
+    }
+
+    play(mPlay){
+        if(this.playing){
+            this.playing = false;
+            mPlay.text = '';
+        } else {
+            this.playing = true;
+            mPlay.text = '';
+        }
+
     }
 
     select = ()=>{
