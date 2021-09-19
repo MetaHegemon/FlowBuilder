@@ -195,8 +195,8 @@ export default class{
                         this.unselectAllNodes();
                         selectionBox.endPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5);
                         const allSelected = selectionBox.select();
-                        for (let i = 0; i < allSelected.length; i += 1) {
-                            if (allSelected[i].name !== 'backMount') continue;
+                        for (let i = 0; i < allSelected.length; i += 1) {//'backMountHead', 'backMountBody', 'backMountFooter'
+                            if (allSelected[i].name !== 'backMountHead') continue;
                             const cNode = allSelected[i].userData.nodeClass;
                             this.addCNodeToSelected(cNode);
                         }
@@ -244,12 +244,7 @@ export default class{
                         } else if (this.intersects[0].object.name === 'menuButton') {
                             this.onMenuButtonClick(this.intersects[0].object);
                         } else if(this.intersects[0].object.name === 'portLabelText'){
-                            const cPort = this.intersects[0].object.userData.portClass;
-                            if(cPort.type === 'pseudo'){
-                                const cNode = cPort.getCNode();
-                                cNode.shortCollapsePorts(cPort);
-                                this.switchLinesOnPseudoPorts(cPort);
-                            }
+                            this.onPortLabelClick(this.intersects[0].object);
                         } else {
                             const backMountIntersect = this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter']);
                             if (backMountIntersect) {
@@ -273,6 +268,17 @@ export default class{
         }
     }
 
+    onPortLabelClick(mPort){
+        const cPort = mPort.userData.portClass;
+        if(cPort.type === 'pseudo'){
+            const cNode = cPort.getCNode();
+            cNode.shortCollapsePorts(cPort);
+            this.switchLinesOnPseudoPorts(cPort);
+        }
+    }
+
+
+
     switchLinesOnPseudoPorts(cPseudoPort){
         //Если порты скрыты, то псевдопорту присваиваются все линии,
         //Если порты показаны, то псевдопорту присваиваются все скрытые линии скрытых портов, т.е. пустой массив
@@ -289,9 +295,11 @@ export default class{
     }
 
     onCollapseButtonClick(mCollapse){
-        clog('collapse click');
-        //const cNode = mCollapse.userData.nodeClass;
-        //cNode.play(mCollapse);
+        const cNode = mCollapse.userData.nodeClass;
+        cNode.middleCollapsePorts();
+
+        const mNode = cNode.getMNode();
+        lineControl.refreshLines(mNode);
     }
 
     onPlayButtonClick(mPlay){

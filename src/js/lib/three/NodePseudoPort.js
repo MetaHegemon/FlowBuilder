@@ -62,6 +62,13 @@ export default class extends Port{
         }
     }
 
+    removeLabelText(){
+        const label = this.mesh.getObjectByName('portLabelText');
+        const underline = this.mesh.getObjectByName('portLabelUnderline');
+        label.text = '';
+        underline.text = '';
+    }
+
     hideConnector(){
         const connector = this.mesh.getObjectByName('connector');
         connector.visible = false;

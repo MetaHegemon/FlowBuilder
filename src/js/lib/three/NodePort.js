@@ -31,7 +31,6 @@ export default class {
         portMesh.name = 'port';
 
         const connector = this.createPortConnector();
-        //portMesh.userData.connector = connector;
         portMesh.add(connector);
 
         if(this.data.mark) {
@@ -41,7 +40,6 @@ export default class {
         }
 
         const label = this.label = this.createPortLabel();
-        //portMesh.userData.label = label;
         portMesh.add(label);
         portMesh.userData.data = this.data;
 

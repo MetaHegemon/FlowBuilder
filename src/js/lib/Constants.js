@@ -75,8 +75,7 @@ export default {
                 selectedColor: '#2491F6'
             },
             borderSize: 1,
-            roundCornerRadius: 4,
-            headerLabelFontSize: 14
+            roundCornerRadius: 4
         },
         port: {
             height: 31,
@@ -110,7 +109,7 @@ export default {
             }
         },
         footer: {
-            height: 26,                         //высота всего подвала вместе с радиусом скругления
+            height: 26,                         //высота подвала без радиуса
             color: '#EEEFF2',
             label: {
                 fontSize: 15,
