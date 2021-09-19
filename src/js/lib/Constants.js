@@ -3,13 +3,14 @@ export default {
     layers: {
         nodeStep: 0.1,
         backMount: 0,
-        frontMount: 0.01,
-        footer: 0.01,
         title: 0,
         indicator: 0,
+        frontMount: 0.01,
+        footer: 0.01,
         header: 0.02,
         port: 0.02,
-        footerLabel: 0.01
+        footerLabel: 0.01,
+        drag: 10
     },
     splineSegments: 100,
     deltaOnPointerInteractive: 3,
@@ -30,7 +31,7 @@ export default {
         title: {
             fontSize: 21,
             fontColor: '#000000',
-            fontSelectedColor: '#0a8ee5',
+            fontSelectedColor: '#2491F6',
             leftMargin: 0,
             bottomMargin: 2
         },
@@ -71,7 +72,7 @@ export default {
             },
             back: {
                 color: '#5F5F5F',
-                selectedColor: '#0a8ee5'
+                selectedColor: '#2491F6'
             },
             borderSize: 1,
             roundCornerRadius: 4,
@@ -83,13 +84,13 @@ export default {
                 width: 14,
                 height: 25,
                 cornerRadius: 2,
-                selectedColor: '#00ff00',
+                selectedColor: '#2491F6',
             },
             label: {
                 fontSize: 16,
                 topMargin: 10,
                 leftMargin: 40,
-                hoverColor: '#0a8ee5',
+                hoverColor: '#2491F6',
                 letterSpacing: 0.046,
                 pseudoLeftMargin: 13,
                 underlineLeftMargin: -0.5,
@@ -116,32 +117,32 @@ export default {
                 leftMargin: 12,
                 bottomMargin: 5.1,
                 color: '#000000',
-                hoverColor: '#0a8ee5',
+                hoverColor: '#2491F6',
                 letterSpacing: 0.032
             }
         },
         line: {
-            color: '#2a2a2a',
-            selectedColor: '#00ff00'
+            color: '#CACACA',
+            selectedColor: '#2491F6'
         },
         portTypes: {
             float: {
-                connectorColor: '#ee6f6f',
+                connectorColor: '#338A51',
                 labelColor: '#2a2a2a',
                 fontColor: '#ffffff',
-                markColor: '#ee6f6f'
+                markColor: '#338A51'
             },
             int: {
-                connectorColor: '#4483f5',
+                connectorColor: '#687EDB',
                 labelColor: '#2a2a2a',
                 fontColor: '#ffffff',
-                markColor: '#4483f5'
+                markColor: '#687EDB'
             },
             color: {
-                connectorColor: '#f1ab2b',
+                connectorColor: '#E99B66',
                 labelColor: '#2a2a2a',
                 fontColor: '#ffffff',
-                markColor: '#f1ab2b'
+                markColor: '#E99B66'
             },
             pseudo: {
                 connectorColor: '#b6b6b6',

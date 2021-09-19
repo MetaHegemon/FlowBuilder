@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import C from './../Constants';
 
 export default class{
     constructor() {
@@ -8,7 +9,7 @@ export default class{
     }
 
     dragObject(pos){
-        this.object.position.set(pos.x + this.offset.x, pos.y + this.offset.y, this.object.position.z);
+        this.object.position.set(pos.x + this.offset.x, pos.y + this.offset.y, C.layers.drag);
     }
 
     getObject(){
@@ -24,6 +25,8 @@ export default class{
 
     disable(){
         this.active = false;
+        const cNode = this.object.userData.nodeClass;
+        this.object.position.setZ(cNode.getOriginZ());
         this.object = null;
     }
 

@@ -5,8 +5,8 @@ import C from "./../Constants";
 import {Text} from "troika-three-text";
 
 export default class{
-    constructor(data, posZ){
-        this.posZ = posZ;
+    constructor(data, originZ){
+        this.originZ = originZ;
         this.selected = false;
         this.nodeHeight = null;
         this.playing = false;
@@ -65,7 +65,7 @@ export default class{
             nodeObject.add(this.cPortsOutput[i].getMPort());
         }
 
-        nodeObject.position.set(this.data.position.x, this.data.position.y, this.posZ);
+        nodeObject.position.set(this.data.position.x, this.data.position.y, this.originZ);
 
         //set class for all children
         nodeObject.traverse(function (object) {
@@ -73,6 +73,10 @@ export default class{
         }.bind(this));
 
         return nodeObject;
+    }
+
+    getOriginZ(){
+        return this.originZ;
     }
 
     setPosZ(z){
