@@ -5,8 +5,8 @@ import C from "./../Constants";
 import {Text} from "troika-three-text";
 
 export default class{
-    constructor(data, renderOrder){
-        this.renderOrder = renderOrder;
+    constructor(data, posZ){
+        this.posZ = posZ;
         this.selected = false;
         this.nodeHeight = null;
         this.playing = false;
@@ -17,7 +17,6 @@ export default class{
         this.cPortsOutput = [];
         this.data = data;
         this.mesh = this.create();
-
     }
 
     create() {
@@ -66,27 +65,18 @@ export default class{
             nodeObject.add(this.cPortsOutput[i].getMPort());
         }
 
-        nodeObject.position.set(this.data.position.x, this.data.position.y, C.layers[0]);
+        nodeObject.position.set(this.data.position.x, this.data.position.y, this.posZ);
 
         //set class for all children
         nodeObject.traverse(function (object) {
             object.userData.nodeClass = this;
         }.bind(this));
 
-        this.setDepthTest(nodeObject);
-
         return nodeObject;
     }
 
-    setDepthTest(object){
-        object.traverse(function (object) {
-            if(object.material){
-                clog(object.name);
-                object.renderOrder = this.renderOrder;
-                clog(object.renderOrder);
-                object.material.depthTest = false;
-            }
-        }.bind(this));
+    setPosZ(z){
+        this.mesh.position.setZ(z);
     }
 
     createHeaderButtons(){
@@ -95,17 +85,15 @@ export default class{
         //triangle
         const collapse = this.createCollapseButton();
         header.add(collapse);
-        header.position.set(0, -C.nodeMesh.header.height/2, C.layers[3]);
 
         //play
         const play = this.createPlayButton();
         header.add(play);
-        header.position.set(0, -C.nodeMesh.header.height/2, C.layers[3]);
 
         //menu
         const menu = this.createMenuButton();
         header.add(menu);
-        header.position.set(0, -C.nodeMesh.header.height/2, C.layers[3]);
+        header.position.set(0, -C.nodeMesh.header.height/2, C.layers.header);
 
         return header;
     }
@@ -167,7 +155,7 @@ export default class{
         let currentYPos = -C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.header.height - C.nodeMesh.port.height/2;
         for(let i = 0; i < this.cPortsInput.length; i += 1){
             const mPort = this.cPortsInput[i].getMPort();
-            mPort.position.set(0, currentYPos, C.layers[3]);
+            mPort.position.set(0, currentYPos, C.layers.port);
             currentYPos -= C.nodeMesh.port.height;
         }
     }
@@ -187,7 +175,7 @@ export default class{
             C.nodeMesh.footer.height + C.nodeMesh.port.height/2;
         for(let i = this.cPortsOutput.length - 1; i >= 0; i -= 1){
             const mPort = this.cPortsOutput[i].getMPort();
-            mPort.position.set(C.nodeMesh.mount.width, currentYPos, C.layers[3]);
+            mPort.position.set(C.nodeMesh.mount.width, currentYPos, C.layers.port);
             currentYPos += C.nodeMesh.port.height;
         }
     }
@@ -229,6 +217,7 @@ export default class{
         title.anchorY = 'bottom';
         title.position.set(C.nodeMesh.title.leftMargin, C.nodeMesh.title.bottomMargin, 0);
         title.name = 'title';
+
         return title;
     }
 
@@ -337,7 +326,7 @@ export default class{
         mount.add(footer);
 
         mount.name = 'frontMount';
-        mount.position.set(C.nodeMesh.mount.borderSize, -C.nodeMesh.mount.borderSize, C.layers[1]);
+        mount.position.set(C.nodeMesh.mount.borderSize, -C.nodeMesh.mount.borderSize, C.layers.frontMount);
 
         return mount;
     }
@@ -377,11 +366,11 @@ export default class{
         footerLabel.letterSpacing = C.nodeMesh.footer.label.letterSpacing;
         footerLabel.anchorX = 'left';
         footerLabel.anchorY = 'bottom';
-        footerLabel.position.set(C.nodeMesh.footer.label.leftMargin, C.nodeMesh.footer.label.bottomMargin, C.layers[1]);
+        footerLabel.position.set(C.nodeMesh.footer.label.leftMargin, C.nodeMesh.footer.label.bottomMargin, C.layers.footerLabel);
 
         footer.add(footerLabel);
         footer.name = 'footer';
-        footer.position.set(0, 0, C.layers[3]);
+        footer.position.set(0, 0, C.layers.footer);
         this.setFrontMountFooterPosition(footer);
 
         return footer;

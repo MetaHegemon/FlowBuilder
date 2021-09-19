@@ -1,4 +1,5 @@
 import Node from '../three/Node';
+import C from './../Constants';
 
 export default class {
     constructor() {
@@ -13,8 +14,7 @@ export default class {
 
     buildNodes (){
         for(let i = 0; i < this.nodeData.length; i += 1){
-            const node = new Node(this.nodeData[i], i);
-
+            const node = new Node(this.nodeData[i], i * C.layers.nodeStep);
             this.nodeMeshes.push(node.mesh);
         }
     }

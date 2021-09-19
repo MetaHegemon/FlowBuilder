@@ -52,7 +52,6 @@ export default class{
         const cNode = mNode.userData.nodeClass;
         const cPorts = cNode.getAllCPorts();
 
-        clog(cPorts.length);
         for(let i = 0; i < cPorts.length; i += 1){
             const pos = cPorts[i].getConnectorPos();
             const cLines = cPorts[i].cLines;

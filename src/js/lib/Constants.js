@@ -1,6 +1,16 @@
 export default {
 
-    layers: [1, 2, 3, 4, 5, 6],  //слои размещения объектов в сцене. значение элемента массива означает координату по z
+    layers: {
+        nodeStep: 0.1,
+        backMount: 0,
+        frontMount: 0.01,
+        footer: 0.01,
+        title: 0,
+        indicator: 0,
+        header: 0.02,
+        port: 0.02,
+        footerLabel: 0.01
+    },
     splineSegments: 100,
     deltaOnPointerInteractive: 3,
     fontPaths: {
