@@ -9,7 +9,7 @@ export default class{
 
     enable(mConnector) {
         this.active = true;
-        const cPort1 = mConnector.userData.class;
+        const cPort1 = mConnector.userData.portClass;
         const lines = cPort1.cLines;
         if(cPort1.direction === 'input' && lines.length > 0){
             this.cLine = cPort1.cLines[0];
@@ -49,9 +49,10 @@ export default class{
 
     // обновляет линии
     refreshLines(mNode) {
-        const cNode = mNode.userData.class;
-        const cPorts = cNode.cPorts;
+        const cNode = mNode.userData.nodeClass;
+        const cPorts = cNode.getAllCPorts();
 
+        clog(cPorts.length);
         for(let i = 0; i < cPorts.length; i += 1){
             const pos = cPorts[i].getConnectorPos();
             const cLines = cPorts[i].cLines;
@@ -70,16 +71,16 @@ export default class{
     canBeConnected(mConnector2){
         let result = false;
         const cPort1 = this.cLine.getCPort1();
-        const cPort2 = mConnector2.userData.class;
+        const cPort2 = mConnector2.userData.portClass;
 
-        const cNode1 = cPort1.cNode;
-        const cNode2 = cPort2.cNode;
+        const cNode1 = cPort1.getCNode();
+        const cNode2 = cPort2.getCNode();
 
         if(
             cNode1 !== cNode2 &&
             cPort1.direction !== cPort2.direction &&
             cPort1.data.type === cPort2.data.type &&
-            !(cPort1.direction === 'input' && cPort2.cLines.length > 0)
+            !(cPort2.direction === 'input' && cPort2.cLines.length > 0)
         ){
             result = true;
         }
@@ -91,7 +92,7 @@ export default class{
         this.active = false;
         let pos1, pos2;
         const cPort1 = this.cLine.getCPort1();
-        const cPort2 = mConnector2.userData.class;
+        const cPort2 = mConnector2.userData.portClass;
 
         //set output connector as first
         if(cPort1.direction === 'output'){

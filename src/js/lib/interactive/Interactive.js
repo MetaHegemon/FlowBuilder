@@ -78,17 +78,19 @@ export default class{
 
             if (this.intersects.length > 0) {
                 if (e.buttons === 1) {
-                    const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
+                    const backMountIntersect = this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter']);
                     if (backMountIntersect) {
-                        this.selectedOnPointerDown = backMountIntersect.object.userData.class.getMNode();
+                        this.selectedOnPointerDown = backMountIntersect.object.userData.nodeClass.getMNode();
                         return null;
                     }
-                    const connectorIntersect = this.checkOnIntersect(this.intersects, 'connector');
+                    const connectorIntersect = this.checkOnIntersect(this.intersects, ['connector']);
                     if (connectorIntersect) {
-                        this.selectedOnPointerDown = connectorIntersect.object;
-                        this.unselectAllLines();
-                        lineControl.enable(connectorIntersect.object);
-                        return null;
+                        const cPort = connectorIntersect.object.userData.portClass;
+                        if(cPort.type !== 'pseudo') {
+                            this.selectedOnPointerDown = connectorIntersect.object;
+                            this.unselectAllLines();
+                            lineControl.enable(connectorIntersect.object);
+                        }
                     }
                 }
             } else {
@@ -129,7 +131,7 @@ export default class{
                     this.intersects[0].object.name === 'connector' &&
                     lineControl.canBeConnected(this.intersects[0].object)
                 ) {
-                    const cPort = this.intersects[0].object.userData.class;
+                    const cPort = this.intersects[0].object.userData.portClass;
                     const pos = cPort.getConnectorPos();
                     lineControl.drawLineFromPos(pos.x, pos.y);
                 } else {
@@ -141,15 +143,20 @@ export default class{
                     if (this.intersects.length > 0) {
                         const firstObject = this.intersects[0].object;
                         if (firstObject.name === 'portLabel') {
-                            firstObject.userData.methods.hover();
+                            const cPort = firstObject.userData.portClass;
+                            cPort.hover();
                             this.hovered.push(firstObject);
                             this.sceneControl.setCursor('pointer');
                         } else if (firstObject.name === 'footerLabel') {
-                            firstObject.userData.methods.hover();
+                            const cNode = firstObject.userData.nodeClass;
+                            cNode.hoverFooterLabel();
                             this.hovered.push(firstObject);
                             this.sceneControl.setCursor('pointer');
                         } else if (firstObject.name === 'connector') {
-                            this.sceneControl.setCursor('pointer');
+                            const cPort = firstObject.userData.portClass;
+                            if(cPort.type !== 'pseudo') {
+                                this.sceneControl.setCursor('pointer');
+                            }
                         } else if (firstObject.name === 'line') {
                             this.sceneControl.setCursor('pointer');
                         } else if (firstObject.name === 'collapseButton') {
@@ -170,10 +177,10 @@ export default class{
                     if (this.selectedOnPointerDown) {
                         if (this.selectedOnPointerDown.name === 'node') {
                             if (this.isMoved(this.pointerPosOnScene, this.pointerDownPos)) {
-                                const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
+                                const backMountIntersect = this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter']);
                                 if (backMountIntersect) {
-                                    const node = backMountIntersect.object.userData.superParent;
-                                    Drag.enable(node, this.pointerPosOnScene);
+                                    const cNode = backMountIntersect.object.userData.nodeClass;
+                                    Drag.enable(cNode.getMNode(), this.pointerPosOnScene);
                                     this.sceneControl.setCursor('move');
                                 }
                             }
@@ -190,7 +197,7 @@ export default class{
                         const allSelected = selectionBox.select();
                         for (let i = 0; i < allSelected.length; i += 1) {
                             if (allSelected[i].name !== 'backMount') continue;
-                            const cNode = allSelected[i].userData.class;
+                            const cNode = allSelected[i].userData.nodeClass;
                             this.addCNodeToSelected(cNode);
                         }
                         for (let i = 0; i < this.selected.cNodes.length; i += 1) {
@@ -236,10 +243,17 @@ export default class{
                             this.onPlayButtonClick(this.intersects[0].object);
                         } else if (this.intersects[0].object.name === 'menuButton') {
                             this.onMenuButtonClick(this.intersects[0].object);
+                        } else if(this.intersects[0].object.name === 'portLabel'){
+                            const cPort = this.intersects[0].object.userData.portClass;
+                            if(cPort.type === 'pseudo'){
+                                const cNode = cPort.getCNode();
+                                cNode.shortCollapsePorts(cPort);
+                                this.switchLinesOnPseudoPorts(cPort);
+                            }
                         } else {
-                            const backMountIntersect = this.checkOnIntersect(this.intersects, 'backMount');
+                            const backMountIntersect = this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter']);
                             if (backMountIntersect) {
-                                const cNode = backMountIntersect.object.userData.class;
+                                const cNode = backMountIntersect.object.userData.nodeClass;
                                 this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
                             } else if (this.intersects[0].object.name === 'line') {
                                 this.onLineClick(this.intersects[0].object);
@@ -259,12 +273,28 @@ export default class{
         }
     }
 
+    switchLinesOnPseudoPorts(cPseudoPort){
+        //Если порты скрыты, то псевдопорту присваиваются все линии,
+        //Если порты показаны, то псевдопорту присваиваются все скрытые линии скрытых портов, т.е. пустой массив
+        const hidedCPorts = cPseudoPort.getHidedCPorts();
+        const allCLines = [];
+        for(let i = 0; i < hidedCPorts.length; i += 1){
+            allCLines.push(...hidedCPorts[i].getCLines());
+        }
+        cPseudoPort.setCLines(allCLines);
+
+        const cNode = cPseudoPort.getCNode();
+        const mNode = cNode.getMNode();
+        lineControl.refreshLines(mNode);
+    }
+
     onCollapseButtonClick(mCollapse){
-        clog('collapse');
+        const cNode = mCollapse.userData.nodeClass;
+        cNode.play(mCollapse);
     }
 
     onPlayButtonClick(mPlay){
-        const cNode = mPlay.userData.class;
+        const cNode = mPlay.userData.nodeClass;
         cNode.play(mPlay);
     }
 
@@ -275,18 +305,26 @@ export default class{
     unhoverObjects(currentObject){
         for(let i = 0; i < this.hovered.length; i += 1) {
             if (this.hovered[i] === currentObject) continue;
-            this.hovered[i].userData.methods.unhover();
+            if(this.hovered[i].name === 'portLabel'){
+                const cPort = this.hovered[i].userData.portClass;
+                cPort.unhover();
+            } else if(this.hovered[i].name === 'footerLabel'){
+                const cNode = this.hovered[i].userData.nodeClass;
+                cNode.unhoverFooterLabel();
+            }
             this.hovered.splice(i, 1);
             i -= 1;
         }
     }
 
-    checkOnIntersect(intersects, name){
+    checkOnIntersect(intersects, names){
         let res = null;
-        for(let i = 0; i < intersects.length; i += 1){
-            if(intersects[i].object.name === name){
-                res = intersects[i];
-                break;
+        cycle: for(let i = 0; i < intersects.length; i += 1){
+            for(let j = 0; j < names.length; j += 1) {
+                if (intersects[i].object.name === names[j]) {
+                    res = intersects[i];
+                    break cycle;
+                }
             }
         }
         return res;
@@ -298,7 +336,7 @@ export default class{
     }
 
     onNodeClick (cNode, shiftKey, ctrlKey) {
-        if (cNode.selected) {
+        if (cNode.isSelected()) {
             if(ctrlKey) {
                 for (let i = 0; i < this.selected.cNodes.length; i += 1) {
                     if (this.selected.cNodes[i] === cNode) {
@@ -404,4 +442,3 @@ export default class{
         this.selected.lines = [];
     }
 }
-

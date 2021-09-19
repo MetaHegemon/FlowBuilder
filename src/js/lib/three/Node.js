@@ -1,21 +1,25 @@
 import * as THREE from "three";
-import Port from './Port';
+import Port from './NodePort';
+import PseudoPort from "./NodePseudoPort";
 import C from "./../Constants";
 import {Text} from "troika-three-text";
 
 export default class{
     constructor(data){
         this.selected = false;
+        this.nodeHeight = null;
         this.playing = false;
-        this.backMountMesh = null;
         this.title = null;
-        this.cPorts = [];
+        this.inputPortCollapsed = true;
+        this.outputPortsCollapsed = true;
+        this.cPortsInput = [];
+        this.cPortsOutput = [];
         this.data = data;
         this.mesh = this.create();
     }
 
     create() {
-        const nodeShieldHeight = this.calcNodeShieldHeight(this.data.inputs.length + this.data.outputs.length);
+        this.calcNodeHeight();
 
         const nodeObject = new THREE.Object3D();
         nodeObject.matrixWorld.makeTranslation(0, 1000, 0);
@@ -33,43 +37,39 @@ export default class{
 
         //create shield
         const shieldObject = new THREE.Object3D();
-        const backMount = this.backMountMesh = this.createBackMountMesh(nodeShieldHeight);
+        const backMount = this.createBackMountMesh();
         shieldObject.add(backMount);
-        const frontMount = this.createFrontMount(nodeShieldHeight);
+        const frontMount = this.createFrontMount();
         shieldObject.add(frontMount);
         nodeObject.add(shieldObject);
 
         //header
         const header = this.createHeaderButtons();
-        clog(header);
         nodeObject.add(header);
 
-        //ports
-        const inputs = this.createInputPorts(this.data.inputs);
-        for (let i = 0; i < inputs.length; i += 1) {
-            nodeObject.add(inputs[i].getMPort());
-            this.cPorts.push(inputs[i]);
+        //input ports
+        //create ports before calc height of node
+        const inputPorts = this.createInputPorts(this.data.inputs);
+        this.cPortsInput = this.packPortsWithPseudo( inputPorts, 'input');
+        this.setPositionsForInputPorts();
+        for (let i = 0; i < this.cPortsInput.length; i += 1) {
+            nodeObject.add(this.cPortsInput[i].getMPort());
         }
 
-        const outputs = this.createOutputPorts(this.data.outputs, this.data.inputs);
-        for (let i = 0; i < outputs.length; i += 1) {
-            nodeObject.add(outputs[i].getMPort());
-            this.cPorts.push(outputs[i]);
+        //output ports
+        const outputPorts = this.createOutputPorts(this.data.outputs);
+        this.cPortsOutput = this.packPortsWithPseudo( outputPorts, 'output');
+        this.setPositionsForOutputPorts();
+        for (let i = 0; i < this.cPortsOutput.length; i += 1) {
+            nodeObject.add(this.cPortsOutput[i].getMPort());
         }
-
-        //footer
-        const footer = this.createFooter(nodeShieldHeight);
-        nodeObject.add(footer);
 
         nodeObject.position.set(this.data.position.x, this.data.position.y, C.layers[0]);
 
-        //set superParent for children
+        //set class for all children
         nodeObject.traverse(function (object) {
-            if (object.name === 'node') return null;
-            object.userData.superParent = nodeObject;
-        });
-
-        nodeObject.userData.class = this;
+            object.userData.nodeClass = this;
+        }.bind(this));
 
         return nodeObject;
     }
@@ -106,7 +106,6 @@ export default class{
         collapse.rotateZ(Math.PI);
         collapse.position.set(C.nodeMesh.header.collapse.leftMargin, -C.nodeMesh.header.collapse.topMargin, 0);
         collapse.name = 'collapseButton';
-        collapse.userData.class = this;
 
         return collapse;
     }
@@ -121,7 +120,6 @@ export default class{
         play.anchorY = 'top';
         play.position.set(C.nodeMesh.mount.width - C.nodeMesh.header.play.rightMargin, -C.nodeMesh.header.play.topMargin, 0);
         play.name = 'playButton';
-        play.userData.class = this;
 
         return play;
     }
@@ -136,43 +134,73 @@ export default class{
         menu.anchorY = 'top';
         menu.position.set(C.nodeMesh.mount.width - C.nodeMesh.header.menu.rightMargin, -C.nodeMesh.header.menu.topMargin, 0);
         menu.name = 'menuButton';
-        menu.userData.class = this;
 
         return menu;
     }
 
     createInputPorts(inputs) {
-        let currentYPos = - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.header.height - C.nodeMesh.port.height/2;
         const cPorts = [];
         for(let i = 0; i < inputs.length; i += 1) {
             const cPort = new Port('input', inputs[i], this);
-            const portObject = cPort.getMPort();
-            portObject.position.set(0, currentYPos, C.layers[3]);
-            currentYPos -= C.nodeMesh.port.height;
-
             cPorts.push(cPort);
         }
+
         return cPorts;
     }
 
-    createOutputPorts (outputs, inputs){
-        let currentYPos = - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.header.height -
-            C.nodeMesh.port.height * inputs.length - C.nodeMesh.port.height/2;
-        const cPorts = [];
+    setPositionsForInputPorts(){
+        let currentYPos = -C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.header.height - C.nodeMesh.port.height/2;
+        for(let i = 0; i < this.cPortsInput.length; i += 1){
+            const mPort = this.cPortsInput[i].getMPort();
+            mPort.position.set(0, currentYPos, C.layers[3]);
+            currentYPos -= C.nodeMesh.port.height;
+        }
+    }
+
+    createOutputPorts (outputs){
+        let cPorts = [];
         for(let i = 0; i < outputs.length; i += 1) {
             const cPort = new Port('output', outputs[i], this);
-            const portObject = cPort.getMPort();
-            portObject.position.set(C.nodeMesh.mount.width, currentYPos, C.layers[3]);
-            currentYPos -= C.nodeMesh.port.height;
             cPorts.push(cPort);
         }
 
         return cPorts;
     }
 
-    calcNodeShieldHeight(portsCount) {
-        const portsHeight = portsCount * C.nodeMesh.port.height;
-        return C.nodeMesh.mount.roundCornerRadius + C.nodeMesh.header.height + portsHeight + C.nodeMesh.mount.footerHeight;
+    setPositionsForOutputPorts(){
+        let currentYPos = -this.nodeHeight + C.nodeMesh.mount.borderSize + C.nodeMesh.mount.roundCornerRadius +
+            C.nodeMesh.footer.height + C.nodeMesh.port.height/2;
+        for(let i = this.cPortsOutput.length - 1; i >= 0; i -= 1){
+            const mPort = this.cPortsOutput[i].getMPort();
+            mPort.position.set(C.nodeMesh.mount.width, currentYPos, C.layers[3]);
+            currentYPos += C.nodeMesh.port.height;
+        }
+    }
+
+    packPortsWithPseudo(cPorts, direction, cPseudoPort){
+        const portsForHide = [];
+        for(let i = C.nodeMesh.constraints.maxVisiblePorts - 1; i < cPorts.length; i += 1){
+            portsForHide.push(cPorts[i]);
+        }
+        if(portsForHide.length > 1){
+            for(let i = 0; i < cPorts.length; i += 1){
+                for(let j = 0; j < portsForHide.length; j += 1){
+                    if(cPorts[i] === portsForHide[j]){
+                        cPorts.splice(i, 1);
+                        i -= 1;
+                    }
+                }
+            }
+
+            if(!cPseudoPort){
+                cPseudoPort = new PseudoPort(direction, this);
+            }
+
+            cPseudoPort.setHidedCPorts(portsForHide);
+            cPorts.push(cPseudoPort);
+        }
+
+        return cPorts;
     }
 
     createTitle(name) {
@@ -201,57 +229,68 @@ export default class{
         return title;
     }
 
-    createBackMountMesh(h){
+    createBackMountMesh(){
         const w = C.nodeMesh.mount.width;
         const color = C.nodeMesh.mount.backMountColor;
 
         const radius = C.nodeMesh.mount.roundCornerRadius;
 
-        const shape = new THREE.Shape();
+        const headShape = new THREE.Shape();
+        headShape.moveTo(radius, 0);
+        headShape.lineTo(w - radius, 0);
+        headShape.quadraticCurveTo(w, 0 , w, -radius);
+        headShape.lineTo(0, -radius);
+        headShape.quadraticCurveTo(0, 0, radius, 0);
 
-        shape.moveTo(radius, 0);
-        shape.lineTo(w - radius, 0);
-        shape.quadraticCurveTo(w, 0 , w, -radius);
-        shape.lineTo(w, -h + radius);
-        shape.quadraticCurveTo(w, -h, w-radius, -h);
-        shape.lineTo(radius, -h);
-        shape.quadraticCurveTo(0, -h, 0, -h+radius);
-        shape.lineTo(0, -radius);
-        shape.quadraticCurveTo(0, 0, radius, 0);
-        shape.closePath();
+        const head = new THREE.Mesh(
+            new THREE.ShapeGeometry( headShape ),
+            new THREE.MeshBasicMaterial({color: color ? color : 'red'})
+        );
+        head.name = 'backMountHead';
 
-        const geometry = new THREE.ShapeGeometry( shape );
-        const material = new THREE.MeshBasicMaterial({color: color ? color : 'red'});
+        const body = new THREE.Mesh(
+            new THREE.PlaneBufferGeometry(w, 1),
+            new THREE.MeshBasicMaterial({color: color})
+        );
 
-        const mesh = new THREE.Mesh( geometry, material);
-        mesh.name = 'backMount';
-        mesh.userData.class = this;
+        body.name = 'backMountBody';
+        body.position.setX(C.nodeMesh.mount.width/2);
+        this.scaleBackMountBody(body);
 
-        return mesh;
+        const footerShape = new THREE.Shape();
+        footerShape.moveTo(0, radius);
+        footerShape.lineTo(w, radius);
+        footerShape.quadraticCurveTo(w, 0, w-radius, 0);
+        footerShape.lineTo(radius, 0);
+        footerShape.quadraticCurveTo(0, 0, 0, radius);
+
+        const footer = new THREE.Mesh(
+            new THREE.ShapeGeometry( footerShape ),
+            new THREE.MeshBasicMaterial({color: color ? color : 'red'})
+        );
+        footer.name = 'backMountFooter';
+        this.setBackMountFooterPosition(footer);
+
+        const backMount = new THREE.Object3D();
+        backMount.add(head);
+        backMount.add(body);
+        backMount.add(footer);
+
+        backMount.name = 'backMount';
+
+        return backMount;
     }
 
-    createFrontMount (height) {
-        const mount = this.createFrontMountMesh({
-            w: C.nodeMesh.mount.width - C.nodeMesh.mount.borderSize,
-            h: height - C.nodeMesh.mount.borderSize
-        });
-        mount.name = 'frontMount';
-        mount.position.set(C.nodeMesh.mount.borderSize / 2, -C.nodeMesh.mount.borderSize / 2, C.layers[1]);
-
-        return mount;
-    }
-
-    createFrontMountMesh(settings){
-        //w - width, h - height, headColor - color, bodyColor - color
-        const h = settings.h;
-        const w = settings.w;
+    createFrontMount () {
+        const w = C.nodeMesh.mount.width - C.nodeMesh.mount.borderSize * 2;
+        const h = this.nodeHeight - C.nodeMesh.mount.borderSize * 2;
         const headColor = C.nodeMesh.mount.frontHeadColor;
         const bodyColor = C.nodeMesh.mount.frontBodyColor;
-        const footerColor = C.nodeMesh.mount.footerColor;
-        const radius = C.nodeMesh.mount.roundCornerRadius;
-        const footerHeight = C.nodeMesh.mount.footerHeight;
 
-        const frontMountObject = new THREE.Object3D();
+        const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
+        const footerHeight = C.nodeMesh.footer.height;
+
+        const mount = new THREE.Object3D();
         //head
         const headShape = new THREE.Shape();
         headShape.moveTo(radius, 0);
@@ -265,8 +304,8 @@ export default class{
             new THREE.ShapeGeometry( headShape ),
             new THREE.MeshBasicMaterial({color: headColor ? headColor : 'red'})
         );
-        headMesh.name = 'headFrontMount';
-        frontMountObject.add(headMesh);
+        headMesh.name = 'frontMountHead';
+        mount.add(headMesh);
 
         //body
         const bodyShape = new THREE.Shape();
@@ -277,52 +316,82 @@ export default class{
         bodyShape.closePath();
 
         const bodyMesh = new THREE.Mesh(
-            new THREE.ShapeGeometry( bodyShape ),
+            new THREE.PlaneBufferGeometry(w, 1),
             new THREE.MeshBasicMaterial({color: bodyColor ? bodyColor : 'red'})
         );
-        bodyMesh.name = 'bodyFrontMount';
-        frontMountObject.add(bodyMesh);
+        bodyMesh.name = 'frontMountBody';
+        this.scaleFrontMountBody(bodyMesh);
+        bodyMesh.position.setX(w/2);
+        mount.add(bodyMesh);
 
         //footer
+
+        const footer = this.createFooter();
+        mount.add(footer);
+
+
+        mount.name = 'frontMount';
+        mount.position.set(C.nodeMesh.mount.borderSize, -C.nodeMesh.mount.borderSize, C.layers[1]);
+
+        return mount;
+    }
+
+    createFooter(){
+        const w = C.nodeMesh.mount.width - C.nodeMesh.mount.borderSize * 2;
+        const footerColor = C.nodeMesh.footer.color;
+        const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
+        const footerHeight = C.nodeMesh.footer.height;
+
+        const footer = new THREE.Object3D();
+
+
         const footerShape = new THREE.Shape();
-        footerShape.moveTo(0, -h + footerHeight);
-        footerShape.lineTo(w , -h + footerHeight);
-        footerShape.lineTo(w, -h + radius);
-        footerShape.quadraticCurveTo(w, -h, w-radius, -h);
-        footerShape.lineTo(radius, -h);
-        footerShape.quadraticCurveTo(0, -h, 0, -h + radius);
+        footerShape.moveTo(0, footerHeight + radius);
+        footerShape.lineTo(w , footerHeight + radius);
+        footerShape.lineTo(w, radius);
+        footerShape.quadraticCurveTo(w, 0, w-radius, 0);
+        footerShape.lineTo(radius, 0);
+        footerShape.quadraticCurveTo(0, 0, 0, radius);
         footerShape.closePath();
 
         const footerMesh = new THREE.Mesh(
             new THREE.ShapeGeometry( footerShape ),
             new THREE.MeshBasicMaterial({color: footerColor ? footerColor : 'red'})
         );
-        footerMesh.name = 'footerFrontMount';
-        frontMountObject.add(footerMesh);
+        footerMesh.name = 'frontMountFooter';
 
-        return frontMountObject;
-    }
+        footer.add(footerMesh);
 
-    createFooter(nodeShieldHeight){
         const footerLabel = new Text();
         footerLabel.name = 'footerLabel';
         footerLabel.text = 'Learn more';
         footerLabel.font = C.fontPaths.main;
         footerLabel.fontSize = 8;
-        footerLabel.color = C.nodeMesh.mount.footerLabelColor;
+        footerLabel.color = C.nodeMesh.footer.label.color;
         footerLabel.anchorX = 'left';
         footerLabel.anchorY = 'bottom';
-        footerLabel.position.set(4, -nodeShieldHeight + 1, C.layers[3]);
+        footerLabel.position.set(C.nodeMesh.footer.label.leftMargin, C.nodeMesh.footer.label.bottomMargin, C.layers[1]);
 
-        footerLabel.userData.methods = {};
-        footerLabel.userData.methods.hover = ()=>{
-            footerLabel.color = C.nodeMesh.mount.footerLabelHoverColor;
-        }
-        footerLabel.userData.methods.unhover = ()=>{
-            footerLabel.color = C.nodeMesh.mount.footerLabelColor;
-        }
+        footer.add(footerLabel);
+        footer.name = 'footer';
+        footer.position.set(0, 0, C.layers[3]);
+        this.setFrontMountFooterPosition(footer);
 
-        return footerLabel;
+        return footer;
+    }
+
+    hoverFooterLabel(){
+        const footerLabel = this.mesh.getObjectByName('footerLabel');
+        footerLabel.color = C.nodeMesh.footer.label.hoverColor;
+    }
+
+    unhoverFooterLabel(){
+        const footerLabel = this.mesh.getObjectByName('footerLabel');
+        footerLabel.color = C.nodeMesh.footer.label.color;
+    }
+
+    collapse(){
+
     }
 
     play(mPlay){
@@ -336,19 +405,203 @@ export default class{
 
     }
 
-    select = ()=>{
+    isSelected(){
+        return this.selected;
+    }
+
+    select(){
         this.selected = true;
-        this.backMountMesh.material.color.setStyle(C.nodeMesh.mount.backMountSelectedColor);
+        const mount = this.mesh.getObjectByName('backMount');
+        for(let i = 0; i < mount.children.length; i += 1){
+            mount.children[i].material.color.setStyle(C.nodeMesh.mount.backMountSelectedColor);
+        }
         this.title.color = C.nodeMesh.title.fontSelectedColor;
     }
 
-    unselect = ()=>{
+    unselect(){
         this.selected = false;
-        this.backMountMesh.material.color.setStyle(C.nodeMesh.mount.backMountColor);
+        const mount = this.mesh.getObjectByName('backMount');
+        for(let i = 0; i < mount.children.length; i += 1){
+            mount.children[i].material.color.setStyle(C.nodeMesh.mount.backMountColor);
+        }
         this.title.color = C.nodeMesh.title.fontColor;
     }
 
     getMNode(){
         return this.mesh;
     }
+
+    shortCollapsePorts(cPseudoPort){
+        if(cPseudoPort.direction === 'input'){
+            this.shortCollapseInputPorts(cPseudoPort);
+        } else {
+            this.shortCollapseOutputPorts(cPseudoPort);
+        }
+    }
+
+    shortCollapseInputPorts(cPseudoPort){
+        if(this.inputPortCollapsed){ //uncollapse
+            this.inputPortCollapsed = false;
+
+            const hidedCPorts = cPseudoPort.getHidedCPorts();
+            for(let i = 0; i < hidedCPorts.length; i += 1){
+                const mPort = hidedCPorts[i].getMPort();
+                this.cPortsInput.push(hidedCPorts[i]);
+                this.mesh.add(mPort);
+            }
+            for(let i = 0; i < this.cPortsInput.length; i += 1){
+                if(this.cPortsInput[i] === cPseudoPort){
+                    this.cPortsInput.splice(i, 1);
+                    break;
+                }
+            }
+            this.cPortsInput.push(cPseudoPort);
+            cPseudoPort.setHidedCPorts([]);
+            cPseudoPort.changeLabelText(false);
+            cPseudoPort.hideConnector();
+        } else { //collapse
+            this.inputPortCollapsed = true;
+
+            for(let i = 0; i < this.cPortsInput.length; i += 1){
+                if(this.cPortsInput[i] === cPseudoPort) {
+                    this.cPortsInput.splice(i, 1);
+                    break;
+                }
+            }
+            this.cPortsInput = this.packPortsWithPseudo(this.cPortsInput, 'input', cPseudoPort);
+            const hidedCPorts = cPseudoPort.getHidedCPorts();
+
+            for(let i = 0; i < hidedCPorts.length; i += 1){
+                this.mesh.remove(hidedCPorts[i].getMPort());
+            }
+
+            cPseudoPort.changeLabelText(true);
+            cPseudoPort.showConnector();
+        }
+
+
+        this.calcNodeHeight();
+        this.scaleNode();
+        this.setPositionsForInputPorts();
+        this.setPositionsForOutputPorts();
+    }
+
+    shortCollapseOutputPorts(cPseudoPort){
+        if(this.outputPortsCollapsed){ //uncollapse
+            this.outputPortsCollapsed = false;
+
+            const hidedCPorts = cPseudoPort.getHidedCPorts();
+            for(let i = 0; i < hidedCPorts.length; i += 1){
+                const mPort = hidedCPorts[i].getMPort();
+                this.cPortsOutput.push(hidedCPorts[i]);
+                this.mesh.add(mPort);
+            }
+            for(let i = 0; i < this.cPortsOutput.length; i += 1){
+                if(this.cPortsOutput[i] === cPseudoPort){
+                    this.cPortsOutput.splice(i, 1);
+                    break;
+                }
+            }
+            this.cPortsOutput.push(cPseudoPort);
+            cPseudoPort.changeLabelText(false);
+            cPseudoPort.setHidedCPorts([]);
+            cPseudoPort.hideConnector();
+        } else { //collapse
+            this.outputPortsCollapsed = true;
+            for(let i = 0; i < this.cPortsOutput.length; i += 1){
+                if(this.cPortsOutput[i] === cPseudoPort) {
+                    this.cPortsOutput.splice(i, 1);
+                    break;
+                }
+            }
+            this.cPortsOutput = this.packPortsWithPseudo(this.cPortsOutput, 'output', cPseudoPort);
+            const hidedCPorts = cPseudoPort.getHidedCPorts();
+
+            for(let i = 0; i < hidedCPorts.length; i += 1){
+                this.mesh.remove(hidedCPorts[i].getMPort());
+            }
+
+            cPseudoPort.changeLabelText(true);
+            cPseudoPort.showConnector();
+        }
+
+        this.calcNodeHeight();
+        this.scaleNode();
+        this.setPositionsForInputPorts();
+        this.setPositionsForOutputPorts();
+    }
+
+    scaleNode(){
+        this.scaleBackMountBody()
+        this.scaleFrontMountBody();
+        this.setFrontMountFooterPosition()
+        this.setBackMountFooterPosition()
+        //move footer
+    }
+
+    scaleBackMountBody(body){
+        body = body ? body : this.mesh.getObjectByName('backMountBody');
+        body.scale.setY(this.nodeHeight - C.nodeMesh.mount.roundCornerRadius * 2);
+        body.position.setY(-this.nodeHeight/2);
+    }
+
+    scaleFrontMountBody(body){
+        body = body ? body : this.mesh.getObjectByName('frontMountBody');
+        const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
+        const h = this.nodeHeight - C.nodeMesh.mount.borderSize * 2 - radius * 2;
+
+        body.scale.setY(h - C.nodeMesh.footer.height);
+        body.position.setY(-(h - C.nodeMesh.footer.height + radius*2)/2);
+    }
+
+    setFrontMountFooterPosition(footer){
+        footer = footer ? footer : this.mesh.getObjectByName('footer');
+       // footer.position.lerp(new THREE.Vector3(footer.position.x, -this.nodeHeight + C.nodeMesh.mount.borderSize*2, footer.position.z), 0.5);
+        footer.position.setY(-this.nodeHeight + C.nodeMesh.mount.borderSize*2);
+    }
+
+    setBackMountFooterPosition(footer){
+        footer = footer ? footer : this.mesh.getObjectByName('backMountFooter');
+        footer.position.setY(-this.nodeHeight);
+    }
+
+    calcNodeHeight() {
+        const portsCount = this.calcVisiblePortsCount();
+        const portsHeight = portsCount * C.nodeMesh.port.height;
+        this.nodeHeight = C.nodeMesh.mount.roundCornerRadius * 2 + C.nodeMesh.header.height + portsHeight +
+            C.nodeMesh.footer.height;
+    }
+
+    calcVisiblePortsCount() {
+        let count = 0;
+        const inPorts = this.data.inputs;
+        if (inPorts.length > C.nodeMesh.constraints.maxVisiblePorts ) {
+            if(this.inputPortCollapsed) {
+                count += C.nodeMesh.constraints.maxVisiblePorts;
+            } else {
+                count += inPorts.length + 1;
+            }
+        } else {
+            count += inPorts.length;
+        }
+
+        const outPorts = this.data.outputs;
+        if (outPorts.length > C.nodeMesh.constraints.maxVisiblePorts) {
+            if(this.outputPortsCollapsed) {
+                count += C.nodeMesh.constraints.maxVisiblePorts;
+            } else {
+                count += outPorts.length + 1;
+            }
+        } else {
+            count += outPorts.length;
+        }
+
+        return count;
+    }
+
+    getAllCPorts(){
+        return [...this.cPortsInput, ...this.cPortsOutput];
+    }
+
+
 }

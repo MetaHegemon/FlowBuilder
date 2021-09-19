@@ -45,7 +45,9 @@ export default class {
     }
 
     onSelectOver() {
-        this.element.parentElement.removeChild( this.element );
+        if(this.element.parentElement) {
+            this.element.parentElement.removeChild(this.element);
+        }
     }
 
 }

@@ -12,8 +12,6 @@ export default class {
         this.window.classList.add('main-window');
         this.window.style.backgroundColor = C.scene.backgroundColor;
 
-        clog(this.window.style.backgroundColor);
-
         this.createCanvas(width, height);
 
         this.window.append(this.canvas);

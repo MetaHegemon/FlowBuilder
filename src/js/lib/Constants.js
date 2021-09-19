@@ -12,6 +12,10 @@ export default {
         awDuotone: './fa-duotone-900.ttf'
     },
     nodeMesh: {
+        constraints: {
+            maxVisiblePorts: 4,
+
+        },
         title: {
             fontSize: 10,
             fontColor: '#000000',
@@ -50,29 +54,40 @@ export default {
             frontBodyColor: '#fff',
             backMountColor: '#888888',
             backMountSelectedColor: '#0a8ee5',
-            borderSize: 2,
+            borderSize: 1,
             roundCornerRadius: 5,
-            headerLabelFontSize: 14,
-            footerHeight: 10,
-            footerLabelFontSize: 12,
-            footerColor: '#d0d0d0',
-            footerLabelColor: '#ffffff',
-            footerLabelHoverColor: '#0a8ee5'
+            headerLabelFontSize: 14
+        },
+
+        footer: {
+            height: 8,                         //высота всего подвала вместе с радиусом скругления
+            labelFontSize: 12,
+            color: '#d0d0d0',
+            label: {
+                leftMargin: 4,
+                bottomMargin: 2,
+                color: '#ffffff',
+                hoverColor: '#0a8ee5'
+            }
         },
         port: {
             height: 16,
             connectorWidth: 8,
             connectorHeight: 8,
             connectorSelectedColor: '#00ff00',
-            labelLeftMargin: 14,
-            labelHoverColor: '#0a8ee5',
             fontSize: 10,
             connectorCornerRadius: 3,
-            markWidth: 8,
-            markHeight: 8,
-            markCornerRadius: 2,
-            markFontSize: 7,
-            markLeftMargin: 3
+            label: {
+                leftMargin: 14,
+                hoverColor: '#0a8ee5',
+            },
+            mark: {
+                width: 8,
+                height: 8,
+                cornerRadius: 2,
+                fontSize: 7,
+                leftMargin: 3
+            }
         },
         line: {
             color: '#2a2a2a',
@@ -90,6 +105,18 @@ export default {
                 labelColor: '#2a2a2a',
                 fontColor: '#ffffff',
                 markColor: '#4483f5'
+            },
+            color: {
+                connectorColor: '#f1ab2b',
+                labelColor: '#2a2a2a',
+                fontColor: '#ffffff',
+                markColor: '#f1ab2b'
+            },
+            pseudo: {
+                connectorColor: '#b6b6b6',
+                labelColor: '#2a2a2a',
+                fontColor: '#ffffff',
+                markColor: '#b6b6b6'
             }
         }
     },

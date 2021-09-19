@@ -11,6 +11,8 @@ export default class {
 
         this.port1 = null;
         this.port2 = null;
+        this.pseudoPort1 = null;
+        this.pseudoPort2 = null;
         this.pos1 = new THREE.Vector2();
         this.pos2 = new THREE.Vector2();
     }
@@ -46,6 +48,14 @@ export default class {
 
     setCPort2(port){
         this.port2 = port;
+    }
+
+    setCPseudoPort1(cPort){
+        this.cPseudoPort1 = cPort;
+    }
+
+    setCPseudoPort2(cPort){
+        this.cPseudoPort2 = cPort;
     }
 
     getCPort1(){

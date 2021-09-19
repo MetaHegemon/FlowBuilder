@@ -4,32 +4,51 @@ import {Text} from "troika-three-text";
 
 export default class {
     constructor(direction, data, cNode) {
+        this.type = 'regular';
         this.cNode = cNode;
+        this.label = null;
         this.connectorMesh = null;
         this.direction = direction;
         this.data = data;
-        this.portMesh = this.createPort();
+        this.mesh = this.createPort();
         this.cLines = [];
     }
 
+    getCLines(){
+        return this.cLines;
+    }
+
+    setCLines(cLines){
+        this.cLines = cLines;
+    }
+
+    getCNode(){
+        return this.cNode;
+    }
+
     createPort(){
-        const portMesh = this.portMesh = new THREE.Object3D();
+        const portMesh = new THREE.Object3D();
         portMesh.name = 'port';
 
         const connector = this.createPortConnector();
         portMesh.userData.connector = connector;
         portMesh.add(connector);
 
-        const mark = this.createPortMark();
-        portMesh.userData.mark = mark;
-        portMesh.add(mark);
+        if(this.data.mark) {
+            const mark = this.createPortMark();
+            portMesh.userData.mark = mark;
+            portMesh.add(mark);
+        }
 
-        const label = this.createPortLabel();
+        const label = this.label = this.createPortLabel();
         portMesh.userData.label = label;
         portMesh.add(label);
+        portMesh.userData.data = this.data;
 
-        this.portMesh.userData.class = this;
-        this.portMesh.userData.data = this.data;
+        //set class for all children
+        portMesh.traverse(function (object) {
+            object.userData.portClass = this;
+        }.bind(this));
 
         return portMesh
     }
@@ -61,16 +80,15 @@ export default class {
 
         connectorMesh.name = 'connector';
         connectorMesh.userData.selected = false;
-        connectorMesh.userData.class = this;
         return connectorMesh;
     }
 
     createPortMark(){
         const markObject = new THREE.Object3D();
 
-        const w = C.nodeMesh.port.markWidth;
-        const h = C.nodeMesh.port.markHeight;
-        const r = C.nodeMesh.port.markCornerRadius;
+        const w = C.nodeMesh.port.mark.width;
+        const h = C.nodeMesh.port.mark.height;
+        const r = C.nodeMesh.port.mark.cornerRadius;
         const markMountShape = new THREE.Shape()
             .moveTo(0, h/2-r)
             .quadraticCurveTo(0, h/2, r, h/2)
@@ -94,18 +112,18 @@ export default class {
         label.text = this.data.mark;
         label.name = 'markLabel';
         label.font = C.fontPaths.main;
-        label.fontSize = C.nodeMesh.port.markFontSize;
+        label.fontSize = C.nodeMesh.port.mark.fontSize;
         label.color = C.nodeMesh.portTypes[this.data.type].fontColor;
         label.userData.originColor = C.nodeMesh.portTypes[this.data.type].fontColor
         label.anchorX = 'center';
         label.anchorY = 'middle';
-        label.position.set(C.nodeMesh.port.markWidth/2, 0, 0);
+        label.position.set(C.nodeMesh.port.mark.width/2, 0, 0);
 
         markObject.userData.label = label;
         markObject.add(label);
 
         markObject.position.set(
-            this.direction === 'input' ? C.nodeMesh.port.markLeftMargin : -C.nodeMesh.port.markLeftMargin - C.nodeMesh.port.markWidth,
+            this.direction === 'input' ? C.nodeMesh.port.mark.leftMargin : -C.nodeMesh.port.mark.leftMargin - C.nodeMesh.port.mark.width,
             0,
             0
         );
@@ -122,21 +140,30 @@ export default class {
         label.color = C.nodeMesh.portTypes[this.data.type].labelColor;
         label.anchorX = this.direction === 'input' ? 'left' : 'right';
         label.anchorY = 'middle';
-        label.position.set(this.direction === 'input' ? C.nodeMesh.port.labelLeftMargin : -C.nodeMesh.port.labelLeftMargin, 0, 0);
-
-        label.userData.methods = {};
-        label.userData.methods.hover = ()=>{
-            label.color = C.nodeMesh.port.labelHoverColor;
-        }
-        label.userData.methods.unhover = ()=>{
-            label.color = C.nodeMesh.portTypes[this.data.type].labelColor;
-        }
+        const posX = this.data.mark ? C.nodeMesh.port.label.leftMargin : C.nodeMesh.port.mark.leftMargin;
+        label.position.set(this.direction === 'input' ? posX : -posX, 0, 0);
 
         return label;
     }
 
+    hover(){
+        this.hoverLabel();
+    }
+
+    unhover(){
+        this.unhoverLabel();
+    }
+
+    hoverLabel(){
+        this.label.color = C.nodeMesh.port.label.hoverColor;
+    }
+
+    unhoverLabel(){
+        this.label.color = C.nodeMesh.portTypes[this.data.type].labelColor;
+    }
+
     getMPort(){
-        return this.portMesh;
+        return this.mesh;
     }
 
     getMConnector(){
@@ -158,5 +185,4 @@ export default class {
         this.connectorMesh.userData.selected = false;
         this.connectorMesh.material.color.setStyle(C.nodeMesh.portTypes[this.data.type].connectorColor);
     };
-
 };
