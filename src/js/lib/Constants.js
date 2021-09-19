@@ -1,92 +1,113 @@
 export default {
+
     layers: [1, 2, 3, 4, 5, 6],  //слои размещения объектов в сцене. значение элемента массива означает координату по z
     splineSegments: 100,
     deltaOnPointerInteractive: 3,
-
     fontPaths: {
-        main: './fonts/Roboto-Regular.ttf',
+        mainNormal: './fonts/Inter-Regular.ttf',
+        mainMedium: './fonts/Inter-Medium.ttf',
         awSolid: './fonts/fa-solid-900.ttf',
         awLight: './fa-light-300.ttf',
         awRegular: './fa-regular-400.ttf',
         awBrands: './fa-brands-400.ttf',
         awDuotone: './fa-duotone-900.ttf'
     },
+
     nodeMesh: {
         constraints: {
             maxVisiblePorts: 4,
-
         },
         title: {
-            fontSize: 10,
+            fontSize: 21,
             fontColor: '#000000',
             fontSelectedColor: '#0a8ee5',
-            leftMargin: 5
+            leftMargin: 0,
+            bottomMargin: 2
         },
         indicator: {
-            fontSize: 10,
+            fontSize: 21,
             fontColor: '#000000',
-            rightMargin: 2
+            rightMargin: 0,
+            bottomMargin: 2
         },
         header: {
-            height: 20,
+            height: 62,
             collapse: {
-                fontSize: 9,
+                fontSize: 15,
                 fontColor: '#000000',
-                leftMargin: 5,
-                topMargin: 0
+                leftMargin: 18.5,
+                topMargin: 27
             },
             play: {
-                fontSize: 11,
+                fontSize: 23,
                 fontColor: '#000000',
-                rightMargin: 10,
-                topMargin: 0
+                rightMargin: 34,
+                topMargin: 21
             },
             menu: {
-                fontSize: 11,
+                fontSize: 22,
                 fontColor: '#000000',
-                rightMargin: 4,
-                topMargin: 0
+                rightMargin: 16,
+                topMargin: 21
             }
         },
         mount: {
-            width: 80,
-            frontHeadColor: '#0a8ee5',
+            width: 293,
             frontBodyColor: '#fff',
-            backMountColor: '#888888',
-            backMountSelectedColor: '#0a8ee5',
+            front: {
+                headHeight: 6.4,             //без радиуса
+                headColor: '#687EDB',
+                bodyColor: '#ffffff',
+            },
+            back: {
+                color: '#5F5F5F',
+                selectedColor: '#0a8ee5'
+            },
             borderSize: 1,
-            roundCornerRadius: 5,
+            roundCornerRadius: 4,
             headerLabelFontSize: 14
         },
-
-        footer: {
-            height: 8,                         //высота всего подвала вместе с радиусом скругления
-            labelFontSize: 12,
-            color: '#d0d0d0',
-            label: {
-                leftMargin: 4,
-                bottomMargin: 2,
-                color: '#ffffff',
-                hoverColor: '#0a8ee5'
-            }
-        },
         port: {
-            height: 16,
-            connectorWidth: 8,
-            connectorHeight: 8,
-            connectorSelectedColor: '#00ff00',
-            fontSize: 10,
-            connectorCornerRadius: 3,
+            height: 31,
+            connector: {
+                width: 14,
+                height: 25,
+                cornerRadius: 2,
+                selectedColor: '#00ff00',
+            },
             label: {
-                leftMargin: 14,
+                fontSize: 16,
+                topMargin: 10,
+                leftMargin: 40,
                 hoverColor: '#0a8ee5',
+                letterSpacing: 0.046,
+                pseudoLeftMargin: 13,
+                underlineLeftMargin: -0.5,
+                underlineTopMargin: 4.5
             },
             mark: {
-                width: 8,
-                height: 8,
+                width: 30,
+                height: 25,
                 cornerRadius: 2,
-                fontSize: 7,
-                leftMargin: 3
+                fontSize: 17,
+                leftMargin: 4.5,
+                topMargin: 15.5,
+                label: {
+                    leftMargin: 0,
+                    topMargin: -1
+                }
+            }
+        },
+        footer: {
+            height: 26,                         //высота всего подвала вместе с радиусом скругления
+            color: '#EEEFF2',
+            label: {
+                fontSize: 15,
+                leftMargin: 12,
+                bottomMargin: 5.1,
+                color: '#000000',
+                hoverColor: '#0a8ee5',
+                letterSpacing: 0.032
             }
         },
         line: {

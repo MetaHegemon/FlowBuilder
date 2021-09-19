@@ -31,7 +31,7 @@ export default class {
         portMesh.name = 'port';
 
         const connector = this.createPortConnector();
-        portMesh.userData.connector = connector;
+        //portMesh.userData.connector = connector;
         portMesh.add(connector);
 
         if(this.data.mark) {
@@ -41,7 +41,7 @@ export default class {
         }
 
         const label = this.label = this.createPortLabel();
-        portMesh.userData.label = label;
+        //portMesh.userData.label = label;
         portMesh.add(label);
         portMesh.userData.data = this.data;
 
@@ -54,9 +54,9 @@ export default class {
     }
 
     createPortConnector(){
-        const w = C.nodeMesh.port.connectorWidth;
-        const h = C.nodeMesh.port.connectorHeight;
-        const r = C.nodeMesh.port.connectorCornerRadius;
+        const w = C.nodeMesh.port.connector.width;
+        const h = C.nodeMesh.port.connector.height;
+        const r = C.nodeMesh.port.connector.cornerRadius;
 
         const shapeConnector = new THREE.Shape()
             .moveTo(0, h/2 - r)
@@ -104,46 +104,54 @@ export default class {
             new THREE.MeshBasicMaterial({color: C.nodeMesh.portTypes[this.data.type].markColor})
         );
         markMountMesh.name = 'mark';
-        markMountMesh.userData.originColor = C.nodeMesh.portTypes[this.data.type].markColor;
 
         markObject.add(markMountMesh);
 
         const label = new Text();
         label.text = this.data.mark;
         label.name = 'markLabel';
-        label.font = C.fontPaths.main;
+        label.font = C.fontPaths.mainNormal;
         label.fontSize = C.nodeMesh.port.mark.fontSize;
         label.color = C.nodeMesh.portTypes[this.data.type].fontColor;
-        label.userData.originColor = C.nodeMesh.portTypes[this.data.type].fontColor
+
+        //label.lineHeight =
         label.anchorX = 'center';
         label.anchorY = 'middle';
-        label.position.set(C.nodeMesh.port.mark.width/2, 0, 0);
+        label.position.set(C.nodeMesh.port.mark.width/2 + C.nodeMesh.port.mark.label.leftMargin, C.nodeMesh.port.mark.label.topMargin, 0);
 
         markObject.userData.label = label;
         markObject.add(label);
 
-        markObject.position.set(
-            this.direction === 'input' ? C.nodeMesh.port.mark.leftMargin : -C.nodeMesh.port.mark.leftMargin - C.nodeMesh.port.mark.width,
-            0,
-            0
-        );
+        const posX = this.direction === 'input' ? C.nodeMesh.port.mark.leftMargin : -C.nodeMesh.port.mark.leftMargin - C.nodeMesh.port.mark.width
+        const posY = C.nodeMesh.port.height/2 - C.nodeMesh.port.mark.topMargin;
+        markObject.position.set(posX, posY, 0);
 
         return markObject;
     }
 
     createPortLabel(){
+        const labelObj = new THREE.Object3D();
+        labelObj.name = 'portLabel';
+
         const label = new Text();
         label.text = this.data.name;
-        label.name = 'portLabel';
-        label.font = C.fontPaths.main;
-        label.fontSize = C.nodeMesh.port.fontSize;
+        label.name = 'portLabelText';
+        label.font = C.fontPaths.mainNormal;
+        label.fontSize = C.nodeMesh.port.label.fontSize;
         label.color = C.nodeMesh.portTypes[this.data.type].labelColor;
         label.anchorX = this.direction === 'input' ? 'left' : 'right';
-        label.anchorY = 'middle';
-        const posX = this.data.mark ? C.nodeMesh.port.label.leftMargin : C.nodeMesh.port.mark.leftMargin;
-        label.position.set(this.direction === 'input' ? posX : -posX, 0, 0);
+        label.anchorY = 'bottom';
+        label.letterSpacing = C.nodeMesh.port.label.letterSpacing;
+        labelObj.add(label);
 
-        return label;
+        const posX = this.data.mark ? C.nodeMesh.port.label.leftMargin : C.nodeMesh.port.label.pseudoLeftMargin;
+        labelObj.position.set(
+            this.direction === 'input' ? posX : -posX,
+            -C.nodeMesh.port.label.topMargin,
+            0
+        );
+
+        return labelObj;
     }
 
     hover(){
@@ -155,11 +163,15 @@ export default class {
     }
 
     hoverLabel(){
-        this.label.color = C.nodeMesh.port.label.hoverColor;
+        for(let i = 0; i < this.label.children.length; i += 1){
+            this.label.children[i].color = C.nodeMesh.port.label.hoverColor;
+        }
     }
 
     unhoverLabel(){
-        this.label.color = C.nodeMesh.portTypes[this.data.type].labelColor;
+        for(let i = 0; i < this.label.children.length; i += 1){
+            this.label.children[i].color = C.nodeMesh.portTypes[this.data.type].labelColor;
+        }
     }
 
     getMPort(){
@@ -172,7 +184,7 @@ export default class {
 
     selectConnector = ()=>{
         this.connectorMesh.userData.selected = true;
-        this.connectorMesh.material.color.setStyle(C.nodeMesh.port.connectorSelectedColor);
+        this.connectorMesh.material.color.setStyle(C.nodeMesh.port.connector.selectedColor);
     };
 
     getConnectorPos(){

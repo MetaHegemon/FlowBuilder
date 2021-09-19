@@ -142,7 +142,7 @@ export default class{
                 if (e.buttons === 0) {
                     if (this.intersects.length > 0) {
                         const firstObject = this.intersects[0].object;
-                        if (firstObject.name === 'portLabel') {
+                        if (firstObject.name === 'portLabelText') {
                             const cPort = firstObject.userData.portClass;
                             cPort.hover();
                             this.hovered.push(firstObject);
@@ -243,7 +243,7 @@ export default class{
                             this.onPlayButtonClick(this.intersects[0].object);
                         } else if (this.intersects[0].object.name === 'menuButton') {
                             this.onMenuButtonClick(this.intersects[0].object);
-                        } else if(this.intersects[0].object.name === 'portLabel'){
+                        } else if(this.intersects[0].object.name === 'portLabelText'){
                             const cPort = this.intersects[0].object.userData.portClass;
                             if(cPort.type === 'pseudo'){
                                 const cNode = cPort.getCNode();
@@ -289,8 +289,9 @@ export default class{
     }
 
     onCollapseButtonClick(mCollapse){
-        const cNode = mCollapse.userData.nodeClass;
-        cNode.play(mCollapse);
+        clog('collapse click');
+        //const cNode = mCollapse.userData.nodeClass;
+        //cNode.play(mCollapse);
     }
 
     onPlayButtonClick(mPlay){
@@ -305,7 +306,7 @@ export default class{
     unhoverObjects(currentObject){
         for(let i = 0; i < this.hovered.length; i += 1) {
             if (this.hovered[i] === currentObject) continue;
-            if(this.hovered[i].name === 'portLabel'){
+            if(this.hovered[i].name === 'portLabelText'){
                 const cPort = this.hovered[i].userData.portClass;
                 cPort.unhover();
             } else if(this.hovered[i].name === 'footerLabel'){

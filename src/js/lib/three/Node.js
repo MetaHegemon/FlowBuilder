@@ -5,7 +5,8 @@ import C from "./../Constants";
 import {Text} from "troika-three-text";
 
 export default class{
-    constructor(data){
+    constructor(data, renderOrder){
+        this.renderOrder = renderOrder;
         this.selected = false;
         this.nodeHeight = null;
         this.playing = false;
@@ -16,6 +17,7 @@ export default class{
         this.cPortsOutput = [];
         this.data = data;
         this.mesh = this.create();
+
     }
 
     create() {
@@ -71,7 +73,20 @@ export default class{
             object.userData.nodeClass = this;
         }.bind(this));
 
+        this.setDepthTest(nodeObject);
+
         return nodeObject;
+    }
+
+    setDepthTest(object){
+        object.traverse(function (object) {
+            if(object.material){
+                clog(object.name);
+                object.renderOrder = this.renderOrder;
+                clog(object.renderOrder);
+                object.material.depthTest = false;
+            }
+        }.bind(this));
     }
 
     createHeaderButtons(){
@@ -104,7 +119,7 @@ export default class{
         collapse.anchorX = 'right';
         collapse.anchorY = 'bottom';
         collapse.rotateZ(Math.PI);
-        collapse.position.set(C.nodeMesh.header.collapse.leftMargin, -C.nodeMesh.header.collapse.topMargin, 0);
+        collapse.position.set(C.nodeMesh.header.collapse.leftMargin, C.nodeMesh.header.height/2-C.nodeMesh.header.collapse.topMargin, 0);
         collapse.name = 'collapseButton';
 
         return collapse;
@@ -118,7 +133,7 @@ export default class{
         play.color = C.nodeMesh.header.play.fontColor;
         play.anchorX = 'right';
         play.anchorY = 'top';
-        play.position.set(C.nodeMesh.mount.width - C.nodeMesh.header.play.rightMargin, -C.nodeMesh.header.play.topMargin, 0);
+        play.position.set(C.nodeMesh.mount.width - C.nodeMesh.header.play.rightMargin, C.nodeMesh.header.height/2 - C.nodeMesh.header.play.topMargin, 0);
         play.name = 'playButton';
 
         return play;
@@ -132,7 +147,7 @@ export default class{
         menu.color = C.nodeMesh.header.menu.fontColor;
         menu.anchorX = 'right';
         menu.anchorY = 'top';
-        menu.position.set(C.nodeMesh.mount.width - C.nodeMesh.header.menu.rightMargin, -C.nodeMesh.header.menu.topMargin, 0);
+        menu.position.set(C.nodeMesh.mount.width - C.nodeMesh.header.menu.rightMargin,  C.nodeMesh.header.height/2 - C.nodeMesh.header.menu.topMargin, 0);
         menu.name = 'menuButton';
 
         return menu;
@@ -197,6 +212,7 @@ export default class{
             }
 
             cPseudoPort.setHidedCPorts(portsForHide);
+            cPseudoPort.changeLabelText(direction === 'input' ? this.inputPortCollapsed : this.outputPortsCollapsed);
             cPorts.push(cPseudoPort);
         }
 
@@ -206,12 +222,12 @@ export default class{
     createTitle(name) {
         const title = new Text();
         title.text = name;
-        title.font = C.fontPaths.main;
+        title.font = C.fontPaths.mainMedium;
         title.fontSize = C.nodeMesh.title.fontSize;
         title.color = C.nodeMesh.title.fontColor;
         title.anchorX = 'left';
         title.anchorY = 'bottom';
-        title.position.set(C.nodeMesh.title.leftMargin, 0, 0);
+        title.position.set(C.nodeMesh.title.leftMargin, C.nodeMesh.title.bottomMargin, 0);
         title.name = 'title';
         return title;
     }
@@ -219,19 +235,19 @@ export default class{
     createIndicator(name){
         const title = new Text();
         title.text = name;
-        title.font = C.fontPaths.main;
+        title.font = C.fontPaths.mainNormal;
         title.fontSize = C.nodeMesh.indicator.fontSize;
         title.color = C.nodeMesh.indicator.fontColor;
         title.anchorX = 'right';
         title.anchorY = 'bottom';
-        title.position.set(C.nodeMesh.mount.width - C.nodeMesh.indicator.rightMargin, 0, 0);
+        title.position.set(C.nodeMesh.mount.width - C.nodeMesh.indicator.rightMargin, C.nodeMesh.indicator.bottomMargin, 0);
         title.name = 'indicator';
         return title;
     }
 
     createBackMountMesh(){
         const w = C.nodeMesh.mount.width;
-        const color = C.nodeMesh.mount.backMountColor;
+        const color = C.nodeMesh.mount.back.color;
 
         const radius = C.nodeMesh.mount.roundCornerRadius;
 
@@ -283,12 +299,9 @@ export default class{
 
     createFrontMount () {
         const w = C.nodeMesh.mount.width - C.nodeMesh.mount.borderSize * 2;
-        const h = this.nodeHeight - C.nodeMesh.mount.borderSize * 2;
-        const headColor = C.nodeMesh.mount.frontHeadColor;
-        const bodyColor = C.nodeMesh.mount.frontBodyColor;
-
+        const headColor = C.nodeMesh.mount.front.headColor;
+        const bodyColor = C.nodeMesh.mount.front.bodyColor;
         const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
-        const footerHeight = C.nodeMesh.footer.height;
 
         const mount = new THREE.Object3D();
         //head
@@ -296,6 +309,8 @@ export default class{
         headShape.moveTo(radius, 0);
         headShape.lineTo(w - radius, 0);
         headShape.quadraticCurveTo(w, 0, w, -radius);
+        headShape.lineTo(w, -radius - C.nodeMesh.mount.front.headHeight);
+        headShape.lineTo(0, -radius - C.nodeMesh.mount.front.headHeight);
         headShape.lineTo(0, -radius);
         headShape.quadraticCurveTo(0, 0, radius, 0);
         headShape.closePath();
@@ -306,14 +321,6 @@ export default class{
         );
         headMesh.name = 'frontMountHead';
         mount.add(headMesh);
-
-        //body
-        const bodyShape = new THREE.Shape();
-        bodyShape.moveTo(0, -radius);
-        bodyShape.lineTo(w , -radius);
-        bodyShape.lineTo(w, -h + footerHeight);
-        bodyShape.lineTo(0, -h + footerHeight);
-        bodyShape.closePath();
 
         const bodyMesh = new THREE.Mesh(
             new THREE.PlaneBufferGeometry(w, 1),
@@ -328,7 +335,6 @@ export default class{
 
         const footer = this.createFooter();
         mount.add(footer);
-
 
         mount.name = 'frontMount';
         mount.position.set(C.nodeMesh.mount.borderSize, -C.nodeMesh.mount.borderSize, C.layers[1]);
@@ -365,9 +371,10 @@ export default class{
         const footerLabel = new Text();
         footerLabel.name = 'footerLabel';
         footerLabel.text = 'Learn more';
-        footerLabel.font = C.fontPaths.main;
-        footerLabel.fontSize = 8;
+        footerLabel.font = C.fontPaths.mainNormal;
+        footerLabel.fontSize = C.nodeMesh.footer.label.fontSize;
         footerLabel.color = C.nodeMesh.footer.label.color;
+        footerLabel.letterSpacing = C.nodeMesh.footer.label.letterSpacing;
         footerLabel.anchorX = 'left';
         footerLabel.anchorY = 'bottom';
         footerLabel.position.set(C.nodeMesh.footer.label.leftMargin, C.nodeMesh.footer.label.bottomMargin, C.layers[1]);
@@ -413,7 +420,7 @@ export default class{
         this.selected = true;
         const mount = this.mesh.getObjectByName('backMount');
         for(let i = 0; i < mount.children.length; i += 1){
-            mount.children[i].material.color.setStyle(C.nodeMesh.mount.backMountSelectedColor);
+            mount.children[i].material.color.setStyle(C.nodeMesh.mount.back.selectedColor);
         }
         this.title.color = C.nodeMesh.title.fontSelectedColor;
     }
@@ -422,7 +429,7 @@ export default class{
         this.selected = false;
         const mount = this.mesh.getObjectByName('backMount');
         for(let i = 0; i < mount.children.length; i += 1){
-            mount.children[i].material.color.setStyle(C.nodeMesh.mount.backMountColor);
+            mount.children[i].material.color.setStyle(C.nodeMesh.mount.back.color);
         }
         this.title.color = C.nodeMesh.title.fontColor;
     }
@@ -548,10 +555,10 @@ export default class{
     scaleFrontMountBody(body){
         body = body ? body : this.mesh.getObjectByName('frontMountBody');
         const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
-        const h = this.nodeHeight - C.nodeMesh.mount.borderSize * 2 - radius * 2;
+        const h = this.nodeHeight - C.nodeMesh.mount.borderSize * 2 - radius * 2 - C.nodeMesh.mount.front.headHeight;
 
         body.scale.setY(h - C.nodeMesh.footer.height);
-        body.position.setY(-(h - C.nodeMesh.footer.height + radius*2)/2);
+        body.position.setY(-(h - C.nodeMesh.footer.height)/2 - C.nodeMesh.mount.front.headHeight - radius);
     }
 
     setFrontMountFooterPosition(footer){
@@ -568,8 +575,8 @@ export default class{
     calcNodeHeight() {
         const portsCount = this.calcVisiblePortsCount();
         const portsHeight = portsCount * C.nodeMesh.port.height;
-        this.nodeHeight = C.nodeMesh.mount.roundCornerRadius * 2 + C.nodeMesh.header.height + portsHeight +
-            C.nodeMesh.footer.height;
+        this.nodeHeight = C.nodeMesh.mount.roundCornerRadius + C.nodeMesh.mount.front.headHeight +
+            C.nodeMesh.header.height + portsHeight + C.nodeMesh.footer.height + C.nodeMesh.mount.roundCornerRadius;
     }
 
     calcVisiblePortsCount() {

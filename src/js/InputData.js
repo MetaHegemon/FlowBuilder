@@ -14,8 +14,8 @@ export default {
                 }
             ],
             position: {
-                x: -200,
-                y: -250
+                x: -800,
+                y: -400
             },
         },
         {
@@ -32,8 +32,8 @@ export default {
                 }
             ],
             position: {
-                x: -200,
-                y: 50
+                x: -850,
+                y: 0
             }
         },
         {
@@ -63,8 +63,8 @@ export default {
                 }
             ],
             position: {
-                x: 0,
-                y: -50
+                x: -800,
+                y: 500
             }
         },
         {
@@ -88,7 +88,7 @@ export default {
                 }
             ],
             position: {
-                x: 200,
+                x: -300,
                 y: -50
             }
         },
@@ -106,8 +106,8 @@ export default {
                 }
             ],
             position: {
-                x: -250,
-                y: 300
+                x: -300,
+                y: 500
             }
         },
         {
@@ -124,93 +124,87 @@ export default {
                 }
             ],
             position: {
-                x: -250,
-                y: 150
+                x: -350,
+                y: 300
             }
         },
         {
-            name: 'Mix',
-            indicator: 'E',
+            name: 'Generic Node2',
+            indicator: 'B',
             code: 'function(x){return Math.floor(x);}',
             inputs: [
                 {
                     id: 0,
-                    name: 'color',
+                    name: 'input_port_one',
                     type: 'color',
-                    mark: 'c0'
+                    mark: 'b1'
                 },
                 {
                     id: 1,
-                    name: 'color',
+                    name: 'input_port_two',
                     type: 'color',
-                    mark: 'c1'
+                    mark: 'b2'
                 },
                 {
                     id: 2,
-                    name: 'color',
+                    name: 'input_port_three',
                     type: 'color',
-                    mark: 'c2'
+                    mark: 'b3'
                 },
                 {
                     id: 3,
-                    name: 'color',
+                    name: 'input_port_four',
                     type: 'color',
-                    mark: 'c3'
+                    mark: 'b4'
                 },
                 {
                     id: 4,
-                    name: 'color',
+                    name: 'input_port_five',
                     type: 'color',
-                    mark: 'c4'
-                },
-                {
-                    id: 5,
-                    name: 'color',
-                    type: 'color',
-                    mark: 'c5'
+                    mark: 'b5'
                 }
             ],
             outputs: [
                 {
                     id: 0,
-                    name: 'color',
+                    name: 'output_port_one',
                     type: 'color',
-                    mark: 'c0'
+                    mark: '0b'
                 },
                 {
                     id: 1,
-                    name: 'color',
+                    name: 'output_port_two',
                     type: 'color',
-                    mark: 'c1'
+                    mark: '1a'
                 },
                 {
                     id: 2,
-                    name: 'color',
+                    name: 'output_port_three',
                     type: 'color',
-                    mark: 'c2'
+                    mark: '2a'
                 },
                 {
                     id: 3,
-                    name: 'color',
+                    name: 'output_port_four',
                     type: 'color',
-                    mark: 'c3'
+                    mark: '3a'
                 },
                 {
                     id: 4,
-                    name: 'color',
+                    name: 'output_port_five',
                     type: 'color',
-                    mark: 'c4'
+                    mark: '4a'
                 },
                 {
                     id: 5,
-                    name: 'color',
+                    name: 'output_port_six',
                     type: 'color',
-                    mark: 'c5'
+                    mark: '5a'
                 }
             ],
             position: {
-                x: 0,
-                y: 300
+                x: 200,
+                y: 600
             }
         },
         {
@@ -265,8 +259,8 @@ export default {
                 }
             ],
             position: {
-                x: 150,
-                y: 300
+                x: 700,
+                y: 350
             }
         },
 

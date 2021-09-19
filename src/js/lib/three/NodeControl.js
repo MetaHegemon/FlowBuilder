@@ -13,7 +13,7 @@ export default class {
 
     buildNodes (){
         for(let i = 0; i < this.nodeData.length; i += 1){
-            const node = new Node(this.nodeData[i]);
+            const node = new Node(this.nodeData[i], i);
 
             this.nodeMeshes.push(node.mesh);
         }

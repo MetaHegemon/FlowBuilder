@@ -24,7 +24,7 @@ export default class {
         );
         this.camera.position.z = 100;
         this.camera.lookAt(0,0,0);
-        this.camera.zoom = 0.0015;
+        this.camera.zoom = 0.0007;
 
         //zoom
         this.zoomTo = 1;
