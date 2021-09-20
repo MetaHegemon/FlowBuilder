@@ -153,7 +153,6 @@ export default class {
     }
 
     setColor(colorStyle){
-        clog('setColor');
         this.mLine.material.color.setStyle(colorStyle);
     }
 

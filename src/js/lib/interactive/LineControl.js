@@ -89,6 +89,15 @@ export default class{
         return result;
     }
 
+    canBeSelected(mLine){
+        let result = true;
+        const cLine = mLine.userData.class;
+        if(cLine.isPort1Collapsed || cLine.isPort2Collapsed){
+            result = false;
+        }
+        return result;
+    }
+
     connect(mConnector2){
         this.active = false;
         let pos1, pos2;

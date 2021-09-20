@@ -105,9 +105,10 @@ export default class{
         this.pointerPos.x = (e.clientX / this.canvas.clientWidth) * 2 - 1;
         this.pointerPos.y = -(e.clientY / this.canvas.clientHeight) * 2 + 1;
 
-        if(this.panningNow && (e.buttons === 1 || e.buttons === 4)) {
-            let dx = (this.pointerLastPos.x - this.pointerPos.x)/this.camera.zoom;
-            let dy = (this.pointerLastPos.y - this.pointerPos.y)/this.camera.zoom;
+        if (this.panningNow && (e.buttons === 1 || e.buttons === 4)) //PANNING
+        {
+            let dx = (this.pointerLastPos.x - this.pointerPos.x) / this.camera.zoom;
+            let dy = (this.pointerLastPos.y - this.pointerPos.y) / this.camera.zoom;
 
             this.cameraPosTo.x = this.cameraPosTo.x + dx * this.camera.right;
             this.cameraPosTo.y = this.cameraPosTo.y + dy * this.camera.top;
@@ -154,11 +155,13 @@ export default class{
                             this.sceneControl.setCursor('pointer');
                         } else if (firstObject.name === 'connector') {
                             const cPort = firstObject.userData.portClass;
-                            if(cPort.type !== 'pseudo') {
+                            if (cPort.type !== 'pseudo') {
                                 this.sceneControl.setCursor('pointer');
                             }
                         } else if (firstObject.name === 'line') {
-                            this.sceneControl.setCursor('pointer');
+                            if(lineControl.canBeSelected(firstObject)){
+                                this.sceneControl.setCursor('pointer');
+                            }
                         } else if (firstObject.name === 'collapseButton') {
                             this.sceneControl.setCursor('pointer');
                         } else if (firstObject.name === 'playButton') {
@@ -251,7 +254,10 @@ export default class{
                                 const cNode = backMountIntersect.object.userData.nodeClass;
                                 this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
                             } else if (this.intersects[0].object.name === 'line') {
-                                this.onLineClick(this.intersects[0].object);
+                                if(lineControl.canBeSelected(this.intersects[0].object)){
+                                    this.onLineClick(this.intersects[0].object);
+                                }
+
                             }
                         }
                     }
