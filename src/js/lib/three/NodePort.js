@@ -4,7 +4,7 @@ import {Text} from "troika-three-text";
 
 export default class {
     constructor(direction, data, cNode) {
-        this.type = 'regular';
+        this.type = 'regular'; //TODO see instance
         this.cNode = cNode;
         this.label = null;
         this.connectorMesh = null;
@@ -12,6 +12,10 @@ export default class {
         this.data = data;
         this.mesh = this.createPort();
         this.cLines = [];
+    }
+
+    getColor(){
+        return C.nodeMesh.portTypes[this.data.type].connectorColor;
     }
 
     getCLines(){

@@ -11,6 +11,8 @@ export default class{
         this.nodeHeight = 0;
         this.middleCollapse = {
             isCollapsed: false,
+            isPseudoInputExist: false,
+            isPseudoOutputExist: false,
             storeCPortsInput: [],
             storeCPortsOutput: [],
             storeCLinesInput: [],
@@ -459,40 +461,55 @@ export default class{
     }
 
     middleCollapsePorts(){
-        if(this.middleCollapse.isCollapsed){
+        if(this.middleCollapse.isCollapsed) {
             this.middleCollapse.isCollapsed = false;
+
+            const cPseudoPortInput = this.getPseudoPort('input');
+            if (this.middleCollapse.isPseudoInputExist) {
+                cPseudoPortInput.changeLabelText(this.inputPortCollapsed);
+                if (!this.inputPortCollapsed) cPseudoPortInput.hideConnector();
+                cPseudoPortInput.setCLines(this.middleCollapse.storeCLinesInput);
+            } else {
+                if(cPseudoPortInput){
+                    this.mesh.remove(cPseudoPortInput.getMPort());
+                }
+            }
+
+            const cPseudoPortOutput = this.getPseudoPort('output');
+            if (this.middleCollapse.isPseudoOutputExist) {
+                cPseudoPortOutput.changeLabelText(this.outputPortsCollapsed);
+                if (!this.outputPortsCollapsed) cPseudoPortOutput.hideConnector();
+                cPseudoPortOutput.setCLines(this.middleCollapse.storeCLinesOutput);
+            }else {
+                if(cPseudoPortOutput){
+                    this.mesh.remove(cPseudoPortOutput.getMPort());
+                }
+            }
 
             this.cPortsInput = [...this.middleCollapse.storeCPortsInput];
             this.cPortsOutput = [...this.middleCollapse.storeCPortsOutput];
 
-            const cPseudoPortInput = this.getPseudoPort('input');
-            const cPseudoPortOutput = this.getPseudoPort('output');
-
-            cPseudoPortInput.changeLabelText(this.inputPortCollapsed);
-            cPseudoPortOutput.changeLabelText(this.outputPortsCollapsed);
-
-            if(!this.inputPortCollapsed){
-                cPseudoPortInput.hideConnector();
-            }
-
-            if(!this.outputPortsCollapsed){
-                cPseudoPortOutput.hideConnector();
-            }
-
-            cPseudoPortInput.setCLines(this.middleCollapse.storeCLinesInput);
-            cPseudoPortOutput.setCLines(this.middleCollapse.storeCLinesOutput);
-
             this.middleCollapse.storeCLinesInput = [];
             this.middleCollapse.storeCLinesOutput = [];
 
-            for(let i = 0; i < this.cPortsInput.length; i += 1){
-                if(this.cPortsInput[i].type === 'pseudo') continue;
+            for (let i = 0; i < this.cPortsInput.length; i += 1) {
+                if (this.cPortsInput[i].type === 'pseudo') continue;
                 this.mesh.add(this.cPortsInput[i].getMPort());
+
+                const cLines = this.cPortsInput[i].getCLines();
+                cLines.map((item) => {
+                    item.unCollapsedPort2();
+                });
             }
 
-            for(let i = 0; i < this.cPortsOutput.length; i += 1){
-                if(this.cPortsOutput[i].type === 'pseudo') continue;
+            for (let i = 0; i < this.cPortsOutput.length; i += 1) {
+                if (this.cPortsOutput[i].type === 'pseudo') continue;
                 this.mesh.add(this.cPortsOutput[i].getMPort());
+
+                const cLines = this.cPortsOutput[i].getCLines();
+                cLines.map((item) => {
+                    item.unCollapsedPort1();
+                });
             }
 
             this.middleCollapse.storeCPortsInput = [];
@@ -504,17 +521,32 @@ export default class{
             this.middleCollapse.storeCPortsInput = [...this.cPortsInput];
             this.middleCollapse.storeCPortsOutput = [...this.cPortsOutput];
 
-            const cPseudoPortInput = this.getPseudoPort('input');
-            const cPseudoPortOutput = this.getPseudoPort('output');
+            let cPseudoPortInput = this.getPseudoPort('input');
+            let cPseudoPortOutput = this.getPseudoPort('output');
 
-            cPseudoPortInput.removeLabelText();
-            cPseudoPortOutput.removeLabelText();
+            this.middleCollapse.isPseudoInputExist = !!cPseudoPortInput;
+            this.middleCollapse.isPseudoOutputExist = !!cPseudoPortOutput;
 
-            cPseudoPortInput.showConnector();
-            cPseudoPortOutput.showConnector();
+            if(!cPseudoPortInput && this.cPortsInput.length > 0) {
+                cPseudoPortInput = new PseudoPort('input', this);
+                this.mesh.add(cPseudoPortInput.getMPort());
+            }
+            if(!cPseudoPortOutput && this.cPortsOutput.length > 0) {
+                cPseudoPortOutput = new PseudoPort('output', this);
+                this.mesh.add(cPseudoPortOutput.getMPort());
+            }
 
-            this.middleCollapse.storeCLinesInput = [...cPseudoPortInput.getCLines()];
-            this.middleCollapse.storeCLinesOutput = [...cPseudoPortOutput.getCLines()];
+            if(cPseudoPortInput){
+                cPseudoPortInput.removeLabelText();
+                cPseudoPortInput.showConnector();
+                this.middleCollapse.storeCLinesInput = [...cPseudoPortInput.getCLines()];
+            }
+
+            if(cPseudoPortOutput){
+                cPseudoPortOutput.removeLabelText();
+                cPseudoPortOutput.showConnector();
+                this.middleCollapse.storeCLinesOutput = [...cPseudoPortOutput.getCLines()];
+            }
 
             const allInputLines = [];
             for(let i = 0; i < this.cPortsInput.length; i += 1){
@@ -523,7 +555,8 @@ export default class{
                 if(this.cPortsInput[i].type === 'pseudo') continue;
                 this.mesh.remove(this.cPortsInput[i].getMPort());
             }
-            cPseudoPortInput.setCLines(allInputLines);
+            if(cPseudoPortInput) cPseudoPortInput.setCLines(allInputLines);
+            allInputLines.map((item)=>{item.collapsedPort2();});
 
             const allOutputLines = [];
             for(let i = 0; i < this.cPortsOutput.length; i += 1){
@@ -532,10 +565,11 @@ export default class{
                 if(this.cPortsOutput[i].type === 'pseudo') continue;
                 this.mesh.remove(this.cPortsOutput[i].getMPort());
             }
-            cPseudoPortOutput.setCLines(allOutputLines);
+            if(cPseudoPortOutput) cPseudoPortOutput.setCLines(allOutputLines);
+            allOutputLines.map((item)=>{item.collapsedPort1();});
 
-            this.cPortsInput = [cPseudoPortInput];
-            this.cPortsOutput = [cPseudoPortOutput];
+            if(cPseudoPortInput) this.cPortsInput = [cPseudoPortInput];
+            if(cPseudoPortOutput) this.cPortsOutput = [cPseudoPortOutput];
 
             this.calcNodeHeight(1);
         }
@@ -580,6 +614,8 @@ export default class{
         const hidedCPorts = cPseudoPort.getHidedCPorts();
 
         for(let i = 0; i < hidedCPorts.length; i += 1){
+            const cLines = hidedCPorts[i].getCLines();
+            cLines.map((item) => {item.collapsedPort2()});
             this.mesh.remove(hidedCPorts[i].getMPort());
         }
 
@@ -600,6 +636,11 @@ export default class{
                 break;
             }
         }
+        for(let i = 0; i < this.cPortsInput.length; i += 1){
+            const cLines = this.cPortsInput[i].getCLines();
+            cLines.map((item) => {item.unCollapsedPort2()});
+        }
+
         this.cPortsInput.push(cPseudoPort);
         cPseudoPort.setHidedCPorts([]);
         cPseudoPort.changeLabelText(false);
@@ -632,6 +673,8 @@ export default class{
         const hidedCPorts = cPseudoPort.getHidedCPorts();
 
         for(let i = 0; i < hidedCPorts.length; i += 1){
+            const cLines = hidedCPorts[i].getCLines();
+            cLines.map((item) => {item.collapsedPort1()});
             this.mesh.remove(hidedCPorts[i].getMPort());
         }
 
@@ -652,6 +695,11 @@ export default class{
                 break;
             }
         }
+        for(let i = 0; i < this.cPortsOutput.length; i += 1){
+            const cLines = this.cPortsOutput[i].getCLines();
+            cLines.map((item) => {item.unCollapsedPort1()});
+        }
+
         this.cPortsOutput.push(cPseudoPort);
         cPseudoPort.changeLabelText(false);
         cPseudoPort.setHidedCPorts([]);

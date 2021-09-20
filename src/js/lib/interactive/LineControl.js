@@ -20,6 +20,8 @@ export default class{
             this.cLine.setCPort1(cPort1);
         }
         const mesh = this.cLine.getMLine();
+
+        this.cLine.setColor(cPort1.getColor());
         this.scene.add(mesh);
     }
 

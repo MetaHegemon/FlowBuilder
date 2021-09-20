@@ -11,10 +11,13 @@ export default class {
 
         this.port1 = null;
         this.port2 = null;
-        this.pseudoPort1 = null;
-        this.pseudoPort2 = null;
+        //this.pseudoPort1 = null;
+        //this.pseudoPort2 = null;
         this.pos1 = new THREE.Vector2();
         this.pos2 = new THREE.Vector2();
+
+        this.isPort1Collapsed = false;
+        this.isPort2Collapsed = false;
     }
 
     create(){
@@ -42,14 +45,15 @@ export default class {
         this.mLine.material.color.setStyle(C.nodeMesh.line.color);
     }
 
-    setCPort1(port){
-        this.port1 = port;
+    setCPort1(cPort){
+        this.cPort1 = cPort;
     }
 
-    setCPort2(port){
-        this.port2 = port;
+    setCPort2(cPort){
+        this.cPort2 = cPort;
     }
 
+    /*
     setCPseudoPort1(cPort){
         this.cPseudoPort1 = cPort;
     }
@@ -57,13 +61,13 @@ export default class {
     setCPseudoPort2(cPort){
         this.cPseudoPort2 = cPort;
     }
-
+*/
     getCPort1(){
-        return this.port1;
+        return this.cPort1;
     }
 
     getCPort2(){
-        return this.port2;
+        return this.cPort2;
     }
 
     getMLine(){
@@ -122,4 +126,40 @@ export default class {
         geometry.setPositions(p);
         this.mLine.geometry = geometry;
     }
+
+    collapsedPort1(){
+        clog('collapse');
+        this.isPort1Collapsed = true;
+        this.setColor(C.nodeMesh.portTypes.pseudo.connectorColor);
+    }
+
+    collapsedPort2(){
+        this.isPort2Collapsed = true;
+        this.setColor(C.nodeMesh.portTypes.pseudo.connectorColor);
+    }
+
+    unCollapsedPort1(){
+        this.isPort1Collapsed = false;
+        if(!this.isPort2Collapsed){
+            this.resetColor();
+        }
+    }
+
+    unCollapsedPort2(){
+        this.isPort2Collapsed = false;
+        if(!this.isPort1Collapsed){
+            this.resetColor();
+        }
+    }
+
+    setColor(colorStyle){
+        clog('setColor');
+        this.mLine.material.color.setStyle(colorStyle);
+    }
+
+    resetColor(){
+        this.mLine.material.color.setStyle(this.cPort1.getColor());
+    }
+
+
 }
