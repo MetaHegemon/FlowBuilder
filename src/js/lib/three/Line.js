@@ -9,10 +9,9 @@ export default class {
         this.geometry = new LineGeometry();
         this.mLine = this.create();
 
-        this.port1 = null;
-        this.port2 = null;
-        //this.pseudoPort1 = null;
-        //this.pseudoPort2 = null;
+        this.cPort1 = null;
+        this.cPort2 = null;
+
         this.pos1 = new THREE.Vector2();
         this.pos2 = new THREE.Vector2();
 
@@ -24,7 +23,7 @@ export default class {
         this.geometry.setPositions([0, 0, 0, 0, 0, 0]);
         const material = new LineMaterial({
             color: C.nodeMesh.line.color,
-            linewidth: 0.002
+            linewidth: C.lines.lineWidth
         });
         const mLine = new Line2(this.geometry, material);
         mLine.name = 'line';
@@ -53,15 +52,6 @@ export default class {
         this.cPort2 = cPort;
     }
 
-    /*
-    setCPseudoPort1(cPort){
-        this.cPseudoPort1 = cPort;
-    }
-
-    setCPseudoPort2(cPort){
-        this.cPseudoPort2 = cPort;
-    }
-*/
     getCPort1(){
         return this.cPort1;
     }
@@ -91,44 +81,43 @@ export default class {
         const ex = this.pos2.x;
         const ey = this.pos2.y;
 
-        let p = []
+        let p = [];
 
-        let dx = Math.max(Math.abs(ex - sx), 0.1)
+        let dx = Math.max(Math.abs(ex - sx), 0.1);
 
-        let a = [sx + dx * 0.5, sy]
-        let b = [ex - dx * 0.5, ey]
+        let a = [sx + dx * 0.5, sy];
+        let b = [ex - dx * 0.5, ey];
 
-        let steps = 50
+        let steps = C.lines.segments;
 
-        p.push(sx, sy, 0)
+        p.push(sx, sy, 0);
         for (let i = 1; i < steps; i++) {
-            let t = i / steps
-            let x1 = sx + (a[0] - sx) * t
-            let y1 = sy + (a[1] - sy) * t
-            let x2 = a[0] + (b[0] - a[0]) * t
-            let y2 = a[1] + (b[1] - a[1]) * t
-            let x3 = b[0] + (ex - b[0]) * t
-            let y3 = b[1] + (ey - b[1]) * t
+            let t = i / steps;
+            let x1 = sx + (a[0] - sx) * t;
+            let y1 = sy + (a[1] - sy) * t;
+            let x2 = a[0] + (b[0] - a[0]) * t;
+            let y2 = a[1] + (b[1] - a[1]) * t;
+            let x3 = b[0] + (ex - b[0]) * t;
+            let y3 = b[1] + (ey - b[1]) * t;
 
-            let x4 = x1 + (x2 - x1) * t
-            let y4 = y1 + (y2 - y1) * t
-            let x5 = x2 + (x3 - x2) * t
-            let y5 = y2 + (y3 - y2) * t
+            let x4 = x1 + (x2 - x1) * t;
+            let y4 = y1 + (y2 - y1) * t;
+            let x5 = x2 + (x3 - x2) * t;
+            let y5 = y2 + (y3 - y2) * t;
 
-            let x6 = x4 + (x5 - x4) * t
-            let y6 = y4 + (y5 - y4) * t
+            let x6 = x4 + (x5 - x4) * t;
+            let y6 = y4 + (y5 - y4) * t;
 
             p.push(x6, y6, 0);
         }
         p.push(ex, ey, 0);
 
-        const geometry = new LineGeometry()
+        const geometry = new LineGeometry();
         geometry.setPositions(p);
         this.mLine.geometry = geometry;
     }
 
     collapsedPort1(){
-        clog('collapse');
         this.isPort1Collapsed = true;
         this.setColor(C.nodeMesh.portTypes.pseudo.connectorColor);
     }

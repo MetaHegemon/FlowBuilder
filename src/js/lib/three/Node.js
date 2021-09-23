@@ -1001,7 +1001,7 @@ export default class{
     }
 
     shortCollapseInputPorts(cPseudoPort, maxVisiblePorts){
-        if(this.shortCollapse.inputPortsCollapsed){ //uncollapse
+        if(this.shortCollapse.inputPortsCollapsed){ //unCollapse
             this.shortCollapse.inputPortsCollapsed = false;
             this.unCollapseInputPorts(cPseudoPort);
         } else { //collapse
@@ -1102,7 +1102,7 @@ export default class{
     }
 
     shortCollapseOutputPorts(cPseudoPort, maxVisiblePorts){
-        if(this.shortCollapse.outputPortsCollapsed){ //uncollapse
+        if(this.shortCollapse.outputPortsCollapsed){ //unCollapse
             this.shortCollapse.outputPortsCollapsed = false;
             this.unCollapseOutputPorts(cPseudoPort);
         } else { //collapse

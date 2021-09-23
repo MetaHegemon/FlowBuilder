@@ -5,6 +5,7 @@ export default {
         collapseButtonRotateTime: 200,
         footerLabelHideTime: 200
     },
+
     layers: {
         nodeStep: 0.1,
         backMount: 0,
@@ -17,7 +18,6 @@ export default {
         footerLabel: 0.01,
         drag: 10
     },
-    splineSegments: 100,
     deltaOnPointerInteractive: 3,
     fontPaths: {
         mainNormal: './fonts/Inter-Regular.ttf',
@@ -28,7 +28,10 @@ export default {
         awBrands: './fa-brands-400.ttf',
         awDuotone: './fa-duotone-900.ttf'
     },
-
+    lines: {
+        lineWidth: 0.002,
+        segments: 40
+    },
     nodeMesh: {
         constraints: {
             maxVisiblePorts: 4,
@@ -160,10 +163,11 @@ export default {
         backgroundColor: '#f0f2f5'
     },
     three: {
-        maxZoom: 0.2,               //frustum size how near camera can zoom
-        minZoom: 10,                //frustum size how far camera can zoom
-        dampingFactor: 0.15,        //bigger than shorter inertia
-        zoomLimitForFullCollapseNodes: 1.5, //frustum size, for all nodes collapsed
+        maxZoom: 0.2,                           //frustum size how near camera can zoom
+        minZoom: 10,                            //frustum size how far camera can zoom
+        dampingFactor: 0.15,                    //bigger than shorter inertia
+        zoomLimitForFullCollapseNodes: 1.5,     //frustum size, for all nodes collapsed
+        zoomLimitForFullUnCollapseNodes: 1.3,   //frustum size, for all nodes uncollapsed
         zoomSpeed: 0.002
     }
 };

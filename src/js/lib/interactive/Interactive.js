@@ -44,7 +44,7 @@ export default class{
         document.addEventListener('keyup', (e) => this.onKeyUp(e));
         FBS.canvas.addEventListener('contextmenu', (e) => this.onContextMenu(e));
         FBS.canvas.addEventListener('needFullCollapse', () => this.fullCollapseNode(true));
-        FBS.canvas.addEventListener('needFullUncollapse', () => this.fullCollapseNode(false));
+        FBS.canvas.addEventListener('needFullUnCollapse', () => this.fullCollapseNode(false));
     }
 
     onKeyDown(e){

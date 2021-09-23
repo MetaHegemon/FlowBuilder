@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import C from './../Constants';
+import FBS from "../FlowBuilderStore";
 
 export default class {
     constructor(canvas){
@@ -47,15 +48,28 @@ export default class {
         }).observe(this.canvas.parentNode);
 
         this.zoomEvent = {
-            inEvent: new Event('needFullUncollapse'),
+            inEvent: new Event('needFullUnCollapse'),
             outEvent: new Event('needFullCollapse'),
             inDispatched: this.frustumSize < C.three.zoomLimitForFullCollapseNodes,
             outDispatched: this.frustumSize > C.three.zoomLimitForFullCollapseNodes
         }
+/*
+        this.moveToCursor = {
+            step: null,
+            factor: 700,
+            pointerPos2d: new THREE.Vector3(),
+            pointerPos3d: new THREE.Vector3(),
+            raycaster: new THREE.Raycaster(),
+            deltaY: 0,
+            destPos2d: new THREE.Vector2(),
+            camPos2d: new THREE.Vector2()
+        }
+*/
     }
 
     onWheel(e) {
         this.zoomTo = Math.min(Math.max((this.frustumSize + e.deltaY * C.three.zoomSpeed * this.frustumSize), C.three.maxZoom), C.three.minZoom);
+
     }
 
     run (){
@@ -98,13 +112,31 @@ export default class {
         requestAnimationFrame( ()=> this.render() );
     }
 
+    calcPointer3d(e) {
+
+        this.moveToCursor.pointerPos2d.x = (e.clientX / this.canvas.clientWidth) * 2 - 1;
+        this.moveToCursor.pointerPos2d.y = -(e.clientY / this.canvas.clientHeight) * 2 + 1;
+
+        this.moveToCursor.raycaster.setFromCamera(this.moveToCursor.pointerPos2d, this.camera);
+
+        this.moveToCursor.pointerPos3d.x = this.moveToCursor.raycaster.ray.origin.x;
+        this.moveToCursor.pointerPos3d.y = this.moveToCursor.raycaster.ray.origin.y;
+        this.moveToCursor.deltaY = e.deltaY;
+
+        const destPos2d = new THREE.Vector2(this.moveToCursor.pointerPos3d.x, this.moveToCursor.pointerPos3d.y);
+        const camPos2d = new THREE.Vector2(this.camera.position.x, this.camera.position.y);
+
+        const dist = destPos2d.distanceTo(camPos2d);
+        this.moveStep = dist/e.deltaY;
+        camPos2d.lerp(destPos2d, 0.1);
+        this.camera.position.set( camPos2d.x, camPos2d.y, this.camera.position.z );
+    }
+
     smoothZoom() {
         this.zoomStep = (this.zoomTo - this.frustumSize) * C.three.dampingFactor;
         if ((this.zoomStep > 0 && this.zoomStep > 0.000001) || (this.zoomStep < 0 && this.zoomStep < -0.000001)) {
+            //zoom
             this.frustumSize = this.frustumSize + this.zoomStep;
-
-           // this.camera.position.x = this.camera.position.x + (this.zoomTo*10 - this.camera.position.x);
-           // this.camera.position.y = this.camera.position.y + (this.zoomTo*10 - this.camera.position.y);
 
             this.camera.left = -this.frustumSize * this.camera.aspect / 2;
             this.camera.right = this.frustumSize * this.camera.aspect / 2;
@@ -155,4 +187,6 @@ export default class {
     getRenderLoops(){
         return this.renderLoops;
     }
+
+
 }
