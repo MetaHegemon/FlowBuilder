@@ -4,6 +4,8 @@ import LineControl from './LineControl';
 import C from "../Constants";
 import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox';
 import  SelectionHelper  from './SelectHelper';
+import FBS from '../FlowBuilderStore';
+import AnimationControl from './../three/AnimationControl';
 
 const Drag = new DragControl();
 const lineControl = new LineControl();
@@ -12,6 +14,7 @@ let selectionHelper = null;
 
 export default class{
     constructor() {
+        this.animationControl = new AnimationControl();
         this.raycaster = new THREE.Raycaster();
         this.intersects = [];
         //for paning
@@ -22,8 +25,6 @@ export default class{
         this.pointerLastPos = {x: 0, y: 0};
 
         this.pointerPos = new THREE.Vector2();
-        this.camera = null;
-        this.scene = null;
         this.pointerPosOnScene = new THREE.Vector2();
         this.pointerDownPos = new THREE.Vector2();
         this.hovered = [];
@@ -32,27 +33,20 @@ export default class{
             cNodes: []
         };
         this.selectedOnPointerDown = null;
-    }
 
-    setSceneComponents(canvas, sceneControl){
-        this.canvas = canvas;
-        this.sceneControl = sceneControl;
-        this.camera = sceneControl.getCamera();
-        this.scene = sceneControl.getScene();
-        this.renderer = sceneControl.getRenderer();
-        lineControl.setScene(this.scene);
-
-        selectionBox = new SelectionBox( this.camera, this.scene );
-        selectionHelper = new SelectionHelper( selectionBox, this.renderer, 'selectBox' );
+        lineControl.setScene(FBS.scene);
+        selectionBox = new SelectionBox( FBS.camera, FBS.scene );
+        selectionHelper = new SelectionHelper( selectionBox, FBS.renderer, 'selectBox' );
+        this.setEvents();
     }
 
     setEvents(){
-        this.canvas.addEventListener('pointermove', (e)=>this.onPointerMove(e));
-        this.canvas.addEventListener('pointerdown', (e)=>this.onPointerDown(e));
-        this.canvas.addEventListener('pointerup', (e)=>this.onPointerUp(e));
+        FBS.canvas.addEventListener('pointermove', (e)=>this.onPointerMove(e));
+        FBS.canvas.addEventListener('pointerdown', (e)=>this.onPointerDown(e));
+        FBS.canvas.addEventListener('pointerup', (e)=>this.onPointerUp(e));
         document.addEventListener('keydown', (e) => this.onKeyDown(e), false);
         document.addEventListener('keyup', (e) => this.onKeyUp(e));
-        this.canvas.addEventListener('contextmenu', (e) => this.onContextMenu(e));
+        FBS.canvas.addEventListener('contextmenu', (e) => this.onContextMenu(e));
     }
 
     onKeyDown(e){
@@ -72,7 +66,7 @@ export default class{
         this.pointerDownPos.y = this.pointerPosOnScene.y;
 
         if(this.spaceBarPressed || e.button === 1){
-            this.sceneControl.setCursor('grabbing');
+            this.setCursor('grabbing');
             this.panningNow = true;
         } else {
 
@@ -102,21 +96,21 @@ export default class{
     }
 
     onPointerMove(e) {
-        this.pointerPos.x = (e.clientX / this.canvas.clientWidth) * 2 - 1;
-        this.pointerPos.y = -(e.clientY / this.canvas.clientHeight) * 2 + 1;
+        this.pointerPos.x = (e.clientX / FBS.canvas.clientWidth) * 2 - 1;
+        this.pointerPos.y = -(e.clientY / FBS.canvas.clientHeight) * 2 + 1;
 
         if (this.panningNow && (e.buttons === 1 || e.buttons === 4)) //PANNING
         {
-            let dx = (this.pointerLastPos.x - this.pointerPos.x) / this.camera.zoom;
-            let dy = (this.pointerLastPos.y - this.pointerPos.y) / this.camera.zoom;
+            let dx = (this.pointerLastPos.x - this.pointerPos.x) / FBS.camera.zoom;
+            let dy = (this.pointerLastPos.y - this.pointerPos.y) / FBS.camera.zoom;
 
-            this.cameraPosTo.x = this.cameraPosTo.x + dx * this.camera.right;
-            this.cameraPosTo.y = this.cameraPosTo.y + dy * this.camera.top;
+            this.cameraPosTo.x = this.cameraPosTo.x + dx * FBS.camera.right;
+            this.cameraPosTo.y = this.cameraPosTo.y + dy * FBS.camera.top;
 
-            this.camera.position.x = this.camera.position.x + (this.cameraPosTo.x - this.camera.position.x);
-            this.camera.position.y = this.camera.position.y + (this.cameraPosTo.y - this.camera.position.y);
+            FBS.camera.position.x = FBS.camera.position.x + (this.cameraPosTo.x - FBS.camera.position.x);
+            FBS.camera.position.y = FBS.camera.position.y + (this.cameraPosTo.y - FBS.camera.position.y);
         } else {
-            this.raycaster.setFromCamera(this.pointerPos, this.camera);
+            this.raycaster.setFromCamera(this.pointerPos, FBS.camera);
 
             this.pointerPosOnScene.x = this.raycaster.ray.origin.x;
             this.pointerPosOnScene.y = this.raycaster.ray.origin.y;
@@ -126,7 +120,7 @@ export default class{
                 lineControl.refreshLines(Drag.getObject());
             } else if (lineControl.active) {
                 //TODO find only first intersect
-                this.intersects = this.raycaster.intersectObjects(this.scene.children, true);
+                this.intersects = this.raycaster.intersectObjects(FBS.scene.children, true);
                 if (
                     this.intersects.length > 0 &&
                     this.intersects[0].object.name === 'connector' &&
@@ -139,7 +133,7 @@ export default class{
                     lineControl.drawLineFromPos(this.pointerPosOnScene.x, this.pointerPosOnScene.y);
                 }
             } else {
-                this.intersects = this.raycaster.intersectObjects(this.scene.children, true);
+                this.intersects = this.raycaster.intersectObjects(FBS.scene.children, true);
                 if (e.buttons === 0) {
                     if (this.intersects.length > 0) {
                         const firstObject = this.intersects[0].object;
@@ -147,34 +141,34 @@ export default class{
                             const cPort = firstObject.userData.portClass;
                             cPort.hover();
                             this.hovered.push(firstObject);
-                            this.sceneControl.setCursor('pointer');
+                            this.setCursor('pointer');
                         } else if (firstObject.name === 'footerLabel') {
                             const cNode = firstObject.userData.nodeClass;
                             cNode.hoverFooterLabel();
                             this.hovered.push(firstObject);
-                            this.sceneControl.setCursor('pointer');
+                            this.setCursor('pointer');
                         } else if (firstObject.name === 'connector') {
                             const cPort = firstObject.userData.portClass;
                             if (cPort.type !== 'pseudo') {
-                                this.sceneControl.setCursor('pointer');
+                                this.setCursor('pointer');
                             }
                         } else if (firstObject.name === 'line') {
                             if(lineControl.canBeSelected(firstObject)){
-                                this.sceneControl.setCursor('pointer');
+                                this.setCursor('pointer');
                             }
                         } else if (firstObject.name === 'collapseButton') {
-                            this.sceneControl.setCursor('pointer');
+                            this.setCursor('pointer');
                         } else if (firstObject.name === 'playButton') {
-                            this.sceneControl.setCursor('pointer');
+                            this.setCursor('pointer');
                         } else if (firstObject.name === 'menuButton') {
-                            this.sceneControl.setCursor('pointer');
+                            this.setCursor('pointer');
                         } else {
                             this.unhoverObjects(firstObject);
-                            this.sceneControl.resetCursor();
+                            this.resetCursor();
                         }
                     } else {
                         this.unhoverObjects(null);
-                        this.sceneControl.resetCursor();
+                        this.resetCursor();
                     }
                 } else if (e.buttons === 1) {
                     if (this.selectedOnPointerDown) {
@@ -184,7 +178,7 @@ export default class{
                                 if (backMountIntersect) {
                                     const cNode = backMountIntersect.object.userData.nodeClass;
                                     Drag.enable(cNode.getMNode(), this.pointerPosOnScene);
-                                    this.sceneControl.setCursor('move');
+                                    this.setCursor('move');
                                 }
                             }
                         } else if (this.selectedOnPointerDown.name === 'connector') {
@@ -220,14 +214,14 @@ export default class{
     onPointerUp(e){
         if(this.panningNow){
             this.panningNow = false;
-            this.sceneControl.resetCursor();
+            this.resetCursor();
         } else {
             this.selectedOnPointerDown = null;
             if (Drag.active) {
                 Drag.disable();
-                this.sceneControl.resetCursor();
+                this.resetCursor();
             } else if (lineControl.active) {
-                this.intersects = this.raycaster.intersectObjects(this.scene.children, true);
+                this.intersects = this.raycaster.intersectObjects(FBS.scene.children, true);
                 if (
                     this.intersects.length > 0 &&
                     this.intersects[0].object.name === 'connector' &&
@@ -283,8 +277,6 @@ export default class{
         }
     }
 
-
-
     switchLinesOnPseudoPorts(cPseudoPort){
         //Если порты скрыты, то псевдопорту присваиваются все линии,
         //Если порты показаны, то псевдопорту присваиваются все скрытые линии скрытых портов, т.е. пустой массив
@@ -302,10 +294,7 @@ export default class{
 
     onCollapseButtonClick(mCollapse){
         const cNode = mCollapse.userData.nodeClass;
-        cNode.middleCollapsePorts();
-
-        const mNode = cNode.getMNode();
-        lineControl.refreshLines(mNode);
+        cNode.middleCollapsePorts(lineControl);
     }
 
     onPlayButtonClick(mPlay){
@@ -455,5 +444,13 @@ export default class{
             this.unselectLine(this.selected.lines[i]);
         }
         this.selected.lines = [];
+    }
+
+    setCursor(style){
+        if(FBS.canvas.style.cursor !== style) FBS.canvas.style.cursor = style;
+    }
+
+    resetCursor(){
+        FBS.canvas.style.cursor = 'default';
     }
 }

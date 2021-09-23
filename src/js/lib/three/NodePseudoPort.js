@@ -60,11 +60,15 @@ export default class extends Port{
                 underline.text = '_______________';
             }
         }
+        label.visible = true;
+        underline.visible = true;
     }
 
     removeLabelText(){
         const label = this.mesh.getObjectByName('portLabelText');
+        label.visible = false;
         const underline = this.mesh.getObjectByName('portLabelUnderline');
+        underline.visible = false;
         label.text = '';
         underline.text = '';
     }

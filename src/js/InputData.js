@@ -205,6 +205,8 @@ export default {
             position: {
                 x: 200,
                 y: 600
+                //x: -100,
+                //y: 200
             }
         },
         {

@@ -18,22 +18,25 @@ import SceneControl from "./lib/three/SceneControl";
 import NodeControl from "./lib/three/NodeControl";
 import Interactive from "./lib/interactive/Interactive";
 import flowData from './InputData';
+import FBS from './lib/FlowBuilderStore';
 
 const mainWindow = new MainWindow();
 mainWindow.createWindow(document.documentElement.clientWidth, document.documentElement.clientHeight);
 document.body.append(mainWindow.getWindow());
 
-const nodeControl = new NodeControl();
-nodeControl.setData(flowData.nodes);
-nodeControl.buildNodes();
-const nodes = nodeControl.getNodes();
-
 const sceneControl = new SceneControl(mainWindow.getCanvas());
+FBS.scene = sceneControl.getScene();
+FBS.camera = sceneControl.getCamera();
+FBS.renderer = sceneControl.getRenderer();
+FBS.canvas = sceneControl.getCanvas();
+FBS.renderLoops = sceneControl.getRenderLoops();
+
+const nodeControl = new NodeControl();
+nodeControl.buildNodes(flowData.nodes);
+const nodes = nodeControl.getNodes();
 sceneControl.addObjectsToScene(nodes);
 
-const interactive = new Interactive();
-interactive.setSceneComponents(mainWindow.getCanvas(), sceneControl);
-interactive.setEvents();
+new Interactive();
 
 //3
 sceneControl.run();

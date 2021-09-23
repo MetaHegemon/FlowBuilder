@@ -12,6 +12,8 @@ export default class {
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.autoClear = true;
 
+        this.renderLoops = [];
+
         this.frustumSize = 1;
         const aspect = this.canvas.width/this.canvas.height;
         this.camera = new THREE.OrthographicCamera(
@@ -25,7 +27,7 @@ export default class {
         this.camera.position.z = 100;
         this.camera.lookAt(0,0,0);
         this.camera.zoom = 0.0007;
-
+        //this.camera.zoom = 0.0016;
         //zoom
         this.zoomTo = 1;
         this.zoomStep = null;
@@ -84,6 +86,7 @@ export default class {
 
     render(){
         this.smoothZoom();
+        this.loopAnimations();
         this.renderer.render( this.scene, this.camera );
         requestAnimationFrame( ()=> this.render() );
     }
@@ -104,6 +107,10 @@ export default class {
         }
     }
 
+    loopAnimations(){
+        this.renderLoops.map((func)=>func());
+    }
+
     addObjectsToScene (objects){
         for(let i = 0; i < objects.length; i += 1){
             this.scene.add(objects[i]);
@@ -122,13 +129,11 @@ export default class {
         return this.renderer;
     }
 
-    setCursor(style){
-        if(this.canvas.style.cursor !== style) this.canvas.style.cursor = style;
+    getCanvas(){
+        return this.canvas;
     }
 
-    resetCursor(){
-        if(!this.isPaningNow) {
-            this.canvas.style.cursor = 'default';
-        }
+    getRenderLoops(){
+        return this.renderLoops;
     }
 }

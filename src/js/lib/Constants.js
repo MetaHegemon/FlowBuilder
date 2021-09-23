@@ -1,5 +1,9 @@
 export default {
-
+    animation:{
+        nodeCollapseTime: 200, //milliseconds
+        portHideTime: 200,
+        collapseButtonRotateTime: 200
+    },
     layers: {
         nodeStep: 0.1,
         backMount: 0,
@@ -46,8 +50,8 @@ export default {
             collapse: {
                 fontSize: 15,
                 fontColor: '#000000',
-                leftMargin: 18.5,
-                topMargin: 27
+                leftMargin: 24.5,
+                topMargin: 33
             },
             play: {
                 fontSize: 23,
