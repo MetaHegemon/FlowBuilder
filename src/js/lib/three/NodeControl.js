@@ -3,17 +3,23 @@ import C from './../Constants';
 
 export default class {
     constructor() {
-        this.nodeMeshes = [];
+        this.mNodes = [];
+        this.cNodes = [];
     }
 
-    buildNodes (data, animationControl){
+    buildNodes (data){
         for(let i = 0; i < data.length; i += 1){
-            const node = new Node(data[i], i * C.layers.nodeStep, animationControl);
-            this.nodeMeshes.push(node.mesh);
+            const cNode = new Node(data[i], i * C.layers.nodeStep);
+            this.mNodes.push(cNode.getMNode());
+            this.cNodes.push(cNode);
         }
     }
 
-    getNodes (){
-        return this.nodeMeshes;
+    getMNodes (){
+        return this.mNodes;
+    }
+
+    getCNodes(){
+        return this.cNodes;
     }
 }

@@ -3,5 +3,8 @@ export default {
     renderer: null,
     scene: null,
     canvas: null,
-    renderLoops: null
+    renderLoops: null,
+    nodeControl: null,
+    sceneControl: null,
+    lineControl: null
 }

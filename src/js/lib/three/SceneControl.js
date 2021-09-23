@@ -46,6 +46,12 @@ export default class {
             }, 100);
         }).observe(this.canvas.parentNode);
 
+        this.zoomEvent = {
+            inEvent: new Event('needFullUncollapse'),
+            outEvent: new Event('needFullCollapse'),
+            inDispatched: this.frustumSize < C.three.zoomLimitForFullCollapseNodes,
+            outDispatched: this.frustumSize > C.three.zoomLimitForFullCollapseNodes
+        }
     }
 
     onWheel(e) {
@@ -86,6 +92,7 @@ export default class {
 
     render(){
         this.smoothZoom();
+        this.listenZoom()
         this.loopAnimations();
         this.renderer.render( this.scene, this.camera );
         requestAnimationFrame( ()=> this.render() );
@@ -104,6 +111,18 @@ export default class {
             this.camera.top = this.frustumSize / 2;
             this.camera.bottom = -this.frustumSize / 2;
             this.camera.updateProjectionMatrix();
+        }
+    }
+
+    listenZoom(){
+        if(this.frustumSize > C.three.zoomLimitForFullCollapseNodes && !this.zoomEvent.outDispatched){
+            this.canvas.dispatchEvent(this.zoomEvent.outEvent);
+            this.zoomEvent.outDispatched = true;
+            this.zoomEvent.inDispatched = false;
+        } else if(this.frustumSize < C.three.zoomLimitForFullCollapseNodes && !this.zoomEvent.inDispatched){
+            this.canvas.dispatchEvent(this.zoomEvent.inEvent);
+            this.zoomEvent.inDispatched = true;
+            this.zoomEvent.outDispatched = false;
         }
     }
 

@@ -4,6 +4,7 @@ import PseudoPort from "./NodePseudoPort";
 import C from "./../Constants";
 import {Text} from "troika-three-text";
 import AnimationControl from './../three/AnimationControl';
+import FBS from "../FlowBuilderStore";
 
 export default class{
     constructor(data, originZ){
@@ -12,6 +13,16 @@ export default class{
         this.selected = false;
         this.nodeHeight = 0;
         this.middleCollapse = {
+            isCollapsed: false,
+            isPseudoInputExist: false,
+            isPseudoOutputExist: false,
+            storeCPortsInput: [],
+            storeCPortsOutput: [],
+            storeCLinesInput: [],
+            storeCLinesOutput: []
+        };
+
+        this.fullCollapse = {
             isCollapsed: false,
             isPseudoInputExist: false,
             isPseudoOutputExist: false,
@@ -177,15 +188,43 @@ export default class{
         return cPorts;
     }
 
+    /**
+     * Позиция Y первого входного порта
+     * @returns {number}
+     */
     getFirstPortPosition(){
         return -C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.front.headHeight - C.nodeMesh.header.height - C.nodeMesh.port.height/2;
     }
 
+    /**
+     * Позиция Y первого входного порта при минимальный высоте ноды
+     * @returns {number}
+     */
+    getFirstPortPositionMin(){
+        return -C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.front.headHeight - C.nodeMesh.port.height/2;
+    }
+
+    /**
+     * Позиция Y последнего выходного порта
+     * @returns {number}
+     */
     getLastPortPosition(){
         return -this.nodeHeight +  C.nodeMesh.mount.roundCornerRadius +
             C.nodeMesh.footer.height + C.nodeMesh.port.height/2;
     }
 
+    /**
+     * Позиция Y последнего выходного порта при минимальной высоте ноды
+     * @returns {number}
+     */
+    getLastPortPositionMin(){
+        return -this.nodeHeight +  C.nodeMesh.mount.roundCornerRadius + C.nodeMesh.port.height/2;
+    }
+
+    /**
+     * Расчёт позиций входных портов
+     * @returns {*[]}
+     */
     calcPositionsForInputPorts(){
         const positions = [];
         let currentYPos = this.getFirstPortPosition();
@@ -196,6 +235,24 @@ export default class{
         return positions;
     }
 
+    /**
+     * Расчёт позиций входных портов при минимальной высоте ноды
+     * @returns {*[]}
+     */
+    calcPositionsForInputPortsMin(){
+        const positions = [];
+        let currentYPos = this.getFirstPortPositionMin();
+        for(let i = 0; i < this.cPortsInput.length; i += 1){
+            positions.push({x: 0, y: currentYPos, z: C.layers.port});
+            currentYPos -= C.nodeMesh.port.height;
+        }
+        return positions;
+    }
+
+    /**
+     * Присвоение новых позиций входным портам
+     * @param positions
+     */
     setPositionsForInputPorts(positions){
         for(let i = 0; i < this.cPortsInput.length; i += 1){
             const mPort = this.cPortsInput[i].getMPort();
@@ -203,6 +260,10 @@ export default class{
         }
     }
 
+    /**
+     * Расчёт позиций выходных портов
+     * @returns {*[]}
+     */
     calcPositionsForOutputPorts(){
         const positions = [];
         let currentYPos = this.getLastPortPosition();
@@ -213,6 +274,24 @@ export default class{
         return positions;
     }
 
+    /**
+     * Расчёт позиций выходных портов при минимальной высоте ноды
+     * @returns {*[]}
+     */
+    calcPositionsForOutputPortsMin(){
+        const positions = [];
+        let currentYPos = this.getLastPortPositionMin();
+        for(let i = this.cPortsOutput.length - 1; i >= 0; i -= 1){
+            positions[i] = {x: C.nodeMesh.mount.width, y: currentYPos, z: C.layers.port};
+            currentYPos += C.nodeMesh.port.height;
+        }
+        return positions;
+    }
+
+    /**
+     * Присвоение новых позиций выходным портам
+     * @param positions
+     */
     setPositionsForOutputPorts(positions){
         for(let i = this.cPortsOutput.length - 1; i >= 0; i -= 1){
             const mPort = this.cPortsOutput[i].getMPort();
@@ -220,11 +299,15 @@ export default class{
         }
     }
 
-    movePseudoPortToTop(mPort){
-        const pos = this.getFirstPortPosition();
+    /**
+     * Создание задачи на анимацию перемещения порта на новую позицию.
+     * @param mPort - mesh port
+     * @param posY - новая позиция Y для порта
+     */
+    movePseudoPortToPos(mPort, posY){
         const task = {
             target: mPort.position,
-            value: {x: mPort.position.x, y: pos, z: mPort.position.z},
+            value: {x: mPort.position.x, y: posY, z: mPort.position.z},
             time: C.animation.portHideTime
         };
 
@@ -513,7 +596,7 @@ export default class{
         return cPort;
     }
 
-    middleCollapsePorts(lineControl){
+    middleCollapsePorts(){
         let animateTasks = [];
         if(this.middleCollapse.isCollapsed)
         {
@@ -619,14 +702,14 @@ export default class{
                 cPseudoPortInput.removeLabelText();
                 cPseudoPortInput.showConnector();
                 this.middleCollapse.storeCLinesInput = [...cPseudoPortInput.getCLines()];
-                this.movePseudoPortToTop(cPseudoPortInput.getMPort());
+                this.movePseudoPortToPos(cPseudoPortInput.getMPort(), this.getFirstPortPosition());
             }
 
             if(cPseudoPortOutput) {
                 cPseudoPortOutput.removeLabelText();
                 cPseudoPortOutput.showConnector();
                 this.middleCollapse.storeCLinesOutput = [...cPseudoPortOutput.getCLines()];
-                this.movePseudoPortToTop(cPseudoPortOutput.getMPort());
+                this.movePseudoPortToPos(cPseudoPortOutput.getMPort(), this.getFirstPortPosition());
             }
             const allInputLines = [];
             for (let i = 0; i < this.cPortsInput.length; i += 1) {
@@ -675,10 +758,208 @@ export default class{
             this.calcNodeHeight(1);
         }
 
-        animateTasks.push(this.getRefreshLinesTask(lineControl));
+        animateTasks.push(this.getRefreshLinesTask());
         this.animationControl.animate(animateTasks);
         this.scaleNodeWithAnimation();
         this.collapseButtonRotate();
+    }
+
+    fullCollapseNode(isNeedCollapse){
+        let animateTasks = [];
+        if(isNeedCollapse)
+        {
+            this.fullCollapse.isCollapsed = true;
+            this.calcNodeMinHeight();
+            this.fullCollapse.storeCPortsInput = [...this.cPortsInput];
+            this.fullCollapse.storeCPortsOutput = [...this.cPortsOutput];
+
+            let cPseudoPortInput = this.getPseudoPort('input');
+            let cPseudoPortOutput = this.getPseudoPort('output');
+
+            this.fullCollapse.isPseudoInputExist = !!cPseudoPortInput;
+            this.fullCollapse.isPseudoOutputExist = !!cPseudoPortOutput;
+
+            if (!cPseudoPortInput && this.cPortsInput.length > 0) {
+                cPseudoPortInput = new PseudoPort('input', this);
+                cPseudoPortInput.removeLabelText();
+                const mesh = cPseudoPortInput.getMPort();
+                const positions = this.calcPositionsForInputPortsMin();
+                mesh.position.set(positions[0].x, positions[0].y, positions[0].z);
+                this.mesh.add(mesh);
+            }
+            if (!cPseudoPortOutput && this.cPortsOutput.length > 0) {
+                cPseudoPortOutput = new PseudoPort('output', this);
+                cPseudoPortOutput.removeLabelText();
+                const mesh = cPseudoPortOutput.getMPort();
+                const positions = this.calcPositionsForOutputPortsMin();
+                mesh.position.set(positions[positions.length - 1].x, positions[positions.length - 1].y, positions[positions.length - 1].z);
+                this.mesh.add(mesh);
+            }
+
+            if(cPseudoPortInput) {
+                cPseudoPortInput.removeLabelText();
+                cPseudoPortInput.showConnector();
+                this.fullCollapse.storeCLinesInput = [...cPseudoPortInput.getCLines()];
+                this.movePseudoPortToPos(cPseudoPortInput.getMPort(), this.getFirstPortPositionMin());
+            }
+
+            if(cPseudoPortOutput) {
+                cPseudoPortOutput.removeLabelText();
+                cPseudoPortOutput.showConnector();
+                this.fullCollapse.storeCLinesOutput = [...cPseudoPortOutput.getCLines()];
+                this.movePseudoPortToPos(cPseudoPortOutput.getMPort(), this.getFirstPortPositionMin());
+            }
+
+            const allInputLines = [];
+            for (let i = 0; i < this.cPortsInput.length; i += 1) {
+                allInputLines.push(...this.cPortsInput[i].getCLines());
+                if (this.cPortsInput[i].type === 'pseudo') continue;
+
+                const mPort = this.cPortsInput[i].getMPort();
+                animateTasks.push({
+                    target: mPort.scale,
+                    value: {x: 0, y: 0, z: 0},
+                    time: C.animation.portHideTime,
+                    callbackOnComplete: () => {
+                        this.mesh.remove(mPort)
+                    }
+                });
+            }
+            if (cPseudoPortInput) cPseudoPortInput.setCLines(allInputLines);
+            allInputLines.map((item) => {
+                item.collapsedPort2();
+            });
+
+            const allOutputLines = [];
+            for (let i = 0; i < this.cPortsOutput.length; i += 1) {
+                allOutputLines.push(...this.cPortsOutput[i].getCLines());
+
+                if (this.cPortsOutput[i].type === 'pseudo') continue;
+                const mPort = this.cPortsOutput[i].getMPort();
+                animateTasks.push({
+                    target: mPort.scale,
+                    value: {x: 0, y: 0, z: 0},
+                    time: C.animation.portHideTime,
+                    callbackOnComplete: () => {
+                        this.mesh.remove(mPort)
+                    }
+                });
+            }
+
+            if (cPseudoPortOutput) cPseudoPortOutput.setCLines(allOutputLines);
+            allOutputLines.map((item) => {
+                item.collapsedPort1();
+            });
+
+            if (cPseudoPortInput) this.cPortsInput = [cPseudoPortInput];
+            if (cPseudoPortOutput) this.cPortsOutput = [cPseudoPortOutput];
+
+            const mFooter = this.mesh.getObjectByName('frontMountFooter');
+            mFooter.material.color.setStyle(C.nodeMesh.mount.frontBodyColor);
+            const mFooterLabel = this.mesh.getObjectByName('footerLabel');
+            animateTasks.push({
+                target: mFooterLabel.scale,
+                    value: {x: 0, y: 0, z: 0},
+                time: C.animation.footerLabelHideTime
+            });
+
+            this.showMenuButtons(false);
+        }
+        else {
+            this.fullCollapse.isCollapsed = false;
+
+            const cPseudoPortInput = this.getPseudoPort('input');
+            if (this.fullCollapse.isPseudoInputExist) {
+                cPseudoPortInput.changeLabelText(this.shortCollapse.inputPortsCollapsed);
+                if (!this.shortCollapse.inputPortsCollapsed) cPseudoPortInput.hideConnector();
+                cPseudoPortInput.setCLines(this.fullCollapse.storeCLinesInput);
+            } else {
+                if(cPseudoPortInput){
+                    this.mesh.remove(cPseudoPortInput.getMPort());
+                }
+            }
+
+            const cPseudoPortOutput = this.getPseudoPort('output');
+            if (this.fullCollapse.isPseudoOutputExist) {
+                cPseudoPortOutput.changeLabelText(this.shortCollapse.outputPortsCollapsed);
+                if (!this.shortCollapse.outputPortsCollapsed) cPseudoPortOutput.hideConnector();
+                cPseudoPortOutput.setCLines(this.fullCollapse.storeCLinesOutput);
+            }else {
+                if(cPseudoPortOutput){
+                    this.mesh.remove(cPseudoPortOutput.getMPort());
+                }
+            }
+
+            this.cPortsInput = [...this.fullCollapse.storeCPortsInput];
+            this.cPortsOutput = [...this.fullCollapse.storeCPortsOutput];
+
+            this.fullCollapse.storeCLinesInput = [];
+            this.fullCollapse.storeCLinesOutput = [];
+
+            for (let i = 0; i < this.cPortsInput.length; i += 1) {
+                if (this.cPortsInput[i].type === 'pseudo') continue;
+                const mPort = this.cPortsInput[i].getMPort();
+                this.mesh.add(mPort);
+                animateTasks.push({
+                    target: mPort.scale,
+                    value: {x: 1, y: 1, z: 1},
+                    time: C.animation.portHideTime
+                });
+
+                const cLines = this.cPortsInput[i].getCLines();
+                cLines.map((item) => {
+                    item.unCollapsedPort2();
+                });
+            }
+
+            for (let i = 0; i < this.cPortsOutput.length; i += 1) {
+                if (this.cPortsOutput[i].type === 'pseudo') continue;
+                const mPort = this.cPortsOutput[i].getMPort();
+                this.mesh.add(mPort);
+                animateTasks.push({
+                    target: mPort.scale,
+                    value: {x: 1, y: 1, z: 1},
+                    time: C.animation.portHideTime
+                });
+
+                const cLines = this.cPortsOutput[i].getCLines();
+                cLines.map((item) => {
+                    item.unCollapsedPort1();
+                });
+            }
+
+            this.fullCollapse.storeCPortsInput = [];
+            this.fullCollapse.storeCPortsOutput = [];
+
+            this.calcNodeHeight();
+            if(cPseudoPortInput)this.movePseudoInputPortBack(cPseudoPortInput.getMPort());
+            if(cPseudoPortOutput) this.movePseudoOutputPortBack(cPseudoPortOutput.getMPort());
+
+            const mFooter = this.mesh.getObjectByName('frontMountFooter');
+            mFooter.material.color.setStyle(C.nodeMesh.footer.color);
+            const mFooterLabel = this.mesh.getObjectByName('footerLabel');
+            animateTasks.push({
+                target: mFooterLabel.scale,
+                value: {x: 1, y: 1, z: 1},
+                time: C.animation.footerLabelHideTime
+            });
+
+            this.showMenuButtons(true);
+        }
+
+        animateTasks.push(this.getRefreshLinesTask());
+        this.animationControl.animate(animateTasks);
+        this.scaleNodeWithAnimation();
+        this.collapseButtonRotate();
+    }
+
+    showMenuButtons(show) {
+        const mCollapseButton = this.mesh.getObjectByName('collapseButton');
+        mCollapseButton.visible = show;
+        const mPlayButton = this.mesh.getObjectByName('playButton');
+        mPlayButton.visible = show;
+        const mMenuButton = this.mesh.getObjectByName('menuButton');
+        mMenuButton.visible = show;
     }
 
     collapseButtonRotate() {
@@ -696,13 +977,17 @@ export default class{
         }]);
     }
 
-    getRefreshLinesTask(lineControl){
+    /**
+     * Создание задачи на анимацию обновления размерных линий
+     * @returns {{callbackOnUpdate: callbackOnUpdate, time: number, value: {x: number}, target: {x: number}}}
+     */
+    getRefreshLinesTask(){
         return {
             target: {x:0},
             value: {x: 1},
             time: C.animation.portHideTime,
             callbackOnUpdate: ()=> {
-                lineControl.refreshLines(this.mesh);
+                FBS.lineControl.refreshLines(this.mesh);
             }
         };
     }
@@ -989,6 +1274,11 @@ export default class{
         const portsHeight = portsCount * C.nodeMesh.port.height;
         this.nodeHeight = C.nodeMesh.mount.roundCornerRadius + C.nodeMesh.mount.front.headHeight +
             C.nodeMesh.header.height + portsHeight + C.nodeMesh.footer.height + C.nodeMesh.mount.roundCornerRadius;
+    }
+
+    calcNodeMinHeight(){
+        this.nodeHeight = C.nodeMesh.mount.roundCornerRadius * 2 + C.nodeMesh.mount.front.headHeight +
+            C.nodeMesh.port.height;
     }
 
     calcVisiblePortsCount() {

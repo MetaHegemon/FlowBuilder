@@ -2,7 +2,8 @@ export default {
     animation:{
         nodeCollapseTime: 200, //milliseconds
         portHideTime: 200,
-        collapseButtonRotateTime: 200
+        collapseButtonRotateTime: 200,
+        footerLabelHideTime: 200
     },
     layers: {
         nodeStep: 0.1,
@@ -159,9 +160,10 @@ export default {
         backgroundColor: '#f0f2f5'
     },
     three: {
-        maxZoom: 0.2,               //how near camera can zoom
-        minZoom: 10,                //how far camera can zoom
+        maxZoom: 0.2,               //frustum size how near camera can zoom
+        minZoom: 10,                //frustum size how far camera can zoom
         dampingFactor: 0.15,        //bigger than shorter inertia
+        zoomLimitForFullCollapseNodes: 1.5, //frustum size, for all nodes collapsed
         zoomSpeed: 0.002
     }
 };

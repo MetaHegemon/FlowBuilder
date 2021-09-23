@@ -1,20 +1,16 @@
 import * as THREE from 'three';
 import DragControl from './DragControl';
-import LineControl from './LineControl';
 import C from "../Constants";
 import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox';
 import  SelectionHelper  from './SelectHelper';
 import FBS from '../FlowBuilderStore';
-import AnimationControl from './../three/AnimationControl';
 
 const Drag = new DragControl();
-const lineControl = new LineControl();
 let selectionBox = null;
 let selectionHelper = null;
 
 export default class{
     constructor() {
-        this.animationControl = new AnimationControl();
         this.raycaster = new THREE.Raycaster();
         this.intersects = [];
         //for paning
@@ -34,7 +30,7 @@ export default class{
         };
         this.selectedOnPointerDown = null;
 
-        lineControl.setScene(FBS.scene);
+        FBS.lineControl.setScene(FBS.scene);
         selectionBox = new SelectionBox( FBS.camera, FBS.scene );
         selectionHelper = new SelectionHelper( selectionBox, FBS.renderer, 'selectBox' );
         this.setEvents();
@@ -47,6 +43,8 @@ export default class{
         document.addEventListener('keydown', (e) => this.onKeyDown(e), false);
         document.addEventListener('keyup', (e) => this.onKeyUp(e));
         FBS.canvas.addEventListener('contextmenu', (e) => this.onContextMenu(e));
+        FBS.canvas.addEventListener('needFullCollapse', () => this.fullCollapseNode(true));
+        FBS.canvas.addEventListener('needFullUncollapse', () => this.fullCollapseNode(false));
     }
 
     onKeyDown(e){
@@ -83,7 +81,7 @@ export default class{
                         if(cPort.type !== 'pseudo') {
                             this.selectedOnPointerDown = connectorIntersect.object;
                             this.unselectAllLines();
-                            lineControl.enable(connectorIntersect.object);
+                            FBS.lineControl.enable(connectorIntersect.object);
                         }
                     }
                 }
@@ -117,20 +115,20 @@ export default class{
 
             if (Drag.active) {
                 Drag.dragObject(this.pointerPosOnScene);
-                lineControl.refreshLines(Drag.getObject());
-            } else if (lineControl.active) {
+                FBS.lineControl.refreshLines(Drag.getObject());
+            } else if (FBS.lineControl.active) {
                 //TODO find only first intersect
                 this.intersects = this.raycaster.intersectObjects(FBS.scene.children, true);
                 if (
                     this.intersects.length > 0 &&
                     this.intersects[0].object.name === 'connector' &&
-                    lineControl.canBeConnected(this.intersects[0].object)
+                    FBS.lineControl.canBeConnected(this.intersects[0].object)
                 ) {
                     const cPort = this.intersects[0].object.userData.portClass;
                     const pos = cPort.getConnectorPos();
-                    lineControl.drawLineFromPos(pos.x, pos.y);
+                    FBS.lineControl.drawLineFromPos(pos.x, pos.y);
                 } else {
-                    lineControl.drawLineFromPos(this.pointerPosOnScene.x, this.pointerPosOnScene.y);
+                    FBS.lineControl.drawLineFromPos(this.pointerPosOnScene.x, this.pointerPosOnScene.y);
                 }
             } else {
                 this.intersects = this.raycaster.intersectObjects(FBS.scene.children, true);
@@ -153,7 +151,7 @@ export default class{
                                 this.setCursor('pointer');
                             }
                         } else if (firstObject.name === 'line') {
-                            if(lineControl.canBeSelected(firstObject)){
+                            if(FBS.lineControl.canBeSelected(firstObject)){
                                 this.setCursor('pointer');
                             }
                         } else if (firstObject.name === 'collapseButton') {
@@ -184,7 +182,7 @@ export default class{
                         } else if (this.selectedOnPointerDown.name === 'connector') {
                             const firstObject = this.intersects[0].object;
                             if (firstObject.name === 'connector') {
-                                lineControl.enable(firstObject);
+                                FBS.lineControl.enable(firstObject);
                             }
                         }
                     } else {
@@ -220,16 +218,16 @@ export default class{
             if (Drag.active) {
                 Drag.disable();
                 this.resetCursor();
-            } else if (lineControl.active) {
+            } else if (FBS.lineControl.active) {
                 this.intersects = this.raycaster.intersectObjects(FBS.scene.children, true);
                 if (
                     this.intersects.length > 0 &&
                     this.intersects[0].object.name === 'connector' &&
-                    lineControl.canBeConnected(this.intersects[0].object)
+                    FBS.lineControl.canBeConnected(this.intersects[0].object)
                 ) {
-                    lineControl.connect(this.intersects[0].object);
+                    FBS.lineControl.connect(this.intersects[0].object);
                 } else {
-                    lineControl.disable();
+                    FBS.lineControl.disable();
                 }
             } else {
                 if (this.intersects.length > 0) {
@@ -248,7 +246,7 @@ export default class{
                                 const cNode = backMountIntersect.object.userData.nodeClass;
                                 this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
                             } else if (this.intersects[0].object.name === 'line') {
-                                if(lineControl.canBeSelected(this.intersects[0].object)){
+                                if(FBS.lineControl.canBeSelected(this.intersects[0].object)){
                                     this.onLineClick(this.intersects[0].object);
                                 }
 
@@ -289,12 +287,19 @@ export default class{
 
         const cNode = cPseudoPort.getCNode();
         const mNode = cNode.getMNode();
-        lineControl.refreshLines(mNode);
+        FBS.lineControl.refreshLines(mNode);
     }
 
     onCollapseButtonClick(mCollapse){
         const cNode = mCollapse.userData.nodeClass;
-        cNode.middleCollapsePorts(lineControl);
+        cNode.middleCollapsePorts();
+    }
+
+    fullCollapseNode(isNeedCollapse){
+        const cNodes = FBS.nodeControl.getCNodes();
+        cNodes.map((node)=>{
+            node.fullCollapseNode(isNeedCollapse);
+        });
     }
 
     onPlayButtonClick(mPlay){
