@@ -163,11 +163,14 @@ export default {
         backgroundColor: '#f0f2f5'
     },
     three: {
-        maxZoom: 0.2,                           //frustum size how near camera can zoom
-        minZoom: 10,                            //frustum size how far camera can zoom
-        dampingFactor: 0.15,                    //bigger than shorter inertia
-        zoomLimitForFullCollapseNodes: 1.5,     //frustum size, for all nodes collapsed
-        zoomLimitForFullUnCollapseNodes: 1.3,   //frustum size, for all nodes uncollapsed
-        zoomSpeed: 0.002
+        zoom: {
+            default: 2000,                      //start zoom value(frustum)
+            min: 5000,                          //frustum size how near camera can zoom
+            max: 200,                           //frustum size how far camera can zoom
+            damping: 0.8,                       //bigger than shorter inertia
+            speed: 8,
+            limitForFullCollapseNodes: 2300,    //frustum size, for all nodes collapsed
+            limitForFullUnCollapseNodes: 1800   //frustum size, for all nodes uncollapsed
+        }
     }
 };

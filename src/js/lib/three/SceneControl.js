@@ -15,7 +15,7 @@ export default class {
 
         this.renderLoops = [];
 
-        this.frustumSize = 1;
+        this.frustumSize = C.three.zoom.default;
         const aspect = this.canvas.width/this.canvas.height;
         this.camera = new THREE.OrthographicCamera(
             this.frustumSize * aspect / -2,
@@ -27,12 +27,6 @@ export default class {
         );
         this.camera.position.z = 100;
         this.camera.lookAt(0,0,0);
-        this.camera.zoom = 0.0007;
-        //this.camera.zoom = 0.0016;
-        //zoom
-        this.zoomTo = 1;
-        this.zoomStep = null;
-        this.canvas.addEventListener('wheel', (e)=> this.onWheel(e));
 
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(C.scene.backgroundColor);
@@ -47,29 +41,61 @@ export default class {
             }, 100);
         }).observe(this.canvas.parentNode);
 
+        //zoom
+        this.canvas.addEventListener('wheel', (e)=> this.onWheel(e));
+        this.zoom = {
+            raycaster: new THREE.Raycaster(),
+            pointPos3d: new THREE.Vector3(),
+            pointPos2d: new THREE.Vector2(),
+            destPos2d: new THREE.Vector2(),
+            camPos2d: new THREE.Vector2(),
+            stepVector: new THREE.Vector2(),
+            stepFrustum: 0,
+            distXY: 0,
+            destNorm: null,
+            factorDist: null
+        }
+
         this.zoomEvent = {
             inEvent: new Event('needFullUnCollapse'),
             outEvent: new Event('needFullCollapse'),
-            inDispatched: this.frustumSize < C.three.zoomLimitForFullCollapseNodes,
-            outDispatched: this.frustumSize > C.three.zoomLimitForFullCollapseNodes
-        }
-/*
-        this.moveToCursor = {
-            step: null,
-            factor: 700,
-            pointerPos2d: new THREE.Vector3(),
-            pointerPos3d: new THREE.Vector3(),
-            raycaster: new THREE.Raycaster(),
-            deltaY: 0,
-            destPos2d: new THREE.Vector2(),
-            camPos2d: new THREE.Vector2()
-        }
-*/
+            inDispatched: this.frustumSize < C.three.zoom.limitForFullCollapseNodes,
+            outDispatched: this.frustumSize > C.three.zoom.limitForFullCollapseNodes
+        };
     }
 
     onWheel(e) {
-        this.zoomTo = Math.min(Math.max((this.frustumSize + e.deltaY * C.three.zoomSpeed * this.frustumSize), C.three.maxZoom), C.three.minZoom);
+        this.zoom.pointPos2d.x = (e.clientX / this.canvas.clientWidth) * 2 - 1;
+        this.zoom.pointPos2d.y = -(e.clientY / this.canvas.clientHeight) * 2 + 1;
 
+        this.zoom.raycaster.setFromCamera(this.zoom.pointPos2d, this.camera);
+
+        this.zoom.pointPos3d.x = this.zoom.raycaster.ray.origin.x;
+        this.zoom.pointPos3d.y = this.zoom.raycaster.ray.origin.y;
+
+        this.zoom.destPos2d = new THREE.Vector2(this.zoom.pointPos3d.x, this.zoom.pointPos3d.y);
+        this.zoom.camPos2d = new THREE.Vector2(this.camera.position.x, this.camera.position.y);
+
+        //вычисляем расстояние от камеры до положения поинтера по х и у
+        this.zoom.distXY = this.zoom.camPos2d.distanceTo(this.zoom.destPos2d);
+
+        //находим нормализованный вектор в направлении точки назначения
+        this.zoom.destNorm = this.zoom.destPos2d.clone().sub(this.zoom.camPos2d).normalize();
+
+        //вычисляем 10% от расстояния
+        this.zoom.factorDist = this.zoom.distXY / 100 * C.three.zoom.speed;
+
+        //устанавливаем длину для нормализованного вектора
+        this.zoom.stepVector = this.zoom.destNorm.clone().setLength(this.zoom.factorDist);
+
+        //теперь пропорционально зумим на те же 10% уменьшая фрустум
+        this.zoom.stepFrustum = this.frustumSize/100 * C.three.zoom.speed;
+
+        if(e.deltaY > 0){
+            this.zoom.stepFrustum *= -1;
+            this.zoom.stepVector.x *= -1;
+            this.zoom.stepVector.y *= -1;
+        }
     }
 
     run (){
@@ -112,31 +138,19 @@ export default class {
         requestAnimationFrame( ()=> this.render() );
     }
 
-    calcPointer3d(e) {
+    smoothZoom(){
+        this.zoom.stepFrustum *= C.three.zoom.damping;
 
-        this.moveToCursor.pointerPos2d.x = (e.clientX / this.canvas.clientWidth) * 2 - 1;
-        this.moveToCursor.pointerPos2d.y = -(e.clientY / this.canvas.clientHeight) * 2 + 1;
+        if ((this.zoom.stepFrustum > 0 && this.zoom.stepFrustum > 0.000001) || (this.zoom.stepFrustum < 0 && this.zoom.stepFrustum < -0.000001)) {
+            this.zoom.stepVector.x *= C.three.zoom.damping;
+            this.zoom.stepVector.y *= C.three.zoom.damping;
 
-        this.moveToCursor.raycaster.setFromCamera(this.moveToCursor.pointerPos2d, this.camera);
-
-        this.moveToCursor.pointerPos3d.x = this.moveToCursor.raycaster.ray.origin.x;
-        this.moveToCursor.pointerPos3d.y = this.moveToCursor.raycaster.ray.origin.y;
-        this.moveToCursor.deltaY = e.deltaY;
-
-        const destPos2d = new THREE.Vector2(this.moveToCursor.pointerPos3d.x, this.moveToCursor.pointerPos3d.y);
-        const camPos2d = new THREE.Vector2(this.camera.position.x, this.camera.position.y);
-
-        const dist = destPos2d.distanceTo(camPos2d);
-        this.moveStep = dist/e.deltaY;
-        camPos2d.lerp(destPos2d, 0.1);
-        this.camera.position.set( camPos2d.x, camPos2d.y, this.camera.position.z );
-    }
-
-    smoothZoom() {
-        this.zoomStep = (this.zoomTo - this.frustumSize) * C.three.dampingFactor;
-        if ((this.zoomStep > 0 && this.zoomStep > 0.000001) || (this.zoomStep < 0 && this.zoomStep < -0.000001)) {
-            //zoom
-            this.frustumSize = this.frustumSize + this.zoomStep;
+            this.frustumSize = Math.min(C.three.zoom.min, Math.max(this.frustumSize - this.zoom.stepFrustum, C.three.zoom.max));
+            this.camera.position.set(
+                this.camera.position.x + this.zoom.stepVector.x,
+                this.camera.position.y + this.zoom.stepVector.y,
+                this.camera.position.z
+            );
 
             this.camera.left = -this.frustumSize * this.camera.aspect / 2;
             this.camera.right = this.frustumSize * this.camera.aspect / 2;
@@ -147,11 +161,11 @@ export default class {
     }
 
     listenZoom(){
-        if(this.frustumSize > C.three.zoomLimitForFullCollapseNodes && !this.zoomEvent.outDispatched){
+        if(this.frustumSize > C.three.zoom.limitForFullCollapseNodes && !this.zoomEvent.outDispatched){
             this.canvas.dispatchEvent(this.zoomEvent.outEvent);
             this.zoomEvent.outDispatched = true;
             this.zoomEvent.inDispatched = false;
-        } else if(this.frustumSize < C.three.zoomLimitForFullCollapseNodes && !this.zoomEvent.inDispatched){
+        } else if(this.frustumSize < C.three.zoom.limitForFullCollapseNodes && !this.zoomEvent.inDispatched){
             this.canvas.dispatchEvent(this.zoomEvent.inEvent);
             this.zoomEvent.inDispatched = true;
             this.zoomEvent.outDispatched = false;
