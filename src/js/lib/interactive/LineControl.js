@@ -80,7 +80,6 @@ export default class{
         if(
             cNode1 !== cNode2 &&
             cPort1.direction !== cPort2.direction &&
-            cPort1.data.type === cPort2.data.type &&
             !(cPort2.direction === 'input' && cPort2.cLines.length > 0)
         ){
             result = true;
