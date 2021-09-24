@@ -48,11 +48,17 @@ export default class{
     }
 
     onKeyDown(e){
-        if(e.code === 'Space') this.spaceBarPressed = true;
+        if(e.code === 'Space' && !this.spaceBarPressed) {
+            this.spaceBarPressed = true;
+            FBS.canvas.classList.add('grab');
+        }
     }
 
     onKeyUp(e){
-        if(e.code === 'Space') this.spaceBarPressed = false;
+        if(e.code === 'Space') {
+            this.spaceBarPressed = false;
+            FBS.canvas.classList.remove('grab');
+        }
     }
 
     onContextMenu(e){
@@ -64,7 +70,8 @@ export default class{
         this.pointerDownPos.y = this.pointerPosOnScene.y;
 
         if(this.spaceBarPressed || e.button === 1){
-            this.setCursor('grabbing');
+            FBS.canvas.classList.remove('grab');
+            FBS.canvas.classList.add('grabbing');
             this.panningNow = true;
         } else {
 
@@ -212,7 +219,12 @@ export default class{
     onPointerUp(e){
         if(this.panningNow){
             this.panningNow = false;
-            this.resetCursor();
+            if(this.spaceBarPressed) {
+                FBS.canvas.classList.add('grab');
+            } else {
+                FBS.canvas.classList.remove('grab');
+            }
+            FBS.canvas.classList.remove('grabbing');
         } else {
             this.selectedOnPointerDown = null;
             if (Drag.active) {
@@ -452,6 +464,7 @@ export default class{
     }
 
     setCursor(style){
+        clog(style);
         if(FBS.canvas.style.cursor !== style) FBS.canvas.style.cursor = style;
     }
 
