@@ -30,7 +30,8 @@ export default {
     },
     lines: {
         lineWidth: 0.002,
-        segments: 40
+        segments: 40,
+        colorOnActive: '#777777'
     },
     nodeMesh: {
         constraints: {

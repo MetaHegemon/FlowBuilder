@@ -6,33 +6,34 @@ import  SelectionHelper  from './SelectHelper';
 import FBS from '../FlowBuilderStore';
 
 const Drag = new DragControl();
-let selectionBox = null;
-let selectionHelper = null;
 
 export default class{
     constructor() {
         this.raycaster = new THREE.Raycaster();
         this.intersects = [];
-        //for paning
-        this.spaceBarPressed = false;
-        this.panningNow = false;
-        this.cameraPosTo = {x: 0, y: 0};
-        this.pointerPos = {x: 0, y: 0};
-        this.pointerLastPos = {x: 0, y: 0};
+
+        this.pan = {
+            active: false,
+            spacePressed: false,
+            camPosTo: {x: 0, y: 0},
+            pointLastPos: {x: 0, y: 0}
+        }
+        this.select = {
+            active: false,
+            box: new SelectionBox( FBS.camera, FBS.scene ),
+            helper: new SelectionHelper( this.box, FBS.renderer, 'selectBox' ),
+            cLines: [],
+            cNodes: []
+        }
 
         this.pointerPos = new THREE.Vector2();
         this.pointerPosOnScene = new THREE.Vector2();
         this.pointerDownPos = new THREE.Vector2();
         this.hovered = [];
-        this.selected = {
-            lines: [],
-            cNodes: []
-        };
         this.selectedOnPointerDown = null;
 
         FBS.lineControl.setScene(FBS.scene);
-        selectionBox = new SelectionBox( FBS.camera, FBS.scene );
-        selectionHelper = new SelectionHelper( selectionBox, FBS.renderer, 'selectBox' );
+
         this.setEvents();
     }
 
@@ -48,15 +49,15 @@ export default class{
     }
 
     onKeyDown(e){
-        if(e.code === 'Space' && !this.spaceBarPressed) {
-            this.spaceBarPressed = true;
+        if(e.code === 'Space' && !this.pan.spacePressed) {
+            this.pan.spacePressed = true;
             FBS.canvas.classList.add('grab');
         }
     }
 
     onKeyUp(e){
         if(e.code === 'Space') {
-            this.spaceBarPressed = false;
+            this.pan.spacePressed = false;
             FBS.canvas.classList.remove('grab');
         }
     }
@@ -69,10 +70,10 @@ export default class{
         this.pointerDownPos.x = this.pointerPosOnScene.x;
         this.pointerDownPos.y = this.pointerPosOnScene.y;
 
-        if(this.spaceBarPressed || e.button === 1){
+        if(this.pan.spacePressed || e.button === 1){
             FBS.canvas.classList.remove('grab');
             FBS.canvas.classList.add('grabbing');
-            this.panningNow = true;
+            this.pan.active = true;
         } else {
 
             if (this.intersects.length > 0) {
@@ -93,9 +94,12 @@ export default class{
                     }
                 }
             } else {
-                this.unselectAll();
-                selectionHelper.onSelectStart(e);
-                selectionBox.startPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5);
+                if(e.buttons === 1) {
+                    this.unselectAll();
+                    this.select.active = true;
+                    this.select.helper.onSelectStart(e);
+                    this.select.box.startPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5);
+                }
             }
         }
     }
@@ -104,16 +108,30 @@ export default class{
         this.pointerPos.x = (e.clientX / FBS.canvas.clientWidth) * 2 - 1;
         this.pointerPos.y = -(e.clientY / FBS.canvas.clientHeight) * 2 + 1;
 
-        if (this.panningNow && (e.buttons === 1 || e.buttons === 4)) //PANNING
+        if (this.pan.active && (e.buttons === 1 || e.buttons === 4)) //PANNING
         {
-            let dx = (this.pointerLastPos.x - this.pointerPos.x) / FBS.camera.zoom;
-            let dy = (this.pointerLastPos.y - this.pointerPos.y) / FBS.camera.zoom;
+            let dx = (this.pan.pointLastPos.x - this.pointerPos.x) / FBS.camera.zoom;
+            let dy = (this.pan.pointLastPos.y - this.pointerPos.y) / FBS.camera.zoom;
 
-            this.cameraPosTo.x = this.cameraPosTo.x + dx * FBS.camera.right;
-            this.cameraPosTo.y = this.cameraPosTo.y + dy * FBS.camera.top;
 
-            FBS.camera.position.x = FBS.camera.position.x + (this.cameraPosTo.x - FBS.camera.position.x);
-            FBS.camera.position.y = FBS.camera.position.y + (this.cameraPosTo.y - FBS.camera.position.y);
+            this.pan.camPosTo.x = this.pan.camPosTo.x + dx * FBS.camera.right;
+            this.pan.camPosTo.y = this.pan.camPosTo.y + dy * FBS.camera.top;
+
+            FBS.camera.position.x = FBS.camera.position.x + (this.pan.camPosTo.x - FBS.camera.position.x);
+            FBS.camera.position.y = FBS.camera.position.y + (this.pan.camPosTo.y - FBS.camera.position.y);
+        } else if(this.select.active){
+            this.select.helper.onSelectMove(e);
+            this.unselectAllNodes();
+            this.select.box.endPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5);
+            const allSelected = this.select.box.select();
+            for (let i = 0; i < allSelected.length; i += 1) {//'backMountHead', 'backMountBody', 'backMountFooter'
+                if (allSelected[i].name !== 'backMountHead') continue;
+                const cNode = allSelected[i].userData.nodeClass;
+                this.addCNodeToSelected(cNode);
+            }
+            for (let i = 0; i < this.select.cNodes.length; i += 1) {
+                this.select.cNodes[i].select();
+            }
         } else {
             this.raycaster.setFromCamera(this.pointerPos, FBS.camera);
 
@@ -193,18 +211,7 @@ export default class{
                             }
                         }
                     } else {
-                        selectionHelper.onSelectMove(e);
-                        this.unselectAllNodes();
-                        selectionBox.endPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5);
-                        const allSelected = selectionBox.select();
-                        for (let i = 0; i < allSelected.length; i += 1) {//'backMountHead', 'backMountBody', 'backMountFooter'
-                            if (allSelected[i].name !== 'backMountHead') continue;
-                            const cNode = allSelected[i].userData.nodeClass;
-                            this.addCNodeToSelected(cNode);
-                        }
-                        for (let i = 0; i < this.selected.cNodes.length; i += 1) {
-                            this.selected.cNodes[i].select();
-                        }
+
                     }
                 } else {
 
@@ -212,19 +219,22 @@ export default class{
             }
         }
 
-        this.pointerLastPos.x = this.pointerPos.x;
-        this.pointerLastPos.y = this.pointerPos.y;
+        this.pan.pointLastPos.x = this.pointerPos.x;
+        this.pan.pointLastPos.y = this.pointerPos.y;
     }
 
     onPointerUp(e){
-        if(this.panningNow){
-            this.panningNow = false;
-            if(this.spaceBarPressed) {
+        if(this.pan.active){
+            this.pan.active = false;
+            if(this.pan.spacePressed) {
                 FBS.canvas.classList.add('grab');
             } else {
                 FBS.canvas.classList.remove('grab');
             }
             FBS.canvas.classList.remove('grabbing');
+        } else if(this.select.active){
+            this.select.active = false;
+            this.select.helper.onSelectOver(e);
         } else {
             this.selectedOnPointerDown = null;
             if (Drag.active) {
@@ -259,19 +269,15 @@ export default class{
                                 this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
                             } else if (this.intersects[0].object.name === 'line') {
                                 if(FBS.lineControl.canBeSelected(this.intersects[0].object)){
-                                    this.onLineClick(this.intersects[0].object);
+                                    const cLine = this.intersects[0].object.userData.class;
+                                    this.onLineClick(cLine);
                                 }
 
                             }
                         }
                     }
                 } else {
-                    if (e.button === 0) {
-                        selectionHelper.onSelectOver(e);
 
-                        //selectionBox.endPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5);
-                        //const allSelected = selectionBox.select();
-                    }
                 }
             }
             this.pointerDownPos.x = this.pointerDownPos.y = 0;
@@ -359,9 +365,9 @@ export default class{
     onNodeClick (cNode, shiftKey, ctrlKey) {
         if (cNode.isSelected()) {
             if(ctrlKey) {
-                for (let i = 0; i < this.selected.cNodes.length; i += 1) {
-                    if (this.selected.cNodes[i] === cNode) {
-                        this.selected.cNodes.splice(i, 1);
+                for (let i = 0; i < this.select.cNodes.length; i += 1) {
+                    if (this.select.cNodes[i] === cNode) {
+                        this.select.cNodes.splice(i, 1);
                         break;
                     }
                 }
@@ -369,15 +375,15 @@ export default class{
             } else if(shiftKey){
 
             } else {
-                if(this.selected.cNodes.length > 1){
-                    for (let i = 0; i < this.selected.cNodes.length; i += 1) {
-                        if (this.selected.cNodes[i] === cNode) continue;
-                        this.selected.cNodes[i].unselect();
-                        this.selected.cNodes.splice(i, 1);
+                if(this.select.cNodes.length > 1){
+                    for (let i = 0; i < this.select.cNodes.length; i += 1) {
+                        if (this.select.cNodes[i] === cNode) continue;
+                        this.select.cNodes[i].unselect();
+                        this.select.cNodes.splice(i, 1);
                         i -= 1;
                     }
                 } else {
-                    this.selected.cNodes = [];
+                    this.select.cNodes = [];
                     cNode.unselect();
                 }
             }
@@ -386,10 +392,10 @@ export default class{
                 this.addCNodeToSelected(cNode);
 
             } else {
-                for (let i = 0; i < this.selected.cNodes.length; i += 1) {
-                    if (this.selected.cNodes[i] === cNode) continue;
-                    this.selected.cNodes[i].unselect();
-                    this.selected.cNodes.splice(i, 1);
+                for (let i = 0; i < this.select.cNodes.length; i += 1) {
+                    if (this.select.cNodes[i] === cNode) continue;
+                    this.select.cNodes[i].unselect();
+                    this.select.cNodes.splice(i, 1);
                     i -= 1;
                 }
                 this.addCNodeToSelected(cNode);
@@ -400,34 +406,35 @@ export default class{
 
     addCNodeToSelected(cNode){
         let isExist = false;
-        for(let i = 0; i < this.selected.cNodes.length; i += 1){
-            if(this.selected.cNodes[i] === cNode) {
+        for(let i = 0; i < this.select.cNodes.length; i += 1){
+            if(this.select.cNodes[i] === cNode) {
                 isExist = false;
                 break;
             }
         }
         if(!isExist) {
-            this.selected.cNodes.push(cNode);
+            this.select.cNodes.push(cNode);
         }
     }
 
-    onLineClick(lineMesh){
-        if(lineMesh.userData.selected){
-            for(let i = 0; i < this.selected.lines.length; i += 1){
-                if(this.selected.lines[i].uuid === lineMesh.uuid){
-                    this.selected.lines.splice(i, 1);
-                    break;
-                }
+    onLineClick(cLine){
+
+        let isSelected = false;
+        for(let i = 0; i < this.select.cLines.length; i += 1){
+            if(this.select.cLines[i] === cLine){
+                isSelected = true;
+                break;
             }
-            this.unselectLine(lineMesh);
+        }
+        if(isSelected){
+            this.unselectLine(cLine);
         } else {
-            this.selected.lines.push(lineMesh);
-            this.selectLine(lineMesh);
+            this.select.cLines.push(cLine);
+            this.selectLine(cLine);
         }
     }
 
-    selectLine(lineMesh){
-        const cLine = lineMesh.userData.class;
+    selectLine(cLine){
         cLine.select();
         const cPort1 = cLine.getCPort1();
         cPort1.selectConnector();
@@ -435,8 +442,7 @@ export default class{
         cPort2.selectConnector();
     }
 
-    unselectLine(lineMesh){
-        const cLine = lineMesh.userData.class;
+    unselectLine(cLine){
         cLine.unselect();
         const cPort1 = cLine.getCPort1();
         cPort1.unselectConnector();
@@ -450,21 +456,20 @@ export default class{
     }
 
     unselectAllNodes(){
-        for(let i = 0; i < this.selected.cNodes.length; i += 1){
-            this.selected.cNodes[i].unselect();
+        for(let i = 0; i < this.select.cNodes.length; i += 1){
+            this.select.cNodes[i].unselect();
         }
-        this.selected.cNodes = [];
+        this.select.cNodes = [];
     }
 
     unselectAllLines(){
-        for(let i = 0; i < this.selected.lines.length; i += 1){
-            this.unselectLine(this.selected.lines[i]);
+        for(let i = 0; i < this.select.cLines.length; i += 1){
+            this.unselectLine(this.select.cLines[i]);
         }
-        this.selected.lines = [];
+        this.select.cLines = [];
     }
 
     setCursor(style){
-        clog(style);
         if(FBS.canvas.style.cursor !== style) FBS.canvas.style.cursor = style;
     }
 

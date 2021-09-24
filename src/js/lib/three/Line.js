@@ -27,8 +27,6 @@ export default class {
         });
         const mLine = new Line2(this.geometry, material);
         mLine.name = 'line';
-        mLine.userData.selected = false;
-
         mLine.userData.class = this;
 
         return mLine;
@@ -41,7 +39,7 @@ export default class {
 
     unselect = () => {
         this.mLine.userData.selected = false;
-        this.mLine.material.color.setStyle(C.nodeMesh.line.color);
+        this.mLine.material.color.setStyle(this.cPort1.getColor());
     }
 
     setCPort1(cPort){
