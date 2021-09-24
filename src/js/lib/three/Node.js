@@ -111,8 +111,10 @@ export default class{
         const header = new THREE.Object3D();
 
         //triangle
-        const collapse = this.createCollapseButton();
-        header.add(collapse);
+        if(this.data.inputs.length + this.data.outputs.length > 1) {
+            const collapse = this.createCollapseButton();
+            header.add(collapse);
+        }
 
         //play
         const play = this.createPlayButton();
@@ -643,8 +645,8 @@ export default class{
                 });
 
                 const cLines = this.cPortsInput[i].getCLines();
-                cLines.map((item) => {
-                    item.unCollapsedPort2();
+                cLines.map((cLine) => {
+                    cLine.unCollapsedPort2();
                 });
             }
 
@@ -659,8 +661,16 @@ export default class{
                 });
 
                 const cLines = this.cPortsOutput[i].getCLines();
-                cLines.map((item) => {
-                    item.unCollapsedPort1();
+                cLines.map((cLine) => {
+                    cLine.unCollapsedPort1();
+
+                    /**
+                     * Для входных портов на другом конце линии коннектор делается активным
+                     */
+                    if(!cLine.isPort2Collapsed) {
+                        const cPort2 = cLine.getCPort2();
+                        cPort2.setConnectorActive();
+                    }
                 });
             }
 
@@ -672,7 +682,7 @@ export default class{
             if(cPseudoPortOutput) this.movePseudoOutputPortBack(cPseudoPortOutput.getMPort());
         }
         else
-        {
+        { //COLLAPSE
             this.middleCollapse.isCollapsed = true;
             this.middleCollapse.storeCPortsInput = [...this.cPortsInput];
             this.middleCollapse.storeCPortsOutput = [...this.cPortsOutput];
@@ -729,8 +739,8 @@ export default class{
                 });
             }
             if (cPseudoPortInput) cPseudoPortInput.setCLines(allInputLines);
-            allInputLines.map((item) => {
-                item.collapsedPort2();
+            allInputLines.map((cLine) => {
+                cLine.collapsedPort2();
             });
 
             const allOutputLines = [];
@@ -750,8 +760,16 @@ export default class{
             }
 
             if (cPseudoPortOutput) cPseudoPortOutput.setCLines(allOutputLines);
-            allOutputLines.map((item) => {
-                item.collapsedPort1();
+            allOutputLines.map((cLine) => {
+                cLine.collapsedPort1();
+
+                /**
+                 * Для входных портов на другом конце линии коннектор делается неактивным
+                 */
+                if(!cLine.isPort2Collapsed) {
+                    const cPort2 = cLine.getCPort2();
+                    cPort2.setConnectorInactive();
+                }
             });
 
             if (cPseudoPortInput) this.cPortsInput = [cPseudoPortInput];
@@ -1001,26 +1019,28 @@ export default class{
 
     showMenuButtons(show) {
         const mCollapseButton = this.mesh.getObjectByName('collapseButton');
-        mCollapseButton.visible = show;
+        if(mCollapseButton) mCollapseButton.visible = show;
         const mPlayButton = this.mesh.getObjectByName('playButton');
-        mPlayButton.visible = show;
+        if(mPlayButton) mPlayButton.visible = show;
         const mMenuButton = this.mesh.getObjectByName('menuButton');
-        mMenuButton.visible = show;
+        if(mMenuButton) mMenuButton.visible = show;
     }
 
     collapseButtonRotate() {
         const mCollapse = this.mesh.getObjectByName('collapseButton');
-        let angle;
-        if (this.middleCollapse.isCollapsed) {
-            angle = Math.PI * 1.5;
-        } else {
-            angle = Math.PI;
+        if(mCollapse) {
+            let angle;
+            if (this.middleCollapse.isCollapsed) {
+                angle = Math.PI * 1.5;
+            } else {
+                angle = Math.PI;
+            }
+            this.animationControl.animate([{
+                target: mCollapse.rotation,
+                value: {z: angle},
+                time: C.animation.collapseButtonRotateTime
+            }]);
         }
-        this.animationControl.animate([{
-            target: mCollapse.rotation,
-            value: {z: angle},
-            time: C.animation.collapseButtonRotateTime
-        }]);
     }
 
     /**
@@ -1126,7 +1146,7 @@ export default class{
         }
         for(let i = 0; i < this.cPortsInput.length; i += 1){
             const cLines = this.cPortsInput[i].getCLines();
-            cLines.map((item) => {item.unCollapsedPort2()});
+            cLines.map((cLine) => {cLine.unCollapsedPort2()});
         }
 
         this.cPortsInput.push(cPseudoPort);
@@ -1174,7 +1194,17 @@ export default class{
         this.calcNodeHeight();
         for(let i = 0; i < hidedCPorts.length; i += 1){
             const cLines = hidedCPorts[i].getCLines();
-            cLines.map((item) => {item.collapsedPort1()});
+            cLines.map((cLine) => {
+                cLine.collapsedPort1();
+
+                /**
+                 * Для входных портов на другом конце линии коннектор делается неактивным
+                 */
+                if(!cLine.isPort2Collapsed) {
+                    const cPort2 = cLine.getCPort2();
+                    cPort2.setConnectorInactive();
+                }
+            });
             const mPort = hidedCPorts[i].getMPort();
             animateTasks.push({
                 target: mPort.scale,
@@ -1186,16 +1216,6 @@ export default class{
             });
         }
 
-       /* const positions = this.calcPositionsForInputPorts();
-        for(let i = 0; i < this.cPortsInput.length; i += 1){
-            const mPort = this.cPortsInput[i].getMPort();
-            animateTasks.push({
-                target: mPort.position,
-                value: {x: mPort.position.x, y: positions[i].y, z: mPort.position.z},
-                time: C.animation.portHideTime
-            });
-        }
-*/
         cPseudoPort.changeLabelText(true);
         cPseudoPort.showConnector();
         this.movePseudoOutputPortBack(cPseudoPort.getMPort());
@@ -1226,7 +1246,17 @@ export default class{
         }
         for(let i = 0; i < this.cPortsOutput.length; i += 1){
             const cLines = this.cPortsOutput[i].getCLines();
-            cLines.map((item) => {item.unCollapsedPort1()});
+            cLines.map((cLine) => {
+                cLine.unCollapsedPort1();
+
+                /**
+                 * Для входных портов на другом конце линии коннектор делается активным
+                 */
+                if(!cLine.isPort2Collapsed) {
+                    const cPort2 = cLine.getCPort2();
+                    cPort2.setConnectorActive();
+                }
+            });
         }
 
         this.cPortsOutput.push(cPseudoPort);
@@ -1358,5 +1388,7 @@ export default class{
         return [...this.cPortsInput, ...this.cPortsOutput];
     }
 
-
+    getPortsQuantity(){
+        return this.getAllCPorts().length;
+    }
 }

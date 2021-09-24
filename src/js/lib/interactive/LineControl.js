@@ -26,9 +26,13 @@ export default class{
         this.scene.add(mesh);
     }
 
-    disable(){
+    remove(){
         this.active = false;
         this.scene.remove(this.cLine.getMLine());
+        const cPort1 = this.cLine.getCPort1();
+        if(cPort1) cPort1.removeCLine(this.cLine);
+        const cPort2 = this.cLine.getCPort2();
+        if(cPort2) cPort2.removeCLine(this.cLine);
     }
 
     setScene(scene){
@@ -81,6 +85,7 @@ export default class{
         if(
             cNode1 !== cNode2 &&
             cPort1.direction !== cPort2.direction &&
+            cPort2.connectorActive &&
             !(cPort2.direction === 'input' && cPort2.cLines.length > 0)
         ){
             result = true;

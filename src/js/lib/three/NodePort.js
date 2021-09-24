@@ -12,22 +12,8 @@ export default class {
         this.data = data;
         this.mesh = this.createPort();
         this.cLines = [];
-    }
 
-    getColor(){
-        return C.nodeMesh.portTypes[this.data.type].connectorColor;
-    }
-
-    getCLines(){
-        return this.cLines;
-    }
-
-    setCLines(cLines){
-        this.cLines = cLines;
-    }
-
-    getCNode(){
-        return this.cNode;
+        this.connectorActive = true;
     }
 
     createPort(){
@@ -197,6 +183,46 @@ export default class {
 
     unselectConnector = ()=>{
         this.connectorMesh.userData.selected = false;
+        this.resetConnectorColor();
+
+    }
+
+    setConnectorActive(){
+        this.connectorActive = true;
+        this.resetConnectorColor();
+    }
+
+    setConnectorInactive(){
+        this.connectorActive = false;
+        this.connectorMesh.material.color.setStyle(C.nodeMesh.portTypes["pseudo"].connectorColor);
+    }
+
+    getColor(){
+        return C.nodeMesh.portTypes[this.data.type].connectorColor;
+    }
+
+    resetConnectorColor(){
         this.connectorMesh.material.color.setStyle(C.nodeMesh.portTypes[this.data.type].connectorColor);
-    };
+    }
+
+    getCLines(){
+        return this.cLines;
+    }
+
+    setCLines(cLines){
+        this.cLines = cLines;
+    }
+
+    removeCLine(cLine){
+        for(let i = 0; i < this.cLines.length; i += 1){
+            if(this.cLines[i] === cLine){
+                this.cLines.splice(i, 1);
+                break;
+            }
+        }
+    }
+
+    getCNode(){
+        return this.cNode;
+    }
 };

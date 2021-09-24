@@ -86,10 +86,12 @@ export default class{
                     const connectorIntersect = this.checkOnIntersect(this.intersects, ['connector']);
                     if (connectorIntersect) {
                         const cPort = connectorIntersect.object.userData.portClass;
-                        if(cPort.type !== 'pseudo') {
-                            this.selectedOnPointerDown = connectorIntersect.object;
-                            this.unselectAllLines();
-                            FBS.lineControl.enable(connectorIntersect.object);
+                        if(cPort.connectorActive) {
+                            if (cPort.type !== 'pseudo') {
+                                this.selectedOnPointerDown = connectorIntersect.object;
+                                this.unselectAllLines();
+                                FBS.lineControl.enable(connectorIntersect.object);
+                            }
                         }
                     }
                 }
@@ -155,8 +157,9 @@ export default class{
                     FBS.lineControl.canBeConnected(this.intersects[0].object)
                 ) {
                     const cPort = this.intersects[0].object.userData.portClass;
-                    const pos = cPort.getConnectorPos();
-                    FBS.lineControl.drawLineFromPos(pos.x, pos.y);
+                        const pos = cPort.getConnectorPos();
+                        FBS.lineControl.drawLineFromPos(pos.x, pos.y);
+
                 } else {
                     FBS.lineControl.drawLineFromPos(this.pointerPos3d.x, this.pointerPos3d.y);
                 }
@@ -177,8 +180,10 @@ export default class{
                             this.setCursor('pointer');
                         } else if (firstObject.name === 'connector') {
                             const cPort = firstObject.userData.portClass;
-                            if (cPort.type !== 'pseudo') {
-                                this.setCursor('pointer');
+                            if(cPort.connectorActive) {
+                                if (cPort.type !== 'pseudo') {
+                                    this.setCursor('pointer');
+                                }
                             }
                         } else if (firstObject.name === 'line') {
                             if(FBS.lineControl.canBeSelected(firstObject)){
@@ -254,7 +259,7 @@ export default class{
                 ) {
                     FBS.lineControl.connect(this.intersects[0].object);
                 } else {
-                    FBS.lineControl.disable();
+                    FBS.lineControl.remove();
                 }
             } else {
                 if (this.intersects.length > 0) {
