@@ -1,6 +1,6 @@
 export default {
     nodes: [
-        {
+        /*{
             name: 'Math.E',
             indicator: 'A',
             code: 'function(){return Math.E;}',
@@ -127,7 +127,7 @@ export default {
                 x: -350,
                 y: 300
             }
-        },
+        },*/
         {
             name: 'Generic Node2',
             indicator: 'B',
@@ -209,7 +209,7 @@ export default {
                 //y: 200
             }
         },
-        {
+        /*{
             name: 'Spread',
             indicator: 'H',
             code: 'function(x){return Math.floor(x);}',
@@ -264,7 +264,7 @@ export default {
                 x: 700,
                 y: 350
             }
-        },
+        },*/
 
     ]
 }
