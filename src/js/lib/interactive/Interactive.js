@@ -16,7 +16,7 @@ export default class{
             active: false,
             spacePressed: false,
             camPosTo: {x: 0, y: 0},
-            pointLastPos: {x: 0, y: 0}
+            screenLastPos: {x: 0, y: 0}
         }
         this.select = {
             active: false,
@@ -26,8 +26,8 @@ export default class{
             cNodes: []
         }
 
-        this.pointerPos = new THREE.Vector2();
-        this.pointerPosOnScene = new THREE.Vector2();
+        this.screenPos = new THREE.Vector2();
+        this.pointerPos3d = new THREE.Vector2();
         this.pointerDownPos = new THREE.Vector2();
         this.hovered = [];
         this.selectedOnPointerDown = null;
@@ -67,8 +67,8 @@ export default class{
     }
 
     onPointerDown(e){
-        this.pointerDownPos.x = this.pointerPosOnScene.x;
-        this.pointerDownPos.y = this.pointerPosOnScene.y;
+        this.pointerDownPos.x = this.pointerPos3d.x;
+        this.pointerDownPos.y = this.pointerPos3d.y;
 
         if(this.pan.spacePressed || e.button === 1){
             FBS.canvas.classList.remove('grab');
@@ -98,31 +98,34 @@ export default class{
                     this.unselectAll();
                     this.select.active = true;
                     this.select.helper.onSelectStart(e);
-                    this.select.box.startPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5);
+                    this.select.box.startPoint.set(this.screenPos.x, this.screenPos.y, 0.5);
                 }
             }
         }
+
+        this.pan.camPosTo.x = FBS.camera.position.x;
+        this.pan.camPosTo.y = FBS.camera.position.y;
     }
 
     onPointerMove(e) {
-        this.pointerPos.x = (e.clientX / FBS.canvas.clientWidth) * 2 - 1;
-        this.pointerPos.y = -(e.clientY / FBS.canvas.clientHeight) * 2 + 1;
+        this.screenPos.x = (e.clientX / FBS.canvas.clientWidth) * 2 - 1;
+        this.screenPos.y = -(e.clientY / FBS.canvas.clientHeight) * 2 + 1;
 
         if (this.pan.active && (e.buttons === 1 || e.buttons === 4)) //PANNING
         {
-            let dx = (this.pan.pointLastPos.x - this.pointerPos.x) / FBS.camera.zoom;
-            let dy = (this.pan.pointLastPos.y - this.pointerPos.y) / FBS.camera.zoom;
-
+            let dx = (this.pan.screenLastPos.x - this.screenPos.x) / FBS.camera.zoom;
+            let dy = (this.pan.screenLastPos.y - this.screenPos.y) / FBS.camera.zoom;
 
             this.pan.camPosTo.x = this.pan.camPosTo.x + dx * FBS.camera.right;
             this.pan.camPosTo.y = this.pan.camPosTo.y + dy * FBS.camera.top;
 
             FBS.camera.position.x = FBS.camera.position.x + (this.pan.camPosTo.x - FBS.camera.position.x);
             FBS.camera.position.y = FBS.camera.position.y + (this.pan.camPosTo.y - FBS.camera.position.y);
-        } else if(this.select.active){
+        } else if(this.select.active) //SELECTING
+        {
             this.select.helper.onSelectMove(e);
             this.unselectAllNodes();
-            this.select.box.endPoint.set(this.pointerPos.x, this.pointerPos.y, 0.5);
+            this.select.box.endPoint.set(this.screenPos.x, this.screenPos.y, 0.5);
             const allSelected = this.select.box.select();
             for (let i = 0; i < allSelected.length; i += 1) {//'backMountHead', 'backMountBody', 'backMountFooter'
                 if (allSelected[i].name !== 'backMountHead') continue;
@@ -132,14 +135,16 @@ export default class{
             for (let i = 0; i < this.select.cNodes.length; i += 1) {
                 this.select.cNodes[i].select();
             }
-        } else {
-            this.raycaster.setFromCamera(this.pointerPos, FBS.camera);
+        }
+        else
+        {
+            this.raycaster.setFromCamera(this.screenPos, FBS.camera);
 
-            this.pointerPosOnScene.x = this.raycaster.ray.origin.x;
-            this.pointerPosOnScene.y = this.raycaster.ray.origin.y;
+            this.pointerPos3d.x = this.raycaster.ray.origin.x;
+            this.pointerPos3d.y = this.raycaster.ray.origin.y;
 
             if (Drag.active) {
-                Drag.dragObject(this.pointerPosOnScene);
+                Drag.dragObject(this.pointerPos3d);
                 FBS.lineControl.refreshLines(Drag.getObject());
             } else if (FBS.lineControl.active) {
                 //TODO find only first intersect
@@ -153,7 +158,7 @@ export default class{
                     const pos = cPort.getConnectorPos();
                     FBS.lineControl.drawLineFromPos(pos.x, pos.y);
                 } else {
-                    FBS.lineControl.drawLineFromPos(this.pointerPosOnScene.x, this.pointerPosOnScene.y);
+                    FBS.lineControl.drawLineFromPos(this.pointerPos3d.x, this.pointerPos3d.y);
                 }
             } else {
                 this.intersects = this.raycaster.intersectObjects(FBS.scene.children, true);
@@ -196,11 +201,11 @@ export default class{
                 } else if (e.buttons === 1) {
                     if (this.selectedOnPointerDown) {
                         if (this.selectedOnPointerDown.name === 'node') {
-                            if (this.isMoved(this.pointerPosOnScene, this.pointerDownPos)) {
+                            if (this.isMoved(this.pointerPos3d, this.pointerDownPos)) {
                                 const backMountIntersect = this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter']);
                                 if (backMountIntersect) {
                                     const cNode = backMountIntersect.object.userData.nodeClass;
-                                    Drag.enable(cNode.getMNode(), this.pointerPosOnScene);
+                                    Drag.enable(cNode.getMNode(), this.pointerPos3d);
                                     this.setCursor('move');
                                 }
                             }
@@ -219,8 +224,8 @@ export default class{
             }
         }
 
-        this.pan.pointLastPos.x = this.pointerPos.x;
-        this.pan.pointLastPos.y = this.pointerPos.y;
+        this.pan.screenLastPos.x = this.screenPos.x;
+        this.pan.screenLastPos.y = this.screenPos.y;
     }
 
     onPointerUp(e){
