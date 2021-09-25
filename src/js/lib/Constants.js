@@ -5,7 +5,6 @@ export default {
         collapseButtonRotateTime: 200,
         footerLabelHideTime: 200
     },
-
     layers: {
         nodeStep: 0.1,
         backMount: 0,
@@ -20,8 +19,6 @@ export default {
     },
     deltaOnPointerInteractive: 3,
     fontPaths: {
-        mainNormal: './fonts/Inter-Regular.ttf',
-        mainMedium: './fonts/Inter-Medium.ttf',
         awSolid: './fonts/fa-solid-900.ttf',
         awLight: './fa-light-300.ttf',
         awRegular: './fa-regular-400.ttf',
@@ -30,8 +27,7 @@ export default {
     },
     lines: {
         lineWidth: 0.002,
-        segments: 40,
-        colorOnActive: '#777777'
+        segments: 40
     },
     nodeMesh: {
         constraints: {
@@ -39,14 +35,11 @@ export default {
         },
         title: {
             fontSize: 21,
-            fontColor: '#000000',
-            fontSelectedColor: '#2491F6',
             leftMargin: 0,
             bottomMargin: 2
         },
         indicator: {
             fontSize: 21,
-            fontColor: '#000000',
             rightMargin: 0,
             bottomMargin: 2
         },
@@ -54,34 +47,24 @@ export default {
             height: 62,
             collapse: {
                 fontSize: 15,
-                fontColor: '#000000',
                 leftMargin: 24.5,
                 topMargin: 33
             },
             play: {
                 fontSize: 23,
-                fontColor: '#000000',
                 rightMargin: 34,
                 topMargin: 21
             },
             menu: {
                 fontSize: 22,
-                fontColor: '#000000',
                 rightMargin: 16,
                 topMargin: 21
             }
         },
         mount: {
             width: 293,
-            frontBodyColor: '#fff',
             front: {
                 headHeight: 6.4,             //без радиуса
-                headColor: '#687EDB',
-                bodyColor: '#ffffff',
-            },
-            back: {
-                color: '#5F5F5F',
-                selectedColor: '#2491F6'
             },
             borderSize: 1,
             roundCornerRadius: 4
@@ -92,17 +75,16 @@ export default {
                 width: 14,
                 height: 25,
                 cornerRadius: 2,
-                selectedColor: '#2491F6',
             },
             label: {
                 fontSize: 16,
                 topMargin: 10,
                 leftMargin: 40,
-                hoverColor: '#2491F6',
                 letterSpacing: 0.046,
                 pseudoLeftMargin: 13,
                 underlineLeftMargin: -0.5,
-                underlineTopMargin: 4.5
+                underlineTopMargin: 4.5,
+                underlineFontSize: 16
             },
             mark: {
                 width: 30,
@@ -119,49 +101,13 @@ export default {
         },
         footer: {
             height: 26,                         //высота подвала без радиуса
-            color: '#EEEFF2',
             label: {
                 fontSize: 15,
                 leftMargin: 12,
                 bottomMargin: 5.1,
-                color: '#000000',
-                hoverColor: '#2491F6',
                 letterSpacing: 0.032
             }
         },
-        line: {
-            color: '#CACACA',
-            selectedColor: '#2491F6'
-        },
-        portTypes: {
-            float: {
-                connectorColor: '#338A51',
-                labelColor: '#2a2a2a',
-                fontColor: '#ffffff',
-                markColor: '#338A51'
-            },
-            int: {
-                connectorColor: '#687EDB',
-                labelColor: '#2a2a2a',
-                fontColor: '#ffffff',
-                markColor: '#687EDB'
-            },
-            color: {
-                connectorColor: '#E99B66',
-                labelColor: '#2a2a2a',
-                fontColor: '#ffffff',
-                markColor: '#E99B66'
-            },
-            pseudo: {
-                connectorColor: '#b6b6b6',
-                labelColor: '#2a2a2a',
-                fontColor: '#ffffff',
-                markColor: '#b6b6b6'
-            }
-        }
-    },
-    scene: {
-        backgroundColor: '#f0f2f5'
     },
     three: {
         zoom: {

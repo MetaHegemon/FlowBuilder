@@ -3,14 +3,16 @@ import {LineGeometry} from "three/examples/jsm/lines/LineGeometry";
 import {LineMaterial} from "three/examples/jsm/lines/LineMaterial";
 import {Line2} from "three/examples/jsm/lines/Line2";
 import C from './../Constants';
+import FBS from "../FlowBuilderStore";
 
 export default class {
     constructor(){
         this.geometry = new LineGeometry();
-        this.mLine = this.create();
+        this.mesh = this.create();
 
         this.cPort1 = null;
         this.cPort2 = null;
+        this.selected = false;
 
         this.pos1 = new THREE.Vector2();
         this.pos2 = new THREE.Vector2();
@@ -22,24 +24,14 @@ export default class {
     create(){
         this.geometry.setPositions([0, 0, 0, 0, 0, 0]);
         const material = new LineMaterial({
-            color: C.nodeMesh.line.color,
+            color: FBS.theme.line.colorOnActive,
             linewidth: C.lines.lineWidth
         });
-        const mLine = new Line2(this.geometry, material);
-        mLine.name = 'line';
-        mLine.userData.class = this;
+        const mesh = new Line2(this.geometry, material);
+        mesh.name = 'line';
+        mesh.userData.class = this;
 
-        return mLine;
-    }
-
-    select = () => {
-        this.mLine.userData.selected = true;
-        this.mLine.material.color.setStyle(C.nodeMesh.line.selectedColor);
-    }
-
-    unselect = () => {
-        this.mLine.userData.selected = false;
-        this.mLine.material.color.setStyle(this.cPort1.getColor());
+        return mesh;
     }
 
     setCPort1(cPort){
@@ -59,7 +51,7 @@ export default class {
     }
 
     getMLine(){
-        return this.mLine;
+        return this.mesh;
     }
 
     setPos1(x, y){
@@ -112,23 +104,31 @@ export default class {
 
         const geometry = new LineGeometry();
         geometry.setPositions(p);
-        this.mLine.geometry = geometry;
+        this.mesh.geometry = geometry;
     }
 
     collapsedPort1(){
+        if(this.selected){
+            this.unselect();
+        }
         this.isPort1Collapsed = true;
-        this.setColor(C.nodeMesh.portTypes.pseudo.connectorColor);
+        this.setColor(FBS.theme.node.portTypes.pseudo.connectorColor);
+
     }
 
     collapsedPort2(){
+        if(this.selected){
+            this.unselect();
+        }
         this.isPort2Collapsed = true;
-        this.setColor(C.nodeMesh.portTypes.pseudo.connectorColor);
+        this.setColor(FBS.theme.node.portTypes.pseudo.connectorColor);
     }
 
     unCollapsedPort1(){
         this.isPort1Collapsed = false;
         if(!this.isPort2Collapsed){
             this.resetColor();
+            //this.cPort1.resetConnectorColor();
         }
     }
 
@@ -136,16 +136,48 @@ export default class {
         this.isPort2Collapsed = false;
         if(!this.isPort1Collapsed){
             this.resetColor();
+            //this.cPort2.resetConnectorColor();
         }
+
     }
 
     setColor(colorStyle){
-        this.mLine.material.color.setStyle(colorStyle);
+        this.mesh.material.color.setStyle(colorStyle);
     }
 
     resetColor(){
-        this.mLine.material.color.setStyle(this.cPort1.getColor());
+        this.mesh.material.color.setStyle(this.cPort1.getColor());
     }
 
+    select(){
+        if(!this.selected) {
+            this.selected = true;
+            this.mesh.material.color.setStyle(FBS.theme.line.selectedColor);
+            this.cPort1.selectConnector();
+            this.cPort2.selectConnector();
+        }
+    }
 
+    unselect(){
+        if(this.selected) {
+            this.selected = false;
+            this.mesh.material.color.setStyle(this.cPort1.getColor());
+            this.cPort1.unselectConnector();
+            this.cPort2.unselectConnector();
+        }
+    }
+
+    updateTheme(){
+        if(this.selected){
+            this.setColor(FBS.theme.line.selectedColor);
+            this.cPort1.selectConnector();
+            this.cPort2.selectConnector();
+        } else {
+            if(this.isPort1Collapsed || this.isPort2Collapsed){
+                this.setColor(FBS.theme.node.portTypes.pseudo.connectorColor);
+            } else {
+                this.setColor(this.cPort1.getColor());
+            }
+        }
+    }
 }

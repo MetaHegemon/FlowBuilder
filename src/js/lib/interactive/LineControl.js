@@ -1,11 +1,12 @@
 import Line from '../three/Line';
-import C from './../Constants';
+import FBS from './../FlowBuilderStore';
 
 export default class{
     constructor() {
         this.active = false;
-        this.scene = null;
+        this.scene = FBS.sceneControl.getScene();
         this.cLine = null;
+        this.allCLines = [];
     }
 
     enable(mConnector) {
@@ -22,7 +23,7 @@ export default class{
         }
         const mesh = this.cLine.getMLine();
 
-        this.cLine.setColor(C.lines.colorOnActive);
+        this.cLine.setColor(FBS.theme.line.colorOnActive);
         this.scene.add(mesh);
     }
 
@@ -33,10 +34,16 @@ export default class{
         if(cPort1) cPort1.removeCLine(this.cLine);
         const cPort2 = this.cLine.getCPort2();
         if(cPort2) cPort2.removeCLine(this.cLine);
+        this.removeFromCLinesList(this.cLine);
     }
 
-    setScene(scene){
-        this.scene = scene;
+    removeFromCLinesList(cLine){
+        for(let i = 0; i < this.allCLines.length; i += 1){
+            if(this.allCLines[i] === cLine){
+                this.allCLines.splice(i, 1);
+                break;
+            }
+        }
     }
 
     drawLineFromPos(ex, ey){
@@ -57,7 +64,7 @@ export default class{
     // обновляет линии
     refreshLines(mNode) {
         const cNode = mNode.userData.nodeClass;
-        const cPorts = cNode.getAllCPorts();
+        const cPorts = cNode.getAllVisibleCPorts();
 
         for(let i = 0; i < cPorts.length; i += 1){
             const pos = cPorts[i].getConnectorPos();
@@ -86,6 +93,7 @@ export default class{
             cNode1 !== cNode2 &&
             cPort1.direction !== cPort2.direction &&
             cPort2.connectorActive &&
+            cPort2.type !== 'pseudo' &&
             !(cPort2.direction === 'input' && cPort2.cLines.length > 0)
         ){
             result = true;
@@ -131,5 +139,12 @@ export default class{
 
         cPort1.cLines.push(this.cLine);
         cPort2.cLines.push(this.cLine);
+        this.allCLines.push(this.cLine);
+    }
+
+    updateTheme(){
+        this.allCLines.map(cLine=>{
+            cLine.updateTheme();
+        });
     }
 }

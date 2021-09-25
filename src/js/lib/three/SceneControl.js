@@ -29,7 +29,7 @@ export default class {
         this.camera.lookAt(0,0,0);
 
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(C.scene.backgroundColor);
+        this.scene.background = new THREE.Color(FBS.theme.scene.backgroundColor);
 
         //
         this.resizeTimer = null;
@@ -202,5 +202,7 @@ export default class {
         return this.renderLoops;
     }
 
-
+    updateTheme(){
+        this.scene.background.setStyle(FBS.theme.scene.backgroundColor);
+    }
 }

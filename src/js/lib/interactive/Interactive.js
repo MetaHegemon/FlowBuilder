@@ -32,8 +32,6 @@ export default class{
         this.hovered = [];
         this.selectedOnPointerDown = null;
 
-        FBS.lineControl.setScene(FBS.scene);
-
         this.setEvents();
     }
 
@@ -52,6 +50,10 @@ export default class{
         if(e.code === 'Space' && !this.pan.spacePressed) {
             this.pan.spacePressed = true;
             FBS.canvas.classList.add('grab');
+        } else if(e.code === 'KeyT'){
+            if(!e.repeat) {
+                FBS.themesControl.switch();
+            }
         }
     }
 
@@ -446,18 +448,10 @@ export default class{
 
     selectLine(cLine){
         cLine.select();
-        const cPort1 = cLine.getCPort1();
-        cPort1.selectConnector();
-        const cPort2 = cLine.getCPort2();
-        cPort2.selectConnector();
     }
 
     unselectLine(cLine){
         cLine.unselect();
-        const cPort1 = cLine.getCPort1();
-        cPort1.unselectConnector();
-        const cPort2 = cLine.getCPort2();
-        cPort2.unselectConnector();
     }
 
     unselectAll(){

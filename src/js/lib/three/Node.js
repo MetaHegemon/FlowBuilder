@@ -37,6 +37,7 @@ export default class{
             inputPortsCollapsed: true,
             outputPortsCollapsed: true
         }
+        this.allCPorts = [];
         this.playing = false;
         this.title = null;
         this.cPortsInput = [];
@@ -50,8 +51,6 @@ export default class{
     }
 
     create() {
-        //this.calcNodeHeight();
-
         const nodeObject = new THREE.Object3D();
         nodeObject.matrixWorld.makeTranslation(0, 1000, 0);
         nodeObject.updateWorldMatrix();
@@ -81,13 +80,16 @@ export default class{
         //input ports
         //create ports before calc height of node
         const inputPorts = this.createInputPorts(this.data.inputs);
+        this.allCPorts.push(...inputPorts);
         this.cPortsInput = this.packPortsWithPseudo( inputPorts, 'input', C.nodeMesh.constraints.maxVisiblePorts);
         for (let i = 0; i < this.cPortsInput.length; i += 1) {
             nodeObject.add(this.cPortsInput[i].getMPort());
         }
 
         //output ports
+
         const outputPorts = this.createOutputPorts(this.data.outputs);
+        this.allCPorts.push(...outputPorts);
         this.cPortsOutput = this.packPortsWithPseudo( outputPorts, 'output', C.nodeMesh.constraints.maxVisiblePorts);
         for (let i = 0; i < this.cPortsOutput.length; i += 1) {
             nodeObject.add(this.cPortsOutput[i].getMPort());
@@ -133,7 +135,7 @@ export default class{
         collapse.text = '';
         collapse.font = C.fontPaths.awSolid;
         collapse.fontSize = C.nodeMesh.header.collapse.fontSize;
-        collapse.color = C.nodeMesh.header.collapse.fontColor;
+        collapse.color = FBS.theme.node.header.collapse.fontColor;
         collapse.anchorX = 8;
         collapse.anchorY = -9.4;
         collapse.textAlign = 'center';
@@ -149,7 +151,7 @@ export default class{
         play.text = '';
         play.font = C.fontPaths.awSolid;
         play.fontSize = C.nodeMesh.header.play.fontSize;
-        play.color = C.nodeMesh.header.play.fontColor;
+        play.color = FBS.theme.node.header.play.fontColor;
         play.anchorX = 'right';
         play.anchorY = 'top';
         play.position.set(C.nodeMesh.mount.width - C.nodeMesh.header.play.rightMargin, C.nodeMesh.header.height/2 - C.nodeMesh.header.play.topMargin, 0);
@@ -163,7 +165,7 @@ export default class{
         menu.text = '';
         menu.font = C.fontPaths.awSolid;
         menu.fontSize = C.nodeMesh.header.menu.fontSize;
-        menu.color = C.nodeMesh.header.menu.fontColor;
+        menu.color = FBS.theme.node.header.menu.fontColor;
         menu.anchorX = 'right';
         menu.anchorY = 'top';
         menu.position.set(C.nodeMesh.mount.width - C.nodeMesh.header.menu.rightMargin,  C.nodeMesh.header.height/2 - C.nodeMesh.header.menu.topMargin, 0);
@@ -371,9 +373,9 @@ export default class{
     createTitle(name) {
         const title = new Text();
         title.text = name;
-        title.font = C.fontPaths.mainMedium;
+        title.font = FBS.theme.fontPaths.mainMedium;
         title.fontSize = C.nodeMesh.title.fontSize;
-        title.color = C.nodeMesh.title.fontColor;
+        title.color = FBS.theme.node.title.fontColor;
         title.anchorX = 'left';
         title.anchorY = 'bottom';
         title.position.set(C.nodeMesh.title.leftMargin, C.nodeMesh.title.bottomMargin, 0);
@@ -385,9 +387,9 @@ export default class{
     createIndicator(name){
         const title = new Text();
         title.text = name;
-        title.font = C.fontPaths.mainNormal;
+        title.font = FBS.theme.fontPaths.mainNormal;
         title.fontSize = C.nodeMesh.indicator.fontSize;
-        title.color = C.nodeMesh.indicator.fontColor;
+        title.color = FBS.theme.node.indicator.fontColor;
         title.anchorX = 'right';
         title.anchorY = 'bottom';
         title.position.set(C.nodeMesh.mount.width - C.nodeMesh.indicator.rightMargin, C.nodeMesh.indicator.bottomMargin, 0);
@@ -397,7 +399,6 @@ export default class{
 
     createBackMountMesh(){
         const w = C.nodeMesh.mount.width;
-        const color = C.nodeMesh.mount.back.color;
 
         const radius = C.nodeMesh.mount.roundCornerRadius;
 
@@ -410,13 +411,13 @@ export default class{
 
         const head = new THREE.Mesh(
             new THREE.ShapeGeometry( headShape ),
-            new THREE.MeshBasicMaterial({color: color ? color : 'red'})
+            new THREE.MeshBasicMaterial({color: FBS.theme.node.mount.back.color})
         );
         head.name = 'backMountHead';
 
         const body = new THREE.Mesh(
             new THREE.PlaneBufferGeometry(w, 1),
-            new THREE.MeshBasicMaterial({color: color})
+            new THREE.MeshBasicMaterial({color: FBS.theme.node.mount.back.color})
         );
 
         body.name = 'backMountBody';
@@ -432,7 +433,7 @@ export default class{
 
         const footer = new THREE.Mesh(
             new THREE.ShapeGeometry( footerShape ),
-            new THREE.MeshBasicMaterial({color: color ? color : 'red'})
+            new THREE.MeshBasicMaterial({color: FBS.theme.node.mount.back.color})
         );
         footer.name = 'backMountFooter';
         this.setBackMountFooterPosition(footer);
@@ -449,8 +450,6 @@ export default class{
 
     createFrontMount () {
         const w = C.nodeMesh.mount.width - C.nodeMesh.mount.borderSize * 2;
-        const headColor = C.nodeMesh.mount.front.headColor;
-        const bodyColor = C.nodeMesh.mount.front.bodyColor;
         const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
 
         const mount = new THREE.Object3D();
@@ -467,14 +466,14 @@ export default class{
 
         const headMesh = new THREE.Mesh(
             new THREE.ShapeGeometry( headShape ),
-            new THREE.MeshBasicMaterial({color: headColor ? headColor : 'red'})
+            new THREE.MeshBasicMaterial({color: FBS.theme.node.mount.front.headColor})
         );
         headMesh.name = 'frontMountHead';
         mount.add(headMesh);
 
         const bodyMesh = new THREE.Mesh(
             new THREE.PlaneBufferGeometry(w, 1),
-            new THREE.MeshBasicMaterial({color: bodyColor ? bodyColor : 'red'})
+            new THREE.MeshBasicMaterial({color: FBS.theme.node.mount.front.bodyColor})
         );
         bodyMesh.name = 'frontMountBody';
         this.scaleFrontMountBody(bodyMesh);
@@ -494,7 +493,6 @@ export default class{
 
     createFooter(){
         const w = C.nodeMesh.mount.width - C.nodeMesh.mount.borderSize * 2;
-        const footerColor = C.nodeMesh.footer.color;
         const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
         const footerHeight = C.nodeMesh.footer.height;
 
@@ -512,7 +510,7 @@ export default class{
 
         const footerMesh = new THREE.Mesh(
             new THREE.ShapeGeometry( footerShape ),
-            new THREE.MeshBasicMaterial({color: footerColor ? footerColor : 'red'})
+            new THREE.MeshBasicMaterial({color: FBS.theme.node.footer.color})
         );
         footerMesh.name = 'frontMountFooter';
 
@@ -521,9 +519,9 @@ export default class{
         const footerLabel = new Text();
         footerLabel.name = 'footerLabel';
         footerLabel.text = 'Learn more';
-        footerLabel.font = C.fontPaths.mainNormal;
+        footerLabel.font = FBS.theme.fontPaths.mainNormal;
         footerLabel.fontSize = C.nodeMesh.footer.label.fontSize;
-        footerLabel.color = C.nodeMesh.footer.label.color;
+        footerLabel.color = FBS.theme.node.footer.label.color;
         footerLabel.letterSpacing = C.nodeMesh.footer.label.letterSpacing;
         footerLabel.anchorX = 'left';
         footerLabel.anchorY = 'bottom';
@@ -539,12 +537,12 @@ export default class{
 
     hoverFooterLabel(){
         const footerLabel = this.mesh.getObjectByName('footerLabel');
-        footerLabel.color = C.nodeMesh.footer.label.hoverColor;
+        footerLabel.color = FBS.theme.node.footer.label.hoverColor;
     }
 
     unhoverFooterLabel(){
         const footerLabel = this.mesh.getObjectByName('footerLabel');
-        footerLabel.color = C.nodeMesh.footer.label.color;
+        footerLabel.color = FBS.theme.node.footer.label.color;
     }
 
     play(mPlay){
@@ -566,18 +564,18 @@ export default class{
         this.selected = true;
         const mount = this.mesh.getObjectByName('backMount');
         for(let i = 0; i < mount.children.length; i += 1){
-            mount.children[i].material.color.setStyle(C.nodeMesh.mount.back.selectedColor);
+            mount.children[i].material.color.setStyle(FBS.theme.node.mount.back.selectedColor);
         }
-        this.title.color = C.nodeMesh.title.fontSelectedColor;
+        this.title.color = FBS.theme.node.title.fontSelectedColor;
     }
 
     unselect(){
         this.selected = false;
         const mount = this.mesh.getObjectByName('backMount');
         for(let i = 0; i < mount.children.length; i += 1){
-            mount.children[i].material.color.setStyle(C.nodeMesh.mount.back.color);
+            mount.children[i].material.color.setStyle(FBS.theme.node.mount.back.color);
         }
-        this.title.color = C.nodeMesh.title.fontColor;
+        this.title.color = FBS.theme.node.title.fontColor;
     }
 
     getMNode(){
@@ -602,7 +600,7 @@ export default class{
 
     middleCollapsePorts(){
         let animateTasks = [];
-        if(this.middleCollapse.isCollapsed)
+        if(this.middleCollapse.isCollapsed) //UNCOLLAPSE
         {
             this.middleCollapse.isCollapsed = false;
 
@@ -667,10 +665,8 @@ export default class{
                     /**
                      * Для входных портов на другом конце линии коннектор делается активным
                      */
-                    if(!cLine.isPort2Collapsed) {
-                        const cPort2 = cLine.getCPort2();
-                        cPort2.setConnectorActive();
-                    }
+                    const cPort2 = cLine.getCPort2();
+                    cPort2.setConnectorActive();
                 });
             }
 
@@ -766,10 +762,9 @@ export default class{
                 /**
                  * Для входных портов на другом конце линии коннектор делается неактивным
                  */
-                if(!cLine.isPort2Collapsed) {
-                    const cPort2 = cLine.getCPort2();
-                    cPort2.setConnectorInactive();
-                }
+                const cPort2 = cLine.getCPort2();
+                cPort2.setConnectorInactive();
+
             });
 
             if (cPseudoPortInput) this.cPortsInput = [cPseudoPortInput];
@@ -872,8 +867,8 @@ export default class{
                     });
                 }
                 if (cPseudoPortInput) cPseudoPortInput.setCLines(allInputLines);
-                allInputLines.map((item) => {
-                    item.collapsedPort2();
+                allInputLines.map((cLine) => {
+                    cLine.collapsedPort2();
                 });
 
                 const allOutputLines = [];
@@ -903,7 +898,7 @@ export default class{
                 if (cPseudoPortOutput) this.cPortsOutput = [cPseudoPortOutput];
 
                 const mFooter = this.mesh.getObjectByName('frontMountFooter');
-                mFooter.material.color.setStyle(C.nodeMesh.mount.frontBodyColor);
+                mFooter.material.color.setStyle(FBS.theme.node.mount.front.bodyColor);
                 const mFooterLabel = this.mesh.getObjectByName('footerLabel');
                 operationCount += 1;
                 animateTasks.push({
@@ -995,7 +990,7 @@ export default class{
                 if (cPseudoPortOutput) this.movePseudoOutputPortBack(cPseudoPortOutput.getMPort());
 
                 const mFooter = this.mesh.getObjectByName('frontMountFooter');
-                mFooter.material.color.setStyle(C.nodeMesh.footer.color);
+                mFooter.material.color.setStyle(FBS.theme.node.footer.color);
                 const mFooterLabel = this.mesh.getObjectByName('footerLabel');
                 operationCount += 1;
                 animateTasks.push({
@@ -1385,10 +1380,71 @@ export default class{
     }
 
     getAllCPorts(){
+        return this.allCPorts;
+    }
+
+    getAllVisibleCPorts(){
         return [...this.cPortsInput, ...this.cPortsOutput];
     }
 
-    getPortsQuantity(){
-        return this.getAllCPorts().length;
+    updateTheme(){
+        let m;
+        m = this.mesh.getObjectByName('title');
+        if(m){
+            m.color = FBS.theme.node.title.fontColor;
+            m.font = FBS.theme.fontPaths.mainMedium;
+        }
+
+        m = this.mesh.getObjectByName('indicator');
+        if(m){
+            m.color = FBS.theme.node.indicator.fontColor;
+            m.font = FBS.theme.fontPaths.mainNormal;
+        }
+
+        m = this.mesh.getObjectByName('collapseButton');
+        if(m) m.color = FBS.theme.node.header.collapse.fontColor;
+
+        m = this.mesh.getObjectByName('playButton');
+        if(m) m.color = FBS.theme.node.header.play.fontColor;
+
+        m = this.mesh.getObjectByName('menuButton');
+        if(m) m.color = FBS.theme.node.header.menu.fontColor;
+
+        m = this.mesh.getObjectByName('frontMountHead');
+        if(m) m.material.color.setStyle(FBS.theme.node.mount.front.headColor);
+
+        m = this.mesh.getObjectByName('frontMountBody');
+        if(m) m.material.color.setStyle(FBS.theme.node.mount.front.bodyColor);
+
+        m = this.mesh.getObjectByName('frontMountFooter');
+        if(m) m.material.color.setStyle(FBS.theme.node.footer.color);
+
+        m = this.mesh.getObjectByName('footerLabel');
+        if(m) {
+            m.color = FBS.theme.node.footer.label.color;
+            m.font = FBS.theme.fontPaths.mainNormal;
+        }
+
+        m = this.mesh.getObjectByName('backMountHead');
+        if(m) m.material.color.setStyle(FBS.theme.node.mount.back.color);
+
+        m = this.mesh.getObjectByName('backMountBody');
+        if(m) m.material.color.setStyle(FBS.theme.node.mount.back.color);
+
+        m = this.mesh.getObjectByName('backMountFooter');
+        if(m) m.material.color.setStyle(FBS.theme.node.mount.back.color);
+
+        if(this.selected) this.select();
+
+        //all regular ports
+        this.allCPorts.map(cPort=>{
+            cPort.updateTheme();
+        });
+        //all pseudo ports
+        const cPseudoPortInput = this.getPseudoPort('input');
+        if(cPseudoPortInput) cPseudoPortInput.updateTheme();
+
+        const cPseudoPortOutput = this.getPseudoPort('output');
+        if(cPseudoPortOutput) cPseudoPortOutput.updateTheme();
     }
 }

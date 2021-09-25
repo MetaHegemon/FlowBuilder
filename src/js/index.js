@@ -19,13 +19,17 @@ import NodeControl from "./lib/three/NodeControl";
 import Interactive from "./lib/interactive/Interactive";
 import flowData from './InputData';
 import LineControl from './../js/lib/interactive/LineControl';
+import ThemesControl from "./themes/ThemesControl";
 import FBS from './lib/FlowBuilderStore';
 
-const mainWindow = new MainWindow();
-mainWindow.createWindow(document.documentElement.clientWidth, document.documentElement.clientHeight);
-document.body.append(mainWindow.getWindow());
+FBS.themesControl = new ThemesControl('light');
+FBS.theme = FBS.themesControl.theme;
 
-FBS.sceneControl = new SceneControl(mainWindow.getCanvas());
+FBS.mainWindow = new MainWindow();
+FBS.mainWindow.createWindow(document.documentElement.clientWidth, document.documentElement.clientHeight);
+document.body.append(FBS.mainWindow.getWindow());
+
+FBS.sceneControl = new SceneControl(FBS.mainWindow.getCanvas());
 FBS.scene = FBS.sceneControl.getScene();
 FBS.camera = FBS.sceneControl.getCamera();
 FBS.renderer = FBS.sceneControl.getRenderer();

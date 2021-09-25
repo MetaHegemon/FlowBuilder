@@ -1,6 +1,7 @@
 import C from "../Constants";
 import * as THREE from "three";
 import {Text} from "troika-three-text";
+import FBS from "../FlowBuilderStore";
 
 export default class {
     constructor(direction, data, cNode) {
@@ -25,13 +26,11 @@ export default class {
 
         if(this.data.mark) {
             const mark = this.createPortMark();
-            portMesh.userData.mark = mark;
             portMesh.add(mark);
         }
 
         const label = this.label = this.createPortLabel();
         portMesh.add(label);
-        portMesh.userData.data = this.data;
 
         //set class for all children
         portMesh.traverse(function (object) {
@@ -57,7 +56,7 @@ export default class {
 
         const connectorMesh = this.connectorMesh = new THREE.Mesh(
             new THREE.ShapeGeometry( shapeConnector ),
-            new THREE.MeshBasicMaterial({color: C.nodeMesh.portTypes[this.data.type].connectorColor})
+            new THREE.MeshBasicMaterial({color: FBS.theme.node.portTypes[this.data.type].connectorColor})
         );
         if(this.direction === 'output') {
             connectorMesh.rotateZ(Math.PI);
@@ -67,7 +66,6 @@ export default class {
         }
 
         connectorMesh.name = 'connector';
-        connectorMesh.userData.selected = false;
         return connectorMesh;
     }
 
@@ -89,7 +87,7 @@ export default class {
             .lineTo(0, h/2 - r);
         const markMountMesh = new THREE.Mesh(
             new THREE.ShapeGeometry( markMountShape ),
-            new THREE.MeshBasicMaterial({color: C.nodeMesh.portTypes[this.data.type].markColor})
+            new THREE.MeshBasicMaterial({color: FBS.theme.node.portTypes[this.data.type].markColor})
         );
         markMountMesh.name = 'mark';
 
@@ -98,16 +96,14 @@ export default class {
         const label = new Text();
         label.text = this.data.mark;
         label.name = 'markLabel';
-        label.font = C.fontPaths.mainNormal;
+        label.font = FBS.theme.fontPaths.mainNormal;
         label.fontSize = C.nodeMesh.port.mark.fontSize;
-        label.color = C.nodeMesh.portTypes[this.data.type].fontColor;
+        label.color = FBS.theme.node.portTypes[this.data.type].markFontColor;
 
-        //label.lineHeight =
         label.anchorX = 'center';
         label.anchorY = 'middle';
         label.position.set(C.nodeMesh.port.mark.width/2 + C.nodeMesh.port.mark.label.leftMargin, C.nodeMesh.port.mark.label.topMargin, 0);
 
-        markObject.userData.label = label;
         markObject.add(label);
 
         const posX = this.direction === 'input' ? C.nodeMesh.port.mark.leftMargin : -C.nodeMesh.port.mark.leftMargin - C.nodeMesh.port.mark.width
@@ -124,9 +120,9 @@ export default class {
         const label = new Text();
         label.text = this.data.name;
         label.name = 'portLabelText';
-        label.font = C.fontPaths.mainNormal;
+        label.font = FBS.theme.fontPaths.mainNormal;
         label.fontSize = C.nodeMesh.port.label.fontSize;
-        label.color = C.nodeMesh.portTypes[this.data.type].labelColor;
+        label.color = FBS.theme.node.portTypes[this.data.type].labelColor;
         label.anchorX = this.direction === 'input' ? 'left' : 'right';
         label.anchorY = 'bottom';
         label.letterSpacing = C.nodeMesh.port.label.letterSpacing;
@@ -152,13 +148,13 @@ export default class {
 
     hoverLabel(){
         for(let i = 0; i < this.label.children.length; i += 1){
-            this.label.children[i].color = C.nodeMesh.port.label.hoverColor;
+            this.label.children[i].color = FBS.theme.node.port.label.hoverColor;
         }
     }
 
     unhoverLabel(){
         for(let i = 0; i < this.label.children.length; i += 1){
-            this.label.children[i].color = C.nodeMesh.portTypes[this.data.type].labelColor;
+            this.label.children[i].color = FBS.theme.node.portTypes[this.data.type].labelColor;
         }
     }
 
@@ -171,8 +167,7 @@ export default class {
     }
 
     selectConnector = ()=>{
-        this.connectorMesh.userData.selected = true;
-        this.connectorMesh.material.color.setStyle(C.nodeMesh.port.connector.selectedColor);
+        this.connectorMesh.material.color.setStyle(FBS.theme.line.selectedColor);
     };
 
     getConnectorPos(){
@@ -182,7 +177,6 @@ export default class {
     }
 
     unselectConnector = ()=>{
-        this.connectorMesh.userData.selected = false;
         this.resetConnectorColor();
 
     }
@@ -194,15 +188,15 @@ export default class {
 
     setConnectorInactive(){
         this.connectorActive = false;
-        this.connectorMesh.material.color.setStyle(C.nodeMesh.portTypes["pseudo"].connectorColor);
+        this.connectorMesh.material.color.setStyle(FBS.theme.node.portTypes["pseudo"].connectorColor);
     }
 
     getColor(){
-        return C.nodeMesh.portTypes[this.data.type].connectorColor;
+        return FBS.theme.node.portTypes[this.data.type].connectorColor;
     }
 
     resetConnectorColor(){
-        this.connectorMesh.material.color.setStyle(C.nodeMesh.portTypes[this.data.type].connectorColor);
+        this.connectorMesh.material.color.setStyle(FBS.theme.node.portTypes[this.data.type].connectorColor);
     }
 
     getCLines(){
@@ -224,5 +218,35 @@ export default class {
 
     getCNode(){
         return this.cNode;
+    }
+
+    updateTheme(){
+        let m;
+
+        m = this.mesh.getObjectByName('connector');
+        if (m) m.material.color.setStyle(
+            this.connectorActive ? FBS.theme.node.portTypes[this.data.type].connectorColor : FBS.theme.node.portTypes["pseudo"].connectorColor
+        );
+
+        m = this.mesh.getObjectByName('portLabelText');
+        if(m){
+            m.color = FBS.theme.node.portTypes[this.data.type].labelColor;
+            m.font = FBS.theme.fontPaths.mainNormal;
+        }
+
+        m = this.mesh.getObjectByName('mark');
+        if(m) m.material.color.setStyle(FBS.theme.node.portTypes[this.data.type].markColor);
+
+        m = this.mesh.getObjectByName('markLabel');
+        if(m){
+            m.color = FBS.theme.node.portTypes[this.data.type].markFontColor;
+            m.font = FBS.theme.fontPaths.mainNormal;
+        }
+
+        m = this.mesh.getObjectByName('portLabelUnderline');
+        if(m){
+            m.color = FBS.theme.node.portTypes[this.data.type].labelColor;
+            m.font = FBS.theme.fontPaths.mainNormal;
+        }
     }
 };

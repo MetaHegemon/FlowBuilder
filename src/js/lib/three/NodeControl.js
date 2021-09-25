@@ -22,4 +22,10 @@ export default class {
     getCNodes(){
         return this.cNodes;
     }
+
+    updateTheme(){
+        this.cNodes.map(cNode=>{
+            cNode.updateTheme();
+        });
+    }
 }

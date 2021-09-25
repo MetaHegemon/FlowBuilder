@@ -2,6 +2,7 @@
 import Port from './NodePort';
 import {Text} from "troika-three-text";
 import C from "../Constants";
+import FBS from "../FlowBuilderStore";
 
 export default class extends Port{
     constructor(direction, cNode) {
@@ -30,9 +31,9 @@ export default class extends Port{
         const underline = new Text();
         underline.text = '';
         underline.name = 'portLabelUnderline';
-        underline.font = C.fontPaths.mainNormal;
-        underline.fontSize = C.nodeMesh.port.label.fontSize;
-        underline.color = C.nodeMesh.portTypes[this.data.type].labelColor;
+        underline.font = FBS.theme.fontPaths.mainNormal;
+        underline.fontSize = C.nodeMesh.port.label.underlineFontSize;
+        underline.color = FBS.theme.node.portTypes[this.data.type].labelColor;
         underline.anchorX = this.direction === 'input' ? 'left' : 'right';
         underline.anchorY = 'bottom';
         underline.position.set(

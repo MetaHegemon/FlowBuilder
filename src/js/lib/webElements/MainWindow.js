@@ -1,5 +1,5 @@
 import '../../../css/main_window.css';
-import C from './../Constants';
+import FBS from './../FlowBuilderStore';
 
 export default class {
     constructor(){
@@ -10,10 +10,9 @@ export default class {
     createWindow (width, height){
         this.window = document.createElement('div', );
         this.window.classList.add('main-window');
-        this.window.style.backgroundColor = C.scene.backgroundColor;
-
         this.createCanvas(width, height);
 
+        this.updateTheme();
         this.window.append(this.canvas);
     }
 
@@ -29,5 +28,9 @@ export default class {
 
     getCanvas (){
         return this.canvas;
+    }
+
+    updateTheme(){
+        this.window.style.backgroundColor = FBS.theme.scene.backgroundColor;
     }
 }
