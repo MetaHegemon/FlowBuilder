@@ -3,8 +3,7 @@ import {
     Vector3,
     Matrix4,
     Quaternion,
-    Box3,
-    Box2
+    Box3
 } from 'three';
 
 /**

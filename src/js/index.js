@@ -13,6 +13,7 @@
 window.clog = console.log.bind(console);
 
 import '../css/main.css';
+
 import MainWindow from './lib/webElements/MainWindow';
 import SceneControl from "./lib/three/SceneControl";
 import NodeControl from "./lib/three/NodeControl";

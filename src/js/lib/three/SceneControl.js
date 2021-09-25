@@ -1,6 +1,11 @@
 import * as THREE from 'three';
 import C from './../Constants';
 import FBS from "../FlowBuilderStore";
+import Stats from 'stats.js';
+
+const stats = new Stats();
+stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+document.body.appendChild( stats.dom );
 
 export default class {
     constructor(canvas){
@@ -12,7 +17,7 @@ export default class {
         });
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.autoClear = true;
-
+        clog(Stats);
         this.renderLoops = [];
 
         this.frustumSize = C.three.zoom.default;
@@ -131,10 +136,14 @@ export default class {
     }
 
     render(){
+        stats.begin();
+
         this.smoothZoom();
         this.listenZoom()
         this.loopAnimations();
         this.renderer.render( this.scene, this.camera );
+
+        stats.end();
         requestAnimationFrame( ()=> this.render() );
     }
 
