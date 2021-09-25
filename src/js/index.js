@@ -40,7 +40,10 @@ FBS.lineControl = new LineControl();
 
 FBS.nodeControl = new NodeControl();
 FBS.nodeControl.buildNodes(flowData.nodes);
+
+
 FBS.sceneControl.addObjectsToScene(FBS.nodeControl.getMNodes());
+//FBS.sceneControl.addDebugPlane();
 
 new Interactive();
 

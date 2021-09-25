@@ -140,6 +140,7 @@ export default class{
         cPort1.cLines.push(this.cLine);
         cPort2.cLines.push(this.cLine);
         this.allCLines.push(this.cLine);
+        clog(this.cLine.getMLine());
     }
 
     updateTheme(){

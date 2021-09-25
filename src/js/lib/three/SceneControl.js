@@ -102,7 +102,6 @@ export default class {
         this.renderResize();
         this.render();
         clog({scene: this.scene});
-        //this.addDebugPlane();
     }
 
     addDebugPlane(){
@@ -110,7 +109,8 @@ export default class {
             new THREE.PlaneBufferGeometry(1000,1000),
             new THREE.MeshBasicMaterial({color: 'red'})
         );
-        debugMesh.position.set(0,0,20);
+        debugMesh.scale.set(0.5,0.5);
+        //debugMesh.position.set(0,0,20);
         //debugMesh.rotateX(Math.PI/2);
         this.scene.add(debugMesh);
     }

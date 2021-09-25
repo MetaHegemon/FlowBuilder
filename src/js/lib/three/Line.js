@@ -27,6 +27,7 @@ export default class {
             color: FBS.theme.line.colorOnActive,
             linewidth: C.lines.lineWidth
         });
+
         const mesh = new Line2(this.geometry, material);
         mesh.name = 'line';
         mesh.userData.class = this;
@@ -65,6 +66,7 @@ export default class {
     }
 
     // выстраивает кривую линию
+    //TODO удалить все объявления переменных
     updateLine() {
         const sx = this.pos1.x;
         const sy = this.pos1.y;
@@ -104,6 +106,8 @@ export default class {
 
         const geometry = new LineGeometry();
         geometry.setPositions(p);
+
+        //this.mesh.geometry.setPositions(p);
         this.mesh.geometry = geometry;
     }
 

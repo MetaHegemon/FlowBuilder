@@ -806,7 +806,8 @@ export default class{
 
             this.fullCollapse.state = 'inProcess';
             let animateTasks = [];
-            if (isNeedCollapse) {
+            if (isNeedCollapse) //COLLAPSE
+            {
                 this.fullCollapse.isCollapsed = true;
                 this.calcNodeMinHeight();
                 this.fullCollapse.storeCPortsInput = [...this.cPortsInput];
@@ -911,12 +912,19 @@ export default class{
                 });
 
                 this.showMenuButtons(false);
-            } else {
+            }
+            else  //UNCOLLAPSE
+            {
                 this.fullCollapse.isCollapsed = false;
 
                 const cPseudoPortInput = this.getPseudoPort('input');
                 if (this.fullCollapse.isPseudoInputExist) {
-                    cPseudoPortInput.changeLabelText(this.shortCollapse.inputPortsCollapsed);
+                    if(this.middleCollapse.isCollapsed){
+                        cPseudoPortInput.removeLabelText();
+                    } else {
+                        cPseudoPortInput.changeLabelText(this.shortCollapse.inputPortsCollapsed);
+                    }
+
                     if (!this.shortCollapse.inputPortsCollapsed) cPseudoPortInput.hideConnector();
                     cPseudoPortInput.setCLines(this.fullCollapse.storeCLinesInput);
                 } else {
@@ -925,9 +933,15 @@ export default class{
                     }
                 }
 
+
+
                 const cPseudoPortOutput = this.getPseudoPort('output');
                 if (this.fullCollapse.isPseudoOutputExist) {
-                    cPseudoPortOutput.changeLabelText(this.shortCollapse.outputPortsCollapsed);
+                    if(this.middleCollapse.isCollapsed){
+                        cPseudoPortOutput.removeLabelText();
+                    } else {
+                        cPseudoPortOutput.changeLabelText(this.shortCollapse.outputPortsCollapsed);
+                    }
                     if (!this.shortCollapse.outputPortsCollapsed) cPseudoPortOutput.hideConnector();
                     cPseudoPortOutput.setCLines(this.fullCollapse.storeCLinesOutput);
                 } else {
@@ -951,7 +965,7 @@ export default class{
                         target: mPort.scale,
                         value: {x: 1, y: 1, z: 1},
                         time: C.animation.portHideTime,
-                        callbackOnComplete: ()=>{
+                        callbackOnComplete: () => {
                             wait();
                         }
                     });
@@ -971,7 +985,7 @@ export default class{
                         target: mPort.scale,
                         value: {x: 1, y: 1, z: 1},
                         time: C.animation.portHideTime,
-                        callbackOnComplete: ()=>{
+                        callbackOnComplete: () => {
                             wait();
                         }
                     });
@@ -985,9 +999,16 @@ export default class{
                 this.fullCollapse.storeCPortsInput = [];
                 this.fullCollapse.storeCPortsOutput = [];
 
-                this.calcNodeHeight();
-                if (cPseudoPortInput) this.movePseudoInputPortBack(cPseudoPortInput.getMPort());
-                if (cPseudoPortOutput) this.movePseudoOutputPortBack(cPseudoPortOutput.getMPort());
+
+                if(this.middleCollapse.isCollapsed){
+                    this.calcNodeHeight(1);
+                    if (cPseudoPortInput) this.movePseudoPortToPos(cPseudoPortInput.getMPort(), this.getFirstPortPosition());
+                    if (cPseudoPortOutput) this.movePseudoPortToPos(cPseudoPortOutput.getMPort(), this.getFirstPortPosition());
+                } else {
+                    this.calcNodeHeight();
+                    if (cPseudoPortInput) this.movePseudoInputPortBack(cPseudoPortInput.getMPort());
+                    if (cPseudoPortOutput) this.movePseudoOutputPortBack(cPseudoPortOutput.getMPort());
+                }
 
                 const mFooter = this.mesh.getObjectByName('frontMountFooter');
                 mFooter.material.color.setStyle(FBS.theme.node.footer.color);
@@ -997,7 +1018,7 @@ export default class{
                     target: mFooterLabel.scale,
                     value: {x: 1, y: 1, z: 1},
                     time: C.animation.footerLabelHideTime,
-                    callbackOnComplete: ()=>{
+                    callbackOnComplete: () => {
                         wait();
                     }
                 });
@@ -1446,5 +1467,13 @@ export default class{
 
         const cPseudoPortOutput = this.getPseudoPort('output');
         if(cPseudoPortOutput) cPseudoPortOutput.updateTheme();
+    }
+
+    moveToOverAllZ(){
+        this.mesh.position.setZ(C.layers.topForNode);
+    }
+
+    moveToOriginZ(){
+        this.mesh.position.setZ(this.originZ);
     }
 }

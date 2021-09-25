@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import DragControl from './DragControl';
 import C from "../Constants";
-import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox';
+//import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox';
+import { SelectionBox } from './SelectionBox';
 import  SelectionHelper  from './SelectHelper';
 import FBS from '../FlowBuilderStore';
 
@@ -130,9 +131,14 @@ export default class{
             this.select.helper.onSelectMove(e);
             this.unselectAllNodes();
             this.select.box.endPoint.set(this.screenPos.x, this.screenPos.y, 0.5);
-            const allSelected = this.select.box.select();
+            let allSelected;
+            if(e.ctrlKey){
+                allSelected = this.select.box.selectOnCapture();
+            } else {
+                allSelected = this.select.box.selectOnTouch();
+            }
             for (let i = 0; i < allSelected.length; i += 1) {//'backMountHead', 'backMountBody', 'backMountFooter'
-                if (allSelected[i].name !== 'backMountHead') continue;
+                if (allSelected[i].name !== 'backMountBody') continue;
                 const cNode = allSelected[i].userData.nodeClass;
                 this.addCNodeToSelected(cNode);
             }
@@ -278,13 +284,14 @@ export default class{
                             const backMountIntersect = this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter']);
                             if (backMountIntersect) {
                                 const cNode = backMountIntersect.object.userData.nodeClass;
+                                FBS.nodeControl.moveNodesToOriginZ(cNode);
+                                cNode.moveToOverAllZ();
                                 this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
                             } else if (this.intersects[0].object.name === 'line') {
                                 if(FBS.lineControl.canBeSelected(this.intersects[0].object)){
                                     const cLine = this.intersects[0].object.userData.class;
                                     this.onLineClick(cLine);
                                 }
-
                             }
                         }
                     }

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import C from './../Constants';
+import FBS from './../FlowBuilderStore';
 
 export default class{
     constructor() {
@@ -9,7 +9,7 @@ export default class{
     }
 
     dragObject(pos){
-        this.object.position.set(pos.x + this.offset.x, pos.y + this.offset.y, C.layers.drag);
+        this.object.position.set(pos.x + this.offset.x, pos.y + this.offset.y, this.object.position.z);
     }
 
     getObject(){
@@ -19,14 +19,17 @@ export default class{
     enable(object, pos){
         this.active = true;
         this.object = object;
+        const cNode = this.object.userData.nodeClass;
+        cNode.moveToOverAllZ();
+        FBS.nodeControl.moveNodesToOriginZ(cNode);
         this.offset.x = object.position.x - pos.x;
         this.offset.y = object.position.y - pos.y;
     }
 
     disable(){
         this.active = false;
-        const cNode = this.object.userData.nodeClass;
-        this.object.position.setZ(cNode.getOriginZ());
+        //const cNode = this.object.userData.nodeClass;
+        //this.object.position.setZ(cNode.getOriginZ());
         this.object = null;
     }
 

@@ -28,4 +28,11 @@ export default class {
             cNode.updateTheme();
         });
     }
+
+    moveNodesToOriginZ(exceptCNode){
+        for(let i = 0; i < this.cNodes.length; i += 1){
+            if(this.cNodes[i] === exceptCNode) continue;
+            this.cNodes[i].moveToOriginZ();
+        }
+    }
 }

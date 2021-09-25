@@ -15,7 +15,7 @@ export default {
         header: 0.02,
         port: 0.02,
         footerLabel: 0.01,
-        drag: 10
+        topForNode: 10,
     },
     deltaOnPointerInteractive: 3,
     fontPaths: {
