@@ -78,7 +78,7 @@ export default class {
             "Space"
         ];
         this.allCode = [...this.lettersCode, ...this.numbersCode, ...this.symbolsCode];
-        this.caret = 'I';
+        this.caret = '|';
         this.tween = null;
     }
 
@@ -124,12 +124,8 @@ export default class {
         if(e.code === 'Backspace'){
             this.textMesh.text = this.textMesh.text.substr(0, this.textMesh.text.length - 2) + this.caret;
         } else if(e.code === 'Enter'){
-            if(this.textMesh.text === this.caret){
-                this.returnOriginText();
-            } else {
-                this.textMesh.text = this.textMesh.text.substr(0, this.textMesh.text.length - 1);
-                this.disable();
-            }
+            this.accept();
+
         } else if(e.code === 'Escape'){
             this.textMesh.text = this.originTextStore;
             this.disable();
@@ -138,10 +134,23 @@ export default class {
         }
     }
 
+    accept(){
+        if(this.textMesh.text === this.caret){
+            this.returnOriginText();
+        } else {
+            this.removeCaret();
+            this.disable();
+        }
+    }
+
     checkKeyCodeOnAllow(code){
         return this.allCode.some(c=>{
             return code === c;
         });
+    }
+
+    removeCaret(){
+        this.textMesh.text = this.textMesh.text.substr(0, this.textMesh.text.length - 1);
     }
 
     disable(){

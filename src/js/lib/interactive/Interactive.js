@@ -78,8 +78,11 @@ export default class{
     }
 
     onPointerDown(e){
-        if(this.textEditor.active){
-
+        if(this.textEditor.active) {
+            const titleIntersect = this.checkOnIntersect(this.intersects, ['title']);
+            if (!titleIntersect) {
+                this.textEditor.accept();
+            }
         }
         this.pointerDownPos.x = this.pointerPos3d.x;
         this.pointerDownPos.y = this.pointerPos3d.y;
@@ -307,8 +310,6 @@ export default class{
                             const backMountIntersect = this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter']);
                             if (backMountIntersect) {
                                 const cNode = backMountIntersect.object.userData.nodeClass;
-                                FBS.nodeControl.moveNodesToOriginZ(cNode);
-                                cNode.moveToOverAllZ();
                                 this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
                             } else if (this.intersects[0].object.name === 'line') {
                                 if(FBS.lineControl.canBeSelected(this.intersects[0].object)){
@@ -439,6 +440,8 @@ export default class{
                 }
             }
         } else {
+            FBS.nodeControl.moveNodesToOriginZ([cNode]);
+            cNode.moveToOverAllZ();
             if(shiftKey || ctrlKey) {
                 this.addCNodeToSelected(cNode);
 
