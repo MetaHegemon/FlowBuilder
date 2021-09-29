@@ -10,7 +10,6 @@ document.body.appendChild( stats.dom );
 export default class {
     constructor(){
         this.renderer = null;
-        this.renderLoops = [];
         this.frustumSize = C.three.zoom.default;
         this.camera= null;
         this.scene = null;
@@ -28,7 +27,8 @@ export default class {
             stepFrustum: 0,
             distXY: 0,
             destNorm: null,
-            factorDist: null
+            factorDist: null,
+            deltaY: null
         }
 
         this.zoomEvent = {
@@ -48,7 +48,6 @@ export default class {
         });
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.autoClear = true;
-        this.renderLoops = [];
 
         this.frustumSize = C.three.zoom.default;
         const aspect = this.canvas.width/this.canvas.height;
@@ -110,6 +109,8 @@ export default class {
             this.zoom.stepVector.x *= -1;
             this.zoom.stepVector.y *= -1;
         }
+
+        this.zoom.deltaY = e.deltaY;
     }
 
     run (){
@@ -149,7 +150,6 @@ export default class {
 
         this.smoothZoom();
         this.listenZoom()
-        this.loopAnimations();
         this.renderer.render( this.scene, this.camera );
         FBS.tween.update();
         stats.end();
@@ -157,13 +157,18 @@ export default class {
     }
 
     smoothZoom(){
+        if(
+            (this.zoom.deltaY < 0 && this.frustumSize <= C.three.zoom.max) ||
+            (this.zoom.deltaY > 0 && this.frustumSize >= C.three.zoom.min)
+        ) return null;
+
         this.zoom.stepFrustum *= C.three.zoom.damping;
 
         if ((this.zoom.stepFrustum > 0 && this.zoom.stepFrustum > 0.000001) || (this.zoom.stepFrustum < 0 && this.zoom.stepFrustum < -0.000001)) {
             this.zoom.stepVector.x *= C.three.zoom.damping;
             this.zoom.stepVector.y *= C.three.zoom.damping;
 
-            this.frustumSize = Math.min(C.three.zoom.min, Math.max(this.frustumSize - this.zoom.stepFrustum, C.three.zoom.max));
+            this.frustumSize = this.frustumSize - this.zoom.stepFrustum;
             this.camera.position.set(
                 this.camera.position.x + this.zoom.stepVector.x,
                 this.camera.position.y + this.zoom.stepVector.y,
@@ -190,10 +195,6 @@ export default class {
         }
     }
 
-    loopAnimations(){
-        this.renderLoops.map((func)=>func());
-    }
-
     addObjectsToScene (objects){
         for(let i = 0; i < objects.length; i += 1){
             this.scene.add(objects[i]);
@@ -218,10 +219,6 @@ export default class {
 
     getCanvas(){
         return this.canvas;
-    }
-
-    getRenderLoops(){
-        return this.renderLoops;
     }
 
     updateTheme(){

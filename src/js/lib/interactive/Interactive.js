@@ -92,7 +92,6 @@ export default class{
             FBS.dom.canvas.classList.add('grabbing');
             this.pan.active = true;
         } else {
-
             if (this.intersects.length > 0) {
                 if (e.buttons === 1) {
                     const backMountIntersect = this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter']);

@@ -111,12 +111,12 @@ export default {
     three: {
         zoom: {
             default: 2000,                      //start zoom value(frustum)
-            min: 5000,                          //frustum size how near camera can zoom
-            max: 200,                           //frustum size how far camera can zoom
+            min: 3500,                          //frustum size how near camera can zoom
+            max: 300,                           //frustum size how far camera can zoom
             damping: 0.8,                       //bigger than shorter inertia
             speed: 8,
-            limitForFullCollapseNodes: 2300,    //frustum size, for all nodes collapsed
-            limitForFullUnCollapseNodes: 1800   //frustum size, for all nodes uncollapsed
+            limitForFullCollapseNodes: 2100,    //frustum size, for all nodes collapsed
+            limitForFullUnCollapseNodes: 1700   //frustum size, for all nodes uncollapsed
         }
     }
 };
