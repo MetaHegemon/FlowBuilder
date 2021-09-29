@@ -4,31 +4,37 @@ import FBS from './../FlowBuilderStore';
 export default class{
     constructor() {
         this.active = false;
-        this.offset = new THREE.Vector2();
-        this.object = null;
+        this.objects = [];
+        this.offsets = [];
     }
 
     dragObject(pos){
-        this.object.position.set(pos.x + this.offset.x, pos.y + this.offset.y, this.object.position.z);
+        for(let i = 0; i < this.objects.length; i += 1){
+            this.objects[i].position.set(pos.x + this.offsets[i].x, pos.y + this.offsets[i].y, this.objects[i].position.z);
+        }
     }
 
-    getObject(){
-        return this.object;
+    getObjects(){
+        return this.objects;
     }
 
-    enable(object, pos){
+    enable(cNodes, pos){
+        FBS.nodeControl.moveAllNodesToOriginZ();
+
         this.active = true;
-        this.object = object;
-        const cNode = this.object.userData.nodeClass;
-        cNode.moveToOverAllZ();
-        FBS.nodeControl.moveNodesToOriginZ(cNode);
-        this.offset.x = object.position.x - pos.x;
-        this.offset.y = object.position.y - pos.y;
+        cNodes.map(cN=>{
+            cN.moveToOverAllZ();
+            const mNode = cN.getMNode()
+            this.objects.push(mNode);
+            this.offsets.push({x: mNode.position.x - pos.x, y: mNode.position.y - pos.y});
+        });
     }
 
     disable(){
         this.active = false;
-        this.object = null;
+        FBS.nodeControl.moveNodesToOriginZ([this.objects[0]]);
+        this.objects = [];
+        this.offsets = [];
     }
 
 }

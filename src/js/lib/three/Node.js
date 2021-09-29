@@ -1069,7 +1069,7 @@ export default class{
             value: {x: 1},
             time: C.animation.portHideTime,
             callbackOnUpdate: ()=> {
-                FBS.lineControl.refreshLines(this.mesh);
+                FBS.lineControl.refreshLines([this.mesh]);
             }
         };
     }
@@ -1408,6 +1408,14 @@ export default class{
         return [...this.cPortsInput, ...this.cPortsOutput];
     }
 
+    moveToOverAllZ(){
+        this.mesh.position.setZ(C.layers.topForNode);
+    }
+
+    moveToOriginZ(){
+        this.mesh.position.setZ(this.originZ);
+    }
+
     updateTheme(){
         let m;
         m = this.mesh.getObjectByName('title');
@@ -1467,13 +1475,5 @@ export default class{
 
         const cPseudoPortOutput = this.getPseudoPort('output');
         if(cPseudoPortOutput) cPseudoPortOutput.updateTheme();
-    }
-
-    moveToOverAllZ(){
-        this.mesh.position.setZ(C.layers.topForNode);
-    }
-
-    moveToOriginZ(){
-        this.mesh.position.setZ(this.originZ);
     }
 }

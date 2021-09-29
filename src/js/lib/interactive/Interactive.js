@@ -125,7 +125,8 @@ export default class{
 
             FBS.sceneControl.camera.position.x = FBS.sceneControl.camera.position.x + (this.pan.camPosTo.x - FBS.sceneControl.camera.position.x);
             FBS.sceneControl.camera.position.y = FBS.sceneControl.camera.position.y + (this.pan.camPosTo.y - FBS.sceneControl.camera.position.y);
-        } else if(this.select.active) //SELECTING
+        }
+        else if(this.select.active) //SELECTING
         {
             this.select.helper.onSelectMove(e);
             this.unselectAllNodes();
@@ -154,7 +155,7 @@ export default class{
 
             if (Drag.active) {
                 Drag.dragObject(this.pointerPos3d);
-                FBS.lineControl.refreshLines(Drag.getObject());
+                FBS.lineControl.refreshLines(Drag.getObjects());
             } else if (FBS.lineControl.active) {
                 //TODO find only first intersect
                 this.intersects = this.raycaster.intersectObjects(FBS.sceneControl.scene.children, true);
@@ -216,8 +217,19 @@ export default class{
                             if (this.isMoved(this.pointerPos3d, this.pointerDownPos)) {
                                 const backMountIntersect = this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter']);
                                 if (backMountIntersect) {
+
                                     const cNode = backMountIntersect.object.userData.nodeClass;
-                                    Drag.enable(cNode.getMNode(), this.pointerPos3d);
+                                    let objectsForDrag;
+                                    if(cNode.isSelected()){
+                                        objectsForDrag = this.select.cNodes;
+                                        objectsForDrag.sort((a, b) => {
+                                            return a === cNode ? -1 : cNode === b;
+                                        });
+                                    } else {
+                                        objectsForDrag = [cNode];
+                                    }
+
+                                    Drag.enable(objectsForDrag, this.pointerPos3d);
                                     this.setCursor('move');
                                 }
                             }
@@ -323,7 +335,7 @@ export default class{
 
         const cNode = cPseudoPort.getCNode();
         const mNode = cNode.getMNode();
-        FBS.lineControl.refreshLines(mNode);
+        FBS.lineControl.refreshLines([mNode]);
     }
 
     onCollapseButtonClick(mCollapse){

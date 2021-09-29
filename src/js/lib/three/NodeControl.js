@@ -29,10 +29,21 @@ export default class {
         });
     }
 
-    moveNodesToOriginZ(exceptCNode){
+    moveNodesToOriginZ(exceptMNodes){
         for(let i = 0; i < this.cNodes.length; i += 1){
-            if(this.cNodes[i] === exceptCNode) continue;
-            this.cNodes[i].moveToOriginZ();
+            const mNode = this.cNodes[i].getMNode();
+            let isExcept = exceptMNodes.some(n=>{
+                return n === mNode;
+            });
+            if(!isExcept){
+                this.cNodes[i].moveToOriginZ();
+            }
         }
+    }
+
+    moveAllNodesToOriginZ(){
+        this.cNodes.map(n=>{
+            n.moveToOriginZ();
+        });
     }
 }

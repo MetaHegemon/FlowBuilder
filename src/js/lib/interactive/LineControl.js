@@ -62,23 +62,25 @@ export default class{
     }
 
     // обновляет линии
-    refreshLines(mNode) {
-        const cNode = mNode.userData.nodeClass;
-        const cPorts = cNode.getAllVisibleCPorts();
+    refreshLines(mNodes) {
+        mNodes.map(mNode=> {
+            const cNode = mNode.userData.nodeClass;
+            const cPorts = cNode.getAllVisibleCPorts();
 
-        for(let i = 0; i < cPorts.length; i += 1){
-            const pos = cPorts[i].getConnectorPos();
-            const cLines = cPorts[i].cLines;
-            for(let j = 0; j < cLines.length; j += 1){
-                if(cPorts[i].direction === 'output'){
-                    cLines[j].setPos1(pos.x, pos.y);
-                    cLines[j].updateLine();
-                } else {
-                    cLines[j].setPos2(pos.x, pos.y);
-                    cLines[j].updateLine();
+            for(let i = 0; i < cPorts.length; i += 1){
+                const pos = cPorts[i].getConnectorPos();
+                const cLines = cPorts[i].cLines;
+                for(let j = 0; j < cLines.length; j += 1){
+                    if(cPorts[i].direction === 'output'){
+                        cLines[j].setPos1(pos.x, pos.y);
+                        cLines[j].updateLine();
+                    } else {
+                        cLines[j].setPos2(pos.x, pos.y);
+                        cLines[j].updateLine();
+                    }
                 }
             }
-        }
+        });
     }
 
     canBeConnected(mConnector2){
