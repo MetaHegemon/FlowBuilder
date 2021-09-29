@@ -8,46 +8,16 @@ stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild( stats.dom );
 
 export default class {
-    constructor(canvas){
-        this.canvas = canvas;
-        this.renderer = new THREE.WebGLRenderer({
-            canvas: this.canvas,
-            antialias: true,
-            alpha: true,
-        });
-        this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.autoClear = true;
-        clog(Stats);
+    constructor(){
+        this.renderer = null;
         this.renderLoops = [];
-
         this.frustumSize = C.three.zoom.default;
-        const aspect = this.canvas.width/this.canvas.height;
-        this.camera = new THREE.OrthographicCamera(
-            this.frustumSize * aspect / -2,
-            this.frustumSize * aspect / 2,
-            this.frustumSize/2,
-            this.frustumSize/-2,
-            1,
-            1000
-        );
-        this.camera.position.z = 100;
-        this.camera.lookAt(0,0,0);
-
-        this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(FBS.theme.scene.backgroundColor);
-
+        this.camera= null;
+        this.scene = null;
         //
         this.resizeTimer = null;
-        new ResizeObserver(()=>{
-            const _this = this;
-            clearTimeout(this.resizeTimer);
-            this.resizeTimer = setTimeout(() => {
-                _this.renderResize();
-            }, 100);
-        }).observe(this.canvas.parentNode);
 
         //zoom
-        this.canvas.addEventListener('wheel', (e)=> this.onWheel(e));
         this.zoom = {
             raycaster: new THREE.Raycaster(),
             pointPos3d: new THREE.Vector3(),
@@ -67,6 +37,45 @@ export default class {
             inDispatched: this.frustumSize < C.three.zoom.limitForFullCollapseNodes,
             outDispatched: this.frustumSize > C.three.zoom.limitForFullCollapseNodes
         };
+    }
+
+    setScene(){
+        this.canvas = FBS.dom.getCanvas();
+        this.renderer = new THREE.WebGLRenderer({
+            canvas: this.canvas,
+            antialias: true,
+            alpha: true,
+        });
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.autoClear = true;
+        this.renderLoops = [];
+
+        this.frustumSize = C.three.zoom.default;
+        const aspect = this.canvas.width/this.canvas.height;
+        this.camera = new THREE.OrthographicCamera(
+            this.frustumSize * aspect / -2,
+            this.frustumSize * aspect / 2,
+            this.frustumSize/2,
+            this.frustumSize/-2,
+            1,
+            1000
+        );
+        this.camera.position.z = 100;
+        this.camera.lookAt(0,0,0);
+
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(FBS.theme.scene.backgroundColor);
+
+        new ResizeObserver(()=>{
+            const _this = this;
+            clearTimeout(this.resizeTimer);
+            this.resizeTimer = setTimeout(() => {
+                _this.renderResize();
+            }, 100);
+        }).observe(this.canvas.parentNode);
+
+        //zoom
+        this.canvas.addEventListener('wheel', (e)=> this.onWheel(e));
     }
 
     onWheel(e) {
@@ -189,6 +198,10 @@ export default class {
         for(let i = 0; i < objects.length; i += 1){
             this.scene.add(objects[i]);
         }
+    }
+
+    removeFromScene(object){
+        this.scene.remove(object);
     }
 
     getCamera(){

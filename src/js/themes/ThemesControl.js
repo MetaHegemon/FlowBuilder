@@ -21,17 +21,15 @@ export default class {
     switch(){
         if(this.theme === light){
             this.theme = dark;
-            clog(this.theme);
         } else {
             this.theme = light;
-
         }
         FBS.theme = this.theme;
         this.update();
     }
 
     update(){
-        FBS.mainWindow.updateTheme();
+        FBS.dom.updateTheme();
         FBS.sceneControl.updateTheme();
         FBS.nodeControl.updateTheme();
 

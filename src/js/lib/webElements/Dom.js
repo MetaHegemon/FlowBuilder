@@ -1,6 +1,7 @@
 import '../../../css/main_window.css';
 import FBS from './../FlowBuilderStore';
 
+
 export default class {
     constructor(){
         this.window = null;

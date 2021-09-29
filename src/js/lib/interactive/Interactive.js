@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import DragControl from './DragControl';
 import C from "../Constants";
-//import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox';
 import { SelectionBox } from './SelectionBox';
 import  SelectionHelper  from './SelectHelper';
 import FBS from '../FlowBuilderStore';
@@ -21,8 +20,8 @@ export default class{
         }
         this.select = {
             active: false,
-            box: new SelectionBox( FBS.camera, FBS.scene ),
-            helper: new SelectionHelper( this.box, FBS.renderer, 'selectBox' ),
+            box: new SelectionBox( FBS.sceneControl.getCamera(), FBS.sceneControl.getScene()),
+            helper: new SelectionHelper( this.box, FBS.sceneControl.renderer, 'selectBox' ),
             cLines: [],
             cNodes: []
         }
@@ -37,20 +36,20 @@ export default class{
     }
 
     setEvents(){
-        FBS.canvas.addEventListener('pointermove', (e)=>this.onPointerMove(e));
-        FBS.canvas.addEventListener('pointerdown', (e)=>this.onPointerDown(e));
-        FBS.canvas.addEventListener('pointerup', (e)=>this.onPointerUp(e));
+        FBS.dom.canvas.addEventListener('pointermove', (e)=>this.onPointerMove(e));
+        FBS.dom.canvas.addEventListener('pointerdown', (e)=>this.onPointerDown(e));
+        FBS.dom.canvas.addEventListener('pointerup', (e)=>this.onPointerUp(e));
         document.addEventListener('keydown', (e) => this.onKeyDown(e), false);
         document.addEventListener('keyup', (e) => this.onKeyUp(e));
-        FBS.canvas.addEventListener('contextmenu', (e) => this.onContextMenu(e));
-        FBS.canvas.addEventListener('needFullCollapse', () => this.fullCollapseNode(true));
-        FBS.canvas.addEventListener('needFullUnCollapse', () => this.fullCollapseNode(false));
+        FBS.dom.canvas.addEventListener('contextmenu', (e) => this.onContextMenu(e));
+        FBS.dom.canvas.addEventListener('needFullCollapse', () => this.fullCollapseNode(true));
+        FBS.dom.canvas.addEventListener('needFullUnCollapse', () => this.fullCollapseNode(false));
     }
 
     onKeyDown(e){
         if(e.code === 'Space' && !this.pan.spacePressed) {
             this.pan.spacePressed = true;
-            FBS.canvas.classList.add('grab');
+            FBS.dom.canvas.classList.add('grab');
         } else if(e.code === 'KeyT'){
             if(!e.repeat) {
                 FBS.themesControl.switch();
@@ -61,7 +60,7 @@ export default class{
     onKeyUp(e){
         if(e.code === 'Space') {
             this.pan.spacePressed = false;
-            FBS.canvas.classList.remove('grab');
+            FBS.dom.canvas.classList.remove('grab');
         }
     }
 
@@ -74,8 +73,8 @@ export default class{
         this.pointerDownPos.y = this.pointerPos3d.y;
 
         if(this.pan.spacePressed || e.button === 1){
-            FBS.canvas.classList.remove('grab');
-            FBS.canvas.classList.add('grabbing');
+            FBS.dom.canvas.classList.remove('grab');
+            FBS.dom.canvas.classList.add('grabbing');
             this.pan.active = true;
         } else {
 
@@ -108,24 +107,24 @@ export default class{
             }
         }
 
-        this.pan.camPosTo.x = FBS.camera.position.x;
-        this.pan.camPosTo.y = FBS.camera.position.y;
+        this.pan.camPosTo.x = FBS.sceneControl.camera.position.x;
+        this.pan.camPosTo.y = FBS.sceneControl.camera.position.y;
     }
 
     onPointerMove(e) {
-        this.screenPos.x = (e.clientX / FBS.canvas.clientWidth) * 2 - 1;
-        this.screenPos.y = -(e.clientY / FBS.canvas.clientHeight) * 2 + 1;
+        this.screenPos.x = (e.clientX / FBS.dom.canvas.clientWidth) * 2 - 1;
+        this.screenPos.y = -(e.clientY / FBS.dom.canvas.clientHeight) * 2 + 1;
 
         if (this.pan.active && (e.buttons === 1 || e.buttons === 4)) //PANNING
         {
-            let dx = (this.pan.screenLastPos.x - this.screenPos.x) / FBS.camera.zoom;
-            let dy = (this.pan.screenLastPos.y - this.screenPos.y) / FBS.camera.zoom;
+            let dx = (this.pan.screenLastPos.x - this.screenPos.x) / FBS.sceneControl.camera.zoom;
+            let dy = (this.pan.screenLastPos.y - this.screenPos.y) / FBS.sceneControl.camera.zoom;
 
-            this.pan.camPosTo.x = this.pan.camPosTo.x + dx * FBS.camera.right;
-            this.pan.camPosTo.y = this.pan.camPosTo.y + dy * FBS.camera.top;
+            this.pan.camPosTo.x = this.pan.camPosTo.x + dx * FBS.sceneControl.camera.right;
+            this.pan.camPosTo.y = this.pan.camPosTo.y + dy * FBS.sceneControl.camera.top;
 
-            FBS.camera.position.x = FBS.camera.position.x + (this.pan.camPosTo.x - FBS.camera.position.x);
-            FBS.camera.position.y = FBS.camera.position.y + (this.pan.camPosTo.y - FBS.camera.position.y);
+            FBS.sceneControl.camera.position.x = FBS.sceneControl.camera.position.x + (this.pan.camPosTo.x - FBS.sceneControl.camera.position.x);
+            FBS.sceneControl.camera.position.y = FBS.sceneControl.camera.position.y + (this.pan.camPosTo.y - FBS.sceneControl.camera.position.y);
         } else if(this.select.active) //SELECTING
         {
             this.select.helper.onSelectMove(e);
@@ -148,7 +147,7 @@ export default class{
         }
         else
         {
-            this.raycaster.setFromCamera(this.screenPos, FBS.camera);
+            this.raycaster.setFromCamera(this.screenPos, FBS.sceneControl.camera);
 
             this.pointerPos3d.x = this.raycaster.ray.origin.x;
             this.pointerPos3d.y = this.raycaster.ray.origin.y;
@@ -158,7 +157,7 @@ export default class{
                 FBS.lineControl.refreshLines(Drag.getObject());
             } else if (FBS.lineControl.active) {
                 //TODO find only first intersect
-                this.intersects = this.raycaster.intersectObjects(FBS.scene.children, true);
+                this.intersects = this.raycaster.intersectObjects(FBS.sceneControl.scene.children, true);
                 if (
                     this.intersects.length > 0 &&
                     this.intersects[0].object.name === 'connector' &&
@@ -172,7 +171,7 @@ export default class{
                     FBS.lineControl.drawLineFromPos(this.pointerPos3d.x, this.pointerPos3d.y);
                 }
             } else {
-                this.intersects = this.raycaster.intersectObjects(FBS.scene.children, true);
+                this.intersects = this.raycaster.intersectObjects(FBS.sceneControl.scene.children, true);
                 if (e.buttons === 0) {
                     if (this.intersects.length > 0) {
                         const firstObject = this.intersects[0].object;
@@ -245,11 +244,11 @@ export default class{
         if(this.pan.active){
             this.pan.active = false;
             if(this.pan.spacePressed) {
-                FBS.canvas.classList.add('grab');
+                FBS.dom.canvas.classList.add('grab');
             } else {
-                FBS.canvas.classList.remove('grab');
+                FBS.dom.canvas.classList.remove('grab');
             }
-            FBS.canvas.classList.remove('grabbing');
+            FBS.dom.canvas.classList.remove('grabbing');
         } else if(this.select.active){
             this.select.active = false;
             this.select.helper.onSelectOver(e);
@@ -259,7 +258,7 @@ export default class{
                 Drag.disable();
                 this.resetCursor();
             } else if (FBS.lineControl.active) {
-                this.intersects = this.raycaster.intersectObjects(FBS.scene.children, true);
+                this.intersects = this.raycaster.intersectObjects(FBS.sceneControl.scene.children, true);
                 if (
                     this.intersects.length > 0 &&
                     this.intersects[0].object.name === 'connector' &&
@@ -481,10 +480,10 @@ export default class{
     }
 
     setCursor(style){
-        if(FBS.canvas.style.cursor !== style) FBS.canvas.style.cursor = style;
+        if(FBS.dom.canvas.style.cursor !== style) FBS.dom.canvas.style.cursor = style;
     }
 
     resetCursor(){
-        FBS.canvas.style.cursor = 'default';
+        FBS.dom.canvas.style.cursor = 'default';
     }
 }

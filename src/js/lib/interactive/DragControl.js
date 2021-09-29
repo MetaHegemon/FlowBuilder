@@ -28,8 +28,6 @@ export default class{
 
     disable(){
         this.active = false;
-        //const cNode = this.object.userData.nodeClass;
-        //this.object.position.setZ(cNode.getOriginZ());
         this.object = null;
     }
 

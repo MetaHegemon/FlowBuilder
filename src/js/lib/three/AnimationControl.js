@@ -1,9 +1,10 @@
 import FBS from './../FlowBuilderStore';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 
+//TODO add or delete callbacks in render loops must be in scene control
 export default class {
     constructor(){
-        this.renderLoops = FBS.renderLoops;
+
     }
 
     animate(tasks){
@@ -33,13 +34,13 @@ export default class {
 
 
         const callback = ()=> TWEEN.update();
-        this.renderLoops.push(callback);
+        FBS.sceneControl.renderLoops.push(callback);
     }
 
     removeRenderCallback(callback){
-        for(let i = 0; i < this.renderLoops.length; i += 1){
-            if(this.renderLoops[i] === callback){
-                this.renderLoops.splice(i, 1);
+        for(let i = 0; i < FBS.sceneControl.renderLoops.length; i += 1){
+            if(FBS.sceneControl.renderLoops[i] === callback){
+                FBS.sceneControl.renderLoops.splice(i, 1);
                 break;
             }
         }

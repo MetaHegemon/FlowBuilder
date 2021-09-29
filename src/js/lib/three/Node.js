@@ -113,7 +113,7 @@ export default class{
         const header = new THREE.Object3D();
 
         //triangle
-        if(this.data.inputs.length + this.data.outputs.length > 1) {
+        if(this.data.inputs.length > 1 || this.data.outputs.length > 1) {
             const collapse = this.createCollapseButton();
             header.add(collapse);
         }

@@ -4,7 +4,6 @@ import FBS from './../FlowBuilderStore';
 export default class{
     constructor() {
         this.active = false;
-        this.scene = FBS.sceneControl.getScene();
         this.cLine = null;
         this.allCLines = [];
     }
@@ -24,12 +23,13 @@ export default class{
         const mesh = this.cLine.getMLine();
 
         this.cLine.setColor(FBS.theme.line.colorOnActive);
-        this.scene.add(mesh);
+
+        FBS.sceneControl.addObjectsToScene([mesh]);
     }
 
     remove(){
         this.active = false;
-        this.scene.remove(this.cLine.getMLine());
+        FBS.sceneControl.removeFromScene(this.cLine.getMLine());
         const cPort1 = this.cLine.getCPort1();
         if(cPort1) cPort1.removeCLine(this.cLine);
         const cPort2 = this.cLine.getCPort2();
