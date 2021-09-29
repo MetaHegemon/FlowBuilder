@@ -78,6 +78,9 @@ export default {
                 height: 25,
                 cornerRadius: 2,
             },
+            magnet: {
+                width: 22
+            },
             label: {
                 fontSize: 16,
                 topMargin: 10,

@@ -175,7 +175,7 @@ export default class{
                 this.intersects = this.raycaster.intersectObjects(FBS.sceneControl.scene.children, true);
                 if (
                     this.intersects.length > 0 &&
-                    this.intersects[0].object.name === 'connector' &&
+                    this.checkOnIntersect(this.intersects, ['connectorMagnet']) &&
                     FBS.lineControl.canBeConnected(this.intersects[0].object)
                 ) {
                     const cPort = this.intersects[0].object.userData.portClass;
@@ -377,7 +377,7 @@ export default class{
     }
 
     onMenuButtonClick(){
-        clog('menu click');
+
     }
 
     unhoverObjects(currentObject){

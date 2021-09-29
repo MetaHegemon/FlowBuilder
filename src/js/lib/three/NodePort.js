@@ -21,6 +21,9 @@ export default class {
         const portMesh = new THREE.Object3D();
         portMesh.name = 'port';
 
+        const connectorMagnet = this.createPortConnectorMagnet();
+        portMesh.add(connectorMagnet);
+
         const connector = this.createPortConnector();
         portMesh.add(connector);
 
@@ -60,13 +63,34 @@ export default class {
         );
         if(this.direction === 'output') {
             connectorMesh.rotateZ(Math.PI);
-            connectorMesh.position.set(w, 0 ,0);
+            connectorMesh.position.setX(w);
         } else {
-            connectorMesh.position.set(-w, 0 ,0);
+            connectorMesh.position.setX(-w);
         }
 
         connectorMesh.name = 'connector';
         return connectorMesh;
+    }
+
+    createPortConnectorMagnet(){
+        const w = C.nodeMesh.port.magnet.width;
+        const h = C.nodeMesh.port.height;
+
+        const magnet = new THREE.Mesh(
+            new THREE.BoxBufferGeometry( w, h ),
+            new THREE.MeshBasicMaterial({color: '#00ff00', transparent: true, opacity: 0})
+        );
+
+        if(this.direction === 'output') {
+            magnet.position.setX(w/2);
+        } else {
+            magnet.position.setX(-w/2);
+        }
+
+        magnet.position.setZ(-1);
+
+        magnet.name = 'connectorMagnet';
+        return magnet;
     }
 
     createPortMark(){
