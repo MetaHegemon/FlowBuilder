@@ -171,6 +171,15 @@ export default class {
         }
     }
 
+    remove(){
+        FBS.sceneControl.removeFromScene(this.mesh);
+        this.cPort1.unselectConnector();
+        if(this.cPort1) this.cPort1.removeCLine(this);
+        this.cPort2.unselectConnector();
+        if(this.cPort2) this.cPort2.removeCLine(this);
+        //TODO need dispose
+    }
+
     updateTheme(){
         if(this.selected){
             this.setColor(FBS.theme.line.selectedColor);

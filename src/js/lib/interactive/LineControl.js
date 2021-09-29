@@ -27,14 +27,9 @@ export default class{
         FBS.sceneControl.addObjectsToScene([mesh]);
     }
 
-    remove(){
+    disable(){
         this.active = false;
-        FBS.sceneControl.removeFromScene(this.cLine.getMLine());
-        const cPort1 = this.cLine.getCPort1();
-        if(cPort1) cPort1.removeCLine(this.cLine);
-        const cPort2 = this.cLine.getCPort2();
-        if(cPort2) cPort2.removeCLine(this.cLine);
-        this.removeFromCLinesList(this.cLine);
+        this.remove([this.cLine]);
     }
 
     removeFromCLinesList(cLine){
@@ -142,12 +137,18 @@ export default class{
         cPort1.cLines.push(this.cLine);
         cPort2.cLines.push(this.cLine);
         this.allCLines.push(this.cLine);
-        clog(this.cLine.getMLine());
     }
 
     updateTheme(){
         this.allCLines.map(cLine=>{
             cLine.updateTheme();
+        });
+    }
+
+    remove(cLines){
+        cLines.map(cL => {
+            cL.remove();
+            this.removeFromCLinesList(cL);
         });
     }
 }

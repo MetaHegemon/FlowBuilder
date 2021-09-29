@@ -3,7 +3,9 @@ export default {
         nodeCollapseTime: 200, //milliseconds
         portHideTime: 200,
         collapseButtonRotateTime: 200,
-        footerLabelHideTime: 200
+        footerLabelHideTime: 200,
+        caretBlinkingTime: 400,
+        failEditingTextTime: 300,
     },
     layers: {
         nodeStep: 0.1,
@@ -82,9 +84,6 @@ export default {
                 leftMargin: 40,
                 letterSpacing: 0.046,
                 pseudoLeftMargin: 13,
-                underlineLeftMargin: -0.5,
-                underlineTopMargin: 4.5,
-                underlineFontSize: 16
             },
             mark: {
                 width: 30,

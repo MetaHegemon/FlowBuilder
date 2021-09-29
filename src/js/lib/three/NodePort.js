@@ -242,11 +242,5 @@ export default class {
             m.color = FBS.theme.node.portTypes[this.data.type].markFontColor;
             m.font = FBS.theme.fontPaths.mainNormal;
         }
-
-        m = this.mesh.getObjectByName('portLabelUnderline');
-        if(m){
-            m.color = FBS.theme.node.portTypes[this.data.type].labelColor;
-            m.font = FBS.theme.fontPaths.mainNormal;
-        }
     }
 };

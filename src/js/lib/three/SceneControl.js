@@ -151,7 +151,7 @@ export default class {
         this.listenZoom()
         this.loopAnimations();
         this.renderer.render( this.scene, this.camera );
-
+        FBS.tween.update();
         stats.end();
         requestAnimationFrame( ()=> this.render() );
     }

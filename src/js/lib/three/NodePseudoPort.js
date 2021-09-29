@@ -1,8 +1,4 @@
-
 import Port from './NodePort';
-import {Text} from "troika-three-text";
-import C from "../Constants";
-import FBS from "../FlowBuilderStore";
 
 export default class extends Port{
     constructor(direction, cNode) {
@@ -16,62 +12,30 @@ export default class extends Port{
         this.type = 'pseudo';
         this.hidedCPorts = [];
         this.setName();
-
-        this.addUnderline();
     }
 
     setName(){
 
     }
 
-    addUnderline(){
-        const labelObj = this.mesh.getObjectByName('portLabel');
-        const label = this.mesh.getObjectByName('portLabelText');
-
-        const underline = new Text();
-        underline.text = '';
-        underline.name = 'portLabelUnderline';
-        underline.font = FBS.theme.fontPaths.mainNormal;
-        underline.fontSize = C.nodeMesh.port.label.underlineFontSize;
-        underline.color = FBS.theme.node.portTypes[this.data.type].labelColor;
-        underline.anchorX = this.direction === 'input' ? 'left' : 'right';
-        underline.anchorY = 'bottom';
-        underline.position.set(
-            this.direction === 'input' ? C.nodeMesh.port.label.underlineLeftMargin : -C.nodeMesh.port.label.underlineLeftMargin,
-            label.position.y - C.nodeMesh.port.label.underlineTopMargin,
-            label.position.z
-        );
-
-        underline.visible = true;
-        labelObj.add(underline);
-    }
-
     changeLabelText(collapsed){
         const label = this.mesh.getObjectByName('portLabelText');
-        const underline = this.mesh.getObjectByName('portLabelUnderline');
         if(collapsed){
             label.text = 'Show more' + ' (' + this.hidedCPorts.length + ')';
-            underline.text = '_________________';
         } else {
             if(this.direction === 'input'){
                 label.text = 'Hide inputs';
-                underline.text = '_____________';
             } else {
                 label.text = 'Hide outputs';
-                underline.text = '_______________';
             }
         }
         label.visible = true;
-        underline.visible = true;
     }
 
     removeLabelText(){
         const label = this.mesh.getObjectByName('portLabelText');
         label.visible = false;
-        const underline = this.mesh.getObjectByName('portLabelUnderline');
-        underline.visible = false;
         label.text = '';
-        underline.text = '';
     }
 
     hideConnector(){

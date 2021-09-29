@@ -3,12 +3,10 @@ import Port from './NodePort';
 import PseudoPort from "./NodePseudoPort";
 import C from "./../Constants";
 import {Text} from "troika-three-text";
-import AnimationControl from './../three/AnimationControl';
 import FBS from "../FlowBuilderStore";
 
 export default class{
     constructor(data, originZ){
-        this.animationControl = new AnimationControl();
         this.originZ = originZ;
         this.selected = false;
         this.nodeHeight = 0;
@@ -39,7 +37,6 @@ export default class{
         }
         this.allCPorts = [];
         this.playing = false;
-        this.title = null;
         this.cPortsInput = [];
         this.cPortsOutput = [];
         this.data = data;
@@ -58,8 +55,8 @@ export default class{
         nodeObject.name = 'node';
 
         //create title
-        this.title = this.createTitle(this.data.name);
-        nodeObject.add(this.title);
+        const title = this.createTitle(this.data.name);
+        nodeObject.add(title);
 
         //create indicator
         const indicator = this.createIndicator(this.data.indicator);
@@ -317,7 +314,7 @@ export default class{
             time: C.animation.portHideTime
         };
 
-        this.animationControl.animate([task]);
+        FBS.animationControl.animate([task]);
     }
 
     movePseudoInputPortBack(mPort){
@@ -328,7 +325,7 @@ export default class{
             time: C.animation.portHideTime
         };
 
-        this.animationControl.animate([task]);
+        FBS.animationControl.animate([task]);
     }
 
     movePseudoOutputPortBack(mPort){
@@ -340,7 +337,7 @@ export default class{
             time: C.animation.portHideTime
         };
 
-        this.animationControl.animate([task]);
+        FBS.animationControl.animate([task]);
     }
 
     packPortsWithPseudo(cPorts, direction, maxVisiblePorts, cPseudoPort){
@@ -481,7 +478,6 @@ export default class{
         mount.add(bodyMesh);
 
         //footer
-
         const footer = this.createFooter();
         mount.add(footer);
 
@@ -566,7 +562,8 @@ export default class{
         for(let i = 0; i < mount.children.length; i += 1){
             mount.children[i].material.color.setStyle(FBS.theme.node.mount.back.selectedColor);
         }
-        this.title.color = FBS.theme.node.title.fontSelectedColor;
+        const title = this.mesh.getObjectByName('title');
+        title.color = FBS.theme.node.title.fontSelectedColor;
     }
 
     unselect(){
@@ -575,7 +572,8 @@ export default class{
         for(let i = 0; i < mount.children.length; i += 1){
             mount.children[i].material.color.setStyle(FBS.theme.node.mount.back.color);
         }
-        this.title.color = FBS.theme.node.title.fontColor;
+        const title = this.mesh.getObjectByName('title');
+        title.color = FBS.theme.node.title.fontColor;
     }
 
     getMNode(){
@@ -774,7 +772,7 @@ export default class{
         }
 
         animateTasks.push(this.getRefreshLinesTask());
-        this.animationControl.animate(animateTasks);
+        FBS.animationControl.animate(animateTasks);
         this.scaleNodeWithAnimation();
         this.collapseButtonRotate();
     }
@@ -1027,7 +1025,7 @@ export default class{
             }
 
             animateTasks.push(this.getRefreshLinesTask());
-            this.animationControl.animate(animateTasks);
+            FBS.animationControl.animate(animateTasks);
             this.scaleNodeWithAnimation();
             this.collapseButtonRotate();
         }
@@ -1051,7 +1049,7 @@ export default class{
             } else {
                 angle = Math.PI;
             }
-            this.animationControl.animate([{
+            FBS.animationControl.animate([{
                 target: mCollapse.rotation,
                 value: {z: angle},
                 time: C.animation.collapseButtonRotateTime
@@ -1135,7 +1133,7 @@ export default class{
         cPseudoPort.changeLabelText(true);
         cPseudoPort.showConnector();
         this.movePseudoInputPortBack(cPseudoPort.getMPort());
-        this.animationControl.animate(animateTasks);
+        FBS.animationControl.animate(animateTasks);
     }
 
     unCollapseInputPorts(cPseudoPort){
@@ -1180,7 +1178,7 @@ export default class{
             });
         }
         this.movePseudoInputPortBack(cPseudoPort.getMPort());
-        this.animationControl.animate(animateTasks);
+        FBS.animationControl.animate(animateTasks);
     }
 
     shortCollapseOutputPorts(cPseudoPort, maxVisiblePorts){
@@ -1235,7 +1233,7 @@ export default class{
         cPseudoPort.changeLabelText(true);
         cPseudoPort.showConnector();
         this.movePseudoOutputPortBack(cPseudoPort.getMPort());
-        this.animationControl.animate(animateTasks);
+        FBS.animationControl.animate(animateTasks);
     }
 
     unCollapseOutputPorts(cPseudoPort){
@@ -1281,7 +1279,7 @@ export default class{
         cPseudoPort.hideConnector();
         this.calcNodeHeight();
         this.movePseudoOutputPortBack(cPseudoPort.getMPort());
-        this.animationControl.animate(animateTasks);
+        FBS.animationControl.animate(animateTasks);
     }
 
 
@@ -1325,7 +1323,7 @@ export default class{
             value: {x: mBackFooter.position.x, y: -this.nodeHeight, z: mBackFooter.position.z}
         });
 
-        this.animationControl.animate(tasks);
+        FBS.animationControl.animate(tasks);
     }
 
     scaleNode(){

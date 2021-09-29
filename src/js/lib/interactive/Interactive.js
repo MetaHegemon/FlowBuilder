@@ -4,6 +4,7 @@ import C from "../Constants";
 import { SelectionBox } from './SelectionBox';
 import  SelectionHelper  from './SelectHelper';
 import FBS from '../FlowBuilderStore';
+import TextEditor from "../three/TextEditor";
 
 const Drag = new DragControl();
 
@@ -11,6 +12,7 @@ export default class{
     constructor() {
         this.raycaster = new THREE.Raycaster();
         this.intersects = [];
+        this.textEditor = new TextEditor();
 
         this.pan = {
             active: false,
@@ -39,6 +41,7 @@ export default class{
         FBS.dom.canvas.addEventListener('pointermove', (e)=>this.onPointerMove(e));
         FBS.dom.canvas.addEventListener('pointerdown', (e)=>this.onPointerDown(e));
         FBS.dom.canvas.addEventListener('pointerup', (e)=>this.onPointerUp(e));
+        FBS.dom.canvas?.addEventListener('dblclick', (e)=>this.onDblclick(e));
         document.addEventListener('keydown', (e) => this.onKeyDown(e), false);
         document.addEventListener('keyup', (e) => this.onKeyUp(e));
         FBS.dom.canvas.addEventListener('contextmenu', (e) => this.onContextMenu(e));
@@ -47,6 +50,7 @@ export default class{
     }
 
     onKeyDown(e){
+        if(this.textEditor.active) return null;
         if(e.code === 'Space' && !this.pan.spacePressed) {
             this.pan.spacePressed = true;
             FBS.dom.canvas.classList.add('grab');
@@ -54,10 +58,15 @@ export default class{
             if(!e.repeat) {
                 FBS.themesControl.switch();
             }
+        } else if(e.code === 'Backspace' || e.code === 'Delete'){
+            if(this.select.cLines.length > 0){
+                FBS.lineControl.remove(this.select.cLines);
+            }
         }
     }
 
     onKeyUp(e){
+        if(this.textEditor.active) return null;
         if(e.code === 'Space') {
             this.pan.spacePressed = false;
             FBS.dom.canvas.classList.remove('grab');
@@ -69,6 +78,9 @@ export default class{
     }
 
     onPointerDown(e){
+        if(this.textEditor.active){
+
+        }
         this.pointerDownPos.x = this.pointerPos3d.x;
         this.pointerDownPos.y = this.pointerPos3d.y;
 
@@ -278,7 +290,7 @@ export default class{
                 ) {
                     FBS.lineControl.connect(this.intersects[0].object);
                 } else {
-                    FBS.lineControl.remove();
+                    FBS.lineControl.disable();
                 }
             } else {
                 if (this.intersects.length > 0) {
@@ -311,6 +323,15 @@ export default class{
                 }
             }
             this.pointerDownPos.x = this.pointerDownPos.y = 0;
+        }
+    }
+
+    onDblclick(){
+        if(this.intersects.length > 0) {
+            const titleIntersect = this.checkOnIntersect(this.intersects, ['title']);
+            if(!this.textEditor.active){
+                this.textEditor.enable(titleIntersect.object);
+            }
         }
     }
 
@@ -355,7 +376,7 @@ export default class{
         cNode.play(mPlay);
     }
 
-    onMenuButtonClick(mMenu){
+    onMenuButtonClick(){
         clog('menu click');
     }
 
