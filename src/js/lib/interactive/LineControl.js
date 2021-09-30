@@ -14,6 +14,7 @@ export default class{
         const lines = cPort1.cLines;
         if(cPort1.direction === 'input' && lines.length > 0){
             this.cLine = cPort1.cLines[0];
+            this.cLine.removeWatchPoint();
             this.cLine.setCPort2(null);
             cPort1.cLines = [];
         } else {

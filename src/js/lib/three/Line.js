@@ -260,7 +260,6 @@ export default class {
     }
 
     unselect(){
-        clog("unsel");
         if(this.selected) {
             this.selected = false;
             this.mesh.material.color.setStyle(this.cPort1.getColor());
@@ -271,11 +270,16 @@ export default class {
 
     remove(){
         FBS.sceneControl.removeFromScene(this.mesh);
+        if(this.watchPoint) this.removeWatchPoint();
         if(this.cPort1) this.cPort1.unselectConnector();
         if(this.cPort1) this.cPort1.removeCLine(this);
         if(this.cPort2) this.cPort2.unselectConnector();
         if(this.cPort2) this.cPort2.removeCLine(this);
         //TODO need dispose
+    }
+
+    removeWatchPoint(){
+        FBS.sceneControl.removeFromScene(this.watchPoint);
     }
 
     updateTheme(){
