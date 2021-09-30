@@ -29,7 +29,8 @@ export default {
     },
     lines: {
         lineWidth: 0.002,
-        segments: 40
+        segments: 40,
+        watchPointPosition: 80 //percent on line
     },
     nodeMesh: {
         constraints: {

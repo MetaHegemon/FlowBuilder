@@ -7,11 +7,6 @@ import FBS from "../FlowBuilderStore";
 
 export default class {
     constructor(){
-        this.geometry = new LineGeometry();
-        this.mesh = this.create();
-
-        this.watchPoint = null;
-
         this.cPort1 = null;
         this.cPort2 = null;
         this.selected = false;
@@ -21,6 +16,12 @@ export default class {
 
         this.isPort1Collapsed = false;
         this.isPort2Collapsed = false;
+
+        this.watchPoint = null;
+
+        this.geometry = new LineGeometry();
+        this.mesh = this.create();
+
     }
 
     create(){
@@ -63,6 +64,64 @@ export default class {
 
         this.cPort1.cLines.push(this);
         this.cPort2.cLines.push(this);
+
+        this.createWatchPoint();
+    }
+
+    createWatchPoint(){
+        const group = new THREE.Group();
+        group.name = 'watchPoint';
+
+        const pointer = new THREE.Mesh(
+            new THREE.CircleBufferGeometry(8, 32),
+            new THREE.MeshBasicMaterial({transparent: true, opacity: 0})
+        );
+        pointer.name = 'watchPointPointer';
+        pointer.userData.class = this;
+
+        group.add(pointer);
+
+        const bigCircle = new THREE.Mesh(
+            new THREE.CircleBufferGeometry(6, 32),
+            new THREE.MeshBasicMaterial()
+        );
+        bigCircle.name = 'watchPointBig';
+        bigCircle.material.color = this.mesh.material.color;
+        bigCircle.userData.class = this;
+
+        group.add(bigCircle);
+
+        const smallCircle = new THREE.Mesh(
+            new THREE.CircleBufferGeometry(3, 32),
+            new THREE.MeshBasicMaterial({color: FBS.theme.scene.backgroundColor})
+        );
+        smallCircle.name = 'watchPointSmall';
+        smallCircle.userData.class = this;
+
+        group.add(smallCircle);
+
+        group.userData.class = this;
+
+        this.watchPoint = group;
+
+        this.updateWatchPointPosition()
+
+        this.mesh.parent.add(this.watchPoint);
+    }
+
+    getPositionForWatchPoint(){
+        //TODO may be optimized
+        const pos = {x: 0, y: 0, z: 0};
+
+        const progress = C.lines.segments/100 * C.lines.watchPointPosition; //point on line
+        const instanceStart = this.mesh.geometry.getAttribute('instanceStart').data;
+        const points = instanceStart.array;
+
+        pos.x = points[progress * instanceStart.stride];
+        pos.y = points[progress * instanceStart.stride + 1];
+        pos.z = points[progress * instanceStart.stride + 2];
+
+        return pos;
     }
 
     setCPort1(cPort){
@@ -137,8 +196,16 @@ export default class {
         const geometry = new LineGeometry();
         geometry.setPositions(p);
 
-        //this.mesh.geometry.setPositions(p);
         this.mesh.geometry = geometry;
+
+        this.updateWatchPointPosition();
+    }
+
+    updateWatchPointPosition(){
+        if(!this.watchPoint) return null;
+
+        const pos = this.getPositionForWatchPoint();
+        this.watchPoint.position.set(pos.x, pos.y, pos.z);
     }
 
     collapsedPort1(){
@@ -193,6 +260,7 @@ export default class {
     }
 
     unselect(){
+        clog("unsel");
         if(this.selected) {
             this.selected = false;
             this.mesh.material.color.setStyle(this.cPort1.getColor());

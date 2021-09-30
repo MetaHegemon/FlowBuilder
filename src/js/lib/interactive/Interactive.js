@@ -207,8 +207,9 @@ export default class{
                                     this.setCursor('pointer');
                                 }
                             }
-                        } else if (firstObject.name === 'line') {
-                            if(FBS.lineControl.canBeSelected(firstObject)){
+                        } else if (this.checkOnIntersect(this.intersects, ['line', 'watchPointPointer'])) {
+                            const intersect = this.checkOnIntersect(this.intersects, ['line', 'watchPointPointer']);
+                            if(FBS.lineControl.canBeSelected(intersect.object)){
                                 this.setCursor('pointer');
                             }
                         } else if (firstObject.name === 'collapseButton') {
@@ -306,12 +307,14 @@ export default class{
                         } else if(this.intersects[0].object.name === 'portLabelText'){
                             this.onPortLabelClick(this.intersects[0].object);
                         } else {
-                            const backMountIntersect = this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter']);
-                            if (backMountIntersect) {
-                                const cNode = backMountIntersect.object.userData.nodeClass;
+
+                            if (this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter'])) {
+                                const intersect = this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter']);
+                                const cNode = intersect.object.userData.nodeClass;
                                 this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
-                            } else if (this.intersects[0].object.name === 'line') {
-                                if(FBS.lineControl.canBeSelected(this.intersects[0].object)){
+                            } else if (this.checkOnIntersect(this.intersects, ['line', 'watchPointPointer'])) {
+                                const intersect = this.checkOnIntersect(this.intersects, ['line', 'watchPointPointer']);
+                                if(FBS.lineControl.canBeSelected(intersect.object)){
                                     const cLine = this.intersects[0].object.userData.class;
                                     this.onLineClick(cLine);
                                 }
@@ -329,7 +332,7 @@ export default class{
     onDblclick(){
         if(this.intersects.length > 0) {
             const titleIntersect = this.checkOnIntersect(this.intersects, ['title']);
-            if(!this.textEditor.active){
+            if(titleIntersect && !this.textEditor.active){
                 this.textEditor.enable(titleIntersect.object);
             }
         }
@@ -471,11 +474,11 @@ export default class{
     }
 
     onLineClick(cLine){
-
         let isSelected = false;
         for(let i = 0; i < this.select.cLines.length; i += 1){
             if(this.select.cLines[i] === cLine){
                 isSelected = true;
+                this.select.cLines.splice(i, 1);
                 break;
             }
         }
