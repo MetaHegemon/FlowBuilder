@@ -10,6 +10,8 @@ export default class {
         this.geometry = new LineGeometry();
         this.mesh = this.create();
 
+        this.watchPoint = null;
+
         this.cPort1 = null;
         this.cPort2 = null;
         this.selected = false;
@@ -33,6 +35,34 @@ export default class {
         mesh.userData.class = this;
 
         return mesh;
+    }
+
+    connect(cPort2){
+        let pos1, pos2;
+
+        //set output connector as first
+        if(this.cPort1.direction === 'output'){
+            this.setCPort1(this.cPort1);
+            this.setCPort2(cPort2);
+            pos1 = this.cPort1.getConnectorPos();
+            pos2 = this.cPort2.getConnectorPos();
+
+            this.setColor(this.cPort1.getColor());
+        } else {
+            this.setCPort2(this.cPort1);
+            this.setCPort1(cPort2);
+
+            pos1 = this.cPort1.getConnectorPos();
+            pos2 = this.cPort2.getConnectorPos();
+
+            this.setColor(this.cPort2.getColor());
+        }
+        this.setPos1(pos1.x, pos1.y);
+        this.setPos2(pos2.x, pos2.y);
+        this.updateLine();
+
+        this.cPort1.cLines.push(this);
+        this.cPort2.cLines.push(this);
     }
 
     setCPort1(cPort){
@@ -173,9 +203,9 @@ export default class {
 
     remove(){
         FBS.sceneControl.removeFromScene(this.mesh);
-        this.cPort1.unselectConnector();
+        if(this.cPort1) this.cPort1.unselectConnector();
         if(this.cPort1) this.cPort1.removeCLine(this);
-        this.cPort2.unselectConnector();
+        if(this.cPort2) this.cPort2.unselectConnector();
         if(this.cPort2) this.cPort2.removeCLine(this);
         //TODO need dispose
     }

@@ -110,32 +110,7 @@ export default class{
 
     connect(mConnector2){
         this.active = false;
-        let pos1, pos2;
-        const cPort1 = this.cLine.getCPort1();
-        const cPort2 = mConnector2.userData.portClass;
-
-        //set output connector as first
-        if(cPort1.direction === 'output'){
-            this.cLine.setCPort1(cPort1);
-            this.cLine.setCPort2(cPort2);
-            pos1 = cPort1.getConnectorPos();
-            pos2 = cPort2.getConnectorPos();
-
-            this.cLine.setColor(cPort1.getColor());
-        } else {
-            this.cLine.setCPort1(cPort2);
-            this.cLine.setCPort2(cPort1);
-            pos1 = cPort2.getConnectorPos();
-            pos2 = cPort1.getConnectorPos();
-
-            this.cLine.setColor(cPort2.getColor());
-        }
-        this.cLine.setPos1(pos1.x, pos1.y);
-        this.cLine.setPos2(pos2.x, pos2.y);
-        this.cLine.updateLine();
-
-        cPort1.cLines.push(this.cLine);
-        cPort2.cLines.push(this.cLine);
+        this.cLine.connect(mConnector2.userData.portClass);
         this.allCLines.push(this.cLine);
     }
 
