@@ -3,6 +3,7 @@ import {LineGeometry} from "three/examples/jsm/lines/LineGeometry";
 import {LineMaterial} from "three/examples/jsm/lines/LineMaterial";
 import {Line2} from "three/examples/jsm/lines/Line2";
 import C from './../Constants';
+import Theme from './../../themes/Theme';
 import FBS from "../FlowBuilderStore";
 
 export default class {
@@ -27,7 +28,7 @@ export default class {
     create(){
         this.geometry.setPositions([0, 0, 0, 0, 0, 0]);
         const material = new LineMaterial({
-            color: FBS.theme.line.colorOnActive,
+            color: Theme.theme.line.colorOnActive,
             linewidth: C.lines.lineWidth
         });
 
@@ -73,7 +74,7 @@ export default class {
         group.name = 'watchPoint';
 
         const pointer = new THREE.Mesh(
-            new THREE.CircleBufferGeometry(8, 32),
+            new THREE.CircleBufferGeometry(C.lines.watchPoint.pointerRadius, 32),
             new THREE.MeshBasicMaterial({transparent: true, opacity: 0})
         );
         pointer.name = 'watchPointPointer';
@@ -82,7 +83,7 @@ export default class {
         group.add(pointer);
 
         const bigCircle = new THREE.Mesh(
-            new THREE.CircleBufferGeometry(6, 32),
+            new THREE.CircleBufferGeometry(C.lines.watchPoint.bigCircleRadius, 32),
             new THREE.MeshBasicMaterial()
         );
         bigCircle.name = 'watchPointBig';
@@ -92,8 +93,8 @@ export default class {
         group.add(bigCircle);
 
         const smallCircle = new THREE.Mesh(
-            new THREE.CircleBufferGeometry(3, 32),
-            new THREE.MeshBasicMaterial({color: FBS.theme.scene.backgroundColor})
+            new THREE.CircleBufferGeometry(C.lines.watchPoint.smallCircleRadius, 32),
+            new THREE.MeshBasicMaterial({color: Theme.theme.scene.backgroundColor})
         );
         smallCircle.name = 'watchPointSmall';
         smallCircle.userData.class = this;
@@ -113,7 +114,7 @@ export default class {
         //TODO may be optimized
         const pos = {x: 0, y: 0, z: 0};
 
-        const progress = C.lines.segments/100 * C.lines.watchPointPosition; //point on line
+        const progress = C.lines.segments/100 * C.lines.watchPoint.positionOnLine; //point on line
         const instanceStart = this.mesh.geometry.getAttribute('instanceStart').data;
         const points = instanceStart.array;
 
@@ -213,7 +214,7 @@ export default class {
             this.unselect();
         }
         this.isPort1Collapsed = true;
-        this.setColor(FBS.theme.node.portTypes.pseudo.connectorColor);
+        this.setColor(Theme.theme.node.portTypes.pseudo.connectorColor);
 
     }
 
@@ -222,7 +223,7 @@ export default class {
             this.unselect();
         }
         this.isPort2Collapsed = true;
-        this.setColor(FBS.theme.node.portTypes.pseudo.connectorColor);
+        this.setColor(Theme.theme.node.portTypes.pseudo.connectorColor);
     }
 
     unCollapsedPort1(){
@@ -253,7 +254,7 @@ export default class {
     select(){
         if(!this.selected) {
             this.selected = true;
-            this.mesh.material.color.setStyle(FBS.theme.line.selectedColor);
+            this.mesh.material.color.setStyle(Theme.theme.line.selectedColor);
             this.cPort1.selectConnector();
             this.cPort2.selectConnector();
         }
@@ -280,19 +281,24 @@ export default class {
 
     removeWatchPoint(){
         FBS.sceneControl.removeFromScene(this.watchPoint);
+        this.watchPoint = null;
     }
 
     updateTheme(){
         if(this.selected){
-            this.setColor(FBS.theme.line.selectedColor);
+            this.setColor(Theme.theme.line.selectedColor);
             this.cPort1.selectConnector();
             this.cPort2.selectConnector();
         } else {
             if(this.isPort1Collapsed || this.isPort2Collapsed){
-                this.setColor(FBS.theme.node.portTypes.pseudo.connectorColor);
+                this.setColor(Theme.theme.node.portTypes.pseudo.connectorColor);
             } else {
                 this.setColor(this.cPort1.getColor());
             }
+        }
+        if(this.watchPoint) {
+            const watchPointSmall = this.watchPoint.getObjectByName('watchPointSmall');
+            watchPointSmall.material.color.setStyle(Theme.theme.scene.backgroundColor);
         }
     }
 }

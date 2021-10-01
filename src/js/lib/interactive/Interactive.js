@@ -1,12 +1,15 @@
 import * as THREE from 'three';
 import DragControl from './DragControl';
-import C from "../Constants";
+import C from "./../Constants";
 import { SelectionBox } from './SelectionBox';
 import  SelectionHelper  from './SelectHelper';
-import FBS from '../FlowBuilderStore';
-import TextEditor from "../three/TextEditor";
+import Theme from "../../themes/Theme";
+import FBS from './../FlowBuilderStore';
+import TextEditor from "./../three/TextEditor";
+import RightResizer from './RightResizer';
 
 const Drag = new DragControl();
+const Resizer = new RightResizer();
 
 export default class{
     constructor() {
@@ -56,7 +59,8 @@ export default class{
             FBS.dom.canvas.classList.add('grab');
         } else if(e.code === 'KeyT'){
             if(!e.repeat) {
-                FBS.themesControl.switch();
+                Theme.themesControl.switch();
+                Theme.themesControl.update(FBS);
             }
         } else if(e.code === 'Backspace' || e.code === 'Delete'){
             if(this.select.cLines.length > 0){
@@ -78,7 +82,8 @@ export default class{
     }
 
     onPointerDown(e){
-        if(this.textEditor.active) {
+        if(this.textEditor.active) //ACCEPT TEXT
+        {
             const titleIntersect = this.checkOnIntersect(this.intersects, ['title']);
             if (!titleIntersect) {
                 this.textEditor.accept();
@@ -87,26 +92,30 @@ export default class{
         this.pointerDownPos.x = this.pointerPos3d.x;
         this.pointerDownPos.y = this.pointerPos3d.y;
 
-        if(this.pan.spacePressed || e.button === 1){
+        if(this.pan.spacePressed || e.button === 1) //START PAN
+        {
             FBS.dom.canvas.classList.remove('grab');
             FBS.dom.canvas.classList.add('grabbing');
             this.pan.active = true;
-        } else {
+        }
+        else
+        {
             if (this.intersects.length > 0) {
                 if (e.buttons === 1) {
-                    const backMountIntersect = this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter']);
-                    if (backMountIntersect) {
-                        this.selectedOnPointerDown = backMountIntersect.object.userData.nodeClass.getMNode();
-                        return null;
-                    }
-                    const connectorIntersect = this.checkOnIntersect(this.intersects, ['connector']);
-                    if (connectorIntersect) {
-                        const cPort = connectorIntersect.object.userData.portClass;
+                    if(this.checkOnIntersect(this.intersects, ['rightResizer'])){
+                        const intersect = this.checkOnIntersect(this.intersects, ['rightResizer']);
+                        this.selectedOnPointerDown = intersect.object;
+                    } else if (this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter'])) {
+                        const intersect = this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter'])
+                        this.selectedOnPointerDown = intersect.object.userData.nodeClass.getMNode();
+                    } else if (this.checkOnIntersect(this.intersects, ['connector'])) {
+                        const intersect = this.checkOnIntersect(this.intersects, ['connector']);
+                        const cPort = intersect.object.userData.portClass;
                         if(cPort.connectorActive) {
                             if (cPort.type !== 'pseudo') {
-                                this.selectedOnPointerDown = connectorIntersect.object;
+                                this.selectedOnPointerDown = intersect.object;
                                 this.unselectAllLines();
-                                FBS.lineControl.enable(connectorIntersect.object);
+                                FBS.lineControl.enable(intersect.object);
                             }
                         }
                     }
@@ -167,7 +176,10 @@ export default class{
             this.pointerPos3d.x = this.raycaster.ray.origin.x;
             this.pointerPos3d.y = this.raycaster.ray.origin.y;
 
-            if (Drag.active) {
+            if(Resizer.active){
+                Resizer.move(this.pointerPos3d);
+                FBS.lineControl.refreshLines([Resizer.getMNode()]);
+            } else if (Drag.active) {
                 Drag.dragObject(this.pointerPos3d);
                 FBS.lineControl.refreshLines(Drag.getObjects());
             } else if (FBS.lineControl.active) {
@@ -218,6 +230,8 @@ export default class{
                             this.setCursor('pointer');
                         } else if (firstObject.name === 'menuButton') {
                             this.setCursor('pointer');
+                        } else if (this.checkOnIntersect(this.intersects, ['rightResizer'])) {
+                            this.setCursor('col-resize');
                         } else {
                             this.unhoverObjects(firstObject);
                             this.resetCursor();
@@ -228,7 +242,9 @@ export default class{
                     }
                 } else if (e.buttons === 1) {
                     if (this.selectedOnPointerDown) {
-                        if (this.selectedOnPointerDown.name === 'node') {
+                        if(this.selectedOnPointerDown.name === 'rightResizer'){
+                            Resizer.enable(this.selectedOnPointerDown);
+                        } else if (this.selectedOnPointerDown.name === 'node') {
                             if (this.isMoved(this.pointerPos3d, this.pointerDownPos)) {
                                 const backMountIntersect = this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter']);
                                 if (backMountIntersect) {
@@ -281,7 +297,9 @@ export default class{
             this.select.helper.onSelectOver(e);
         } else {
             this.selectedOnPointerDown = null;
-            if (Drag.active) {
+            if(Resizer.active){
+                Resizer.disable();
+            } else if (Drag.active) {
                 Drag.disable();
                 this.resetCursor();
             } else if (FBS.lineControl.active) {

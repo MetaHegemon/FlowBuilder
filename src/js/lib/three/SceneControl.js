@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import C from './../Constants';
+import Theme from './../../themes/Theme';
 import FBS from "../FlowBuilderStore";
 import Stats from 'stats.js';
 
@@ -63,7 +64,7 @@ export default class {
         this.camera.lookAt(0,0,0);
 
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(FBS.theme.scene.backgroundColor);
+        this.scene.background = new THREE.Color(Theme.theme.scene.backgroundColor);
 
         new ResizeObserver(()=>{
             const _this = this;
@@ -222,6 +223,6 @@ export default class {
     }
 
     updateTheme(){
-        this.scene.background.setStyle(FBS.theme.scene.backgroundColor);
+        this.scene.background.setStyle(Theme.theme.scene.backgroundColor);
     }
 }

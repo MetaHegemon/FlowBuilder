@@ -1,5 +1,5 @@
 import '../../../css/main_window.css';
-import FBS from './../FlowBuilderStore';
+import Theme from './../../themes/Theme';
 
 
 export default class {
@@ -32,6 +32,6 @@ export default class {
     }
 
     updateTheme(){
-        this.window.style.backgroundColor = FBS.theme.scene.backgroundColor;
+        this.window.style.backgroundColor = Theme.theme.scene.backgroundColor;
     }
 }

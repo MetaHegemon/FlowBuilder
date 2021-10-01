@@ -1,4 +1,5 @@
-import FBS from './../lib/FlowBuilderStore';
+import Theme from './../themes/Theme';
+//import FBS from './../lib/FlowBuilderStore';
 import light from './light';
 import dark from "./dark";
 
@@ -24,11 +25,10 @@ export default class {
         } else {
             this.theme = light;
         }
-        FBS.theme = this.theme;
-        this.update();
+        Theme.theme = this.theme;
     }
 
-    update(){
+    update(FBS){
         FBS.dom.updateTheme();
         FBS.sceneControl.updateTheme();
         FBS.nodeControl.updateTheme();

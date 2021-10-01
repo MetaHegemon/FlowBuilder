@@ -13,7 +13,6 @@ export default {
         title: 0,
         indicator: 0,
         frontMount: 0.01,
-        footer: 0.01,
         header: 0.02,
         port: 0.02,
         footerLabel: 0.01,
@@ -30,7 +29,12 @@ export default {
     lines: {
         lineWidth: 0.002,
         segments: 40,
-        watchPointPosition: 80 //percent on line
+        watchPoint: {
+            positionOnLine: 80, //percent on line
+            pointerRadius: 8,
+            bigCircleRadius: 6,
+            smallCircleRadius: 3
+        }
     },
     nodeMesh: {
         constraints: {
@@ -66,6 +70,8 @@ export default {
         },
         mount: {
             width: 293,
+            maxWidth: 500,
+            minWidth: 200,
             front: {
                 headHeight: 6.4,             //без радиуса
             },
@@ -111,6 +117,9 @@ export default {
                 letterSpacing: 0.032
             }
         },
+        rightResizer: {
+            width: 4
+        }
     },
     three: {
         zoom: {

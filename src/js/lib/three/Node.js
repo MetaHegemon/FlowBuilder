@@ -3,6 +3,7 @@ import Port from './NodePort';
 import PseudoPort from "./NodePseudoPort";
 import C from "./../Constants";
 import {Text} from "troika-three-text";
+import Theme from '../../themes/Theme';
 import FBS from "../FlowBuilderStore";
 
 export default class{
@@ -10,6 +11,7 @@ export default class{
         this.originZ = originZ;
         this.selected = false;
         this.nodeHeight = 0;
+        this.nodeWidth = C.nodeMesh.mount.width;
         this.middleCollapse = {
             isCollapsed: false,
             isPseudoInputExist: false,
@@ -40,9 +42,10 @@ export default class{
         this.cPortsInput = [];
         this.cPortsOutput = [];
         this.data = data;
+
         this.mesh = this.create();
         this.calcNodeHeight();
-        this.scaleNode(false);
+        this.scaleNode();
         this.setPositionsForInputPorts(this.calcPositionsForInputPorts());
         this.setPositionsForOutputPorts(this.calcPositionsForOutputPorts());
     }
@@ -63,12 +66,17 @@ export default class{
         nodeObject.add(indicator);
 
         //create shield
-        const shieldObject = new THREE.Object3D();
+        const shieldObject = new THREE.Group();
+        shieldObject.name = 'shield';
         const backMount = this.createBackMountMesh();
         shieldObject.add(backMount);
         const frontMount = this.createFrontMount();
         shieldObject.add(frontMount);
         nodeObject.add(shieldObject);
+
+        //resizer
+        const rightResizer = this.createRightResizer();
+        nodeObject.add(rightResizer);
 
         //header
         const header = this.createHeaderButtons();
@@ -107,24 +115,25 @@ export default class{
     }
 
     createHeaderButtons(){
-        const header = new THREE.Object3D();
+        const controlPanel = new THREE.Group();
+        controlPanel.name = 'controlPanel';
 
         //triangle
         if(this.data.inputs.length > 1 || this.data.outputs.length > 1) {
             const collapse = this.createCollapseButton();
-            header.add(collapse);
+            controlPanel.add(collapse);
         }
 
         //play
         const play = this.createPlayButton();
-        header.add(play);
+        controlPanel.add(play);
 
         //menu
         const menu = this.createMenuButton();
-        header.add(menu);
-        header.position.set(0, -C.nodeMesh.header.height/2, C.layers.header);
+        controlPanel.add(menu);
+        controlPanel.position.set(0, -C.nodeMesh.header.height/2, C.layers.header);
 
-        return header;
+        return controlPanel;
     }
 
     createCollapseButton(){
@@ -132,7 +141,7 @@ export default class{
         collapse.text = '';
         collapse.font = C.fontPaths.awSolid;
         collapse.fontSize = C.nodeMesh.header.collapse.fontSize;
-        collapse.color = FBS.theme.node.header.collapse.fontColor;
+        collapse.color = Theme.theme.node.header.collapse.fontColor;
         collapse.anchorX = 8;
         collapse.anchorY = -9.4;
         collapse.textAlign = 'center';
@@ -148,10 +157,10 @@ export default class{
         play.text = '';
         play.font = C.fontPaths.awSolid;
         play.fontSize = C.nodeMesh.header.play.fontSize;
-        play.color = FBS.theme.node.header.play.fontColor;
+        play.color = Theme.theme.node.header.play.fontColor;
         play.anchorX = 'right';
         play.anchorY = 'top';
-        play.position.set(C.nodeMesh.mount.width - C.nodeMesh.header.play.rightMargin, C.nodeMesh.header.height/2 - C.nodeMesh.header.play.topMargin, 0);
+        play.position.setY( C.nodeMesh.header.height/2 - C.nodeMesh.header.play.topMargin);
         play.name = 'playButton';
 
         return play;
@@ -162,11 +171,11 @@ export default class{
         menu.text = '';
         menu.font = C.fontPaths.awSolid;
         menu.fontSize = C.nodeMesh.header.menu.fontSize;
-        menu.color = FBS.theme.node.header.menu.fontColor;
+        menu.color = Theme.theme.node.header.menu.fontColor;
         menu.anchorX = 'right';
         menu.anchorY = 'top';
-        menu.position.set(C.nodeMesh.mount.width - C.nodeMesh.header.menu.rightMargin,  C.nodeMesh.header.height/2 - C.nodeMesh.header.menu.topMargin, 0);
         menu.name = 'menuButton';
+        menu.position.setY(  C.nodeMesh.header.height/2 - C.nodeMesh.header.menu.topMargin);
 
         return menu;
     }
@@ -258,6 +267,7 @@ export default class{
      */
     setPositionsForInputPorts(positions){
         for(let i = 0; i < this.cPortsInput.length; i += 1){
+            if(!positions[i]) break;
             const mPort = this.cPortsInput[i].getMPort();
             mPort.position.set(positions[i].x, positions[i].y, positions[i].z);
         }
@@ -268,12 +278,14 @@ export default class{
      * @returns {*[]}
      */
     calcPositionsForOutputPorts(){
-        const positions = [];
+
+        let positions = [];
         let currentYPos = this.getLastPortPosition();
-        for(let i = this.cPortsOutput.length - 1; i >= 0; i -= 1){
-            positions[i] = {x: C.nodeMesh.mount.width, y: currentYPos, z: C.layers.port};
+        for(let i = 0; i < this.cPortsOutput.length; i += 1){
+            positions[i] = {x: this.nodeWidth, y: currentYPos, z: C.layers.port};
             currentYPos += C.nodeMesh.port.height;
         }
+        positions = positions.reverse();
         return positions;
     }
 
@@ -282,12 +294,13 @@ export default class{
      * @returns {*[]}
      */
     calcPositionsForOutputPortsMin(){
-        const positions = [];
+        let positions = [];
         let currentYPos = this.getLastPortPositionMin();
         for(let i = this.cPortsOutput.length - 1; i >= 0; i -= 1){
-            positions[i] = {x: C.nodeMesh.mount.width, y: currentYPos, z: C.layers.port};
+            positions[i] = {x: this.nodeWidth, y: currentYPos, z: C.layers.port};
             currentYPos += C.nodeMesh.port.height;
         }
+        positions = positions.reverse();
         return positions;
     }
 
@@ -296,8 +309,10 @@ export default class{
      * @param positions
      */
     setPositionsForOutputPorts(positions){
-        for(let i = this.cPortsOutput.length - 1; i >= 0; i -= 1){
+        for(let i = 0; i < this.cPortsOutput.length; i += 1){
+            if(!positions[i]) break;
             const mPort = this.cPortsOutput[i].getMPort();
+            clog(this.cPortsOutput[i].type, i);
             mPort.position.set(positions[i].x, positions[i].y, positions[i].z);
         }
     }
@@ -370,9 +385,9 @@ export default class{
     createTitle(name) {
         const title = new Text();
         title.text = name;
-        title.font = FBS.theme.fontPaths.mainMedium;
+        title.font = Theme.theme.fontPaths.mainMedium;
         title.fontSize = C.nodeMesh.title.fontSize;
-        title.color = FBS.theme.node.title.fontColor;
+        title.color = Theme.theme.node.title.fontColor;
         title.anchorX = 'left';
         title.anchorY = 'bottom';
         title.position.set(C.nodeMesh.title.leftMargin, C.nodeMesh.title.bottomMargin, 0);
@@ -384,161 +399,103 @@ export default class{
     createIndicator(name){
         const title = new Text();
         title.text = name;
-        title.font = FBS.theme.fontPaths.mainNormal;
+        title.font = Theme.theme.fontPaths.mainNormal;
         title.fontSize = C.nodeMesh.indicator.fontSize;
-        title.color = FBS.theme.node.indicator.fontColor;
+        title.color = Theme.theme.node.indicator.fontColor;
         title.anchorX = 'right';
         title.anchorY = 'bottom';
-        title.position.set(C.nodeMesh.mount.width - C.nodeMesh.indicator.rightMargin, C.nodeMesh.indicator.bottomMargin, 0);
         title.name = 'indicator';
         return title;
     }
 
     createBackMountMesh(){
-        const w = C.nodeMesh.mount.width;
+        const backMountTop = FBS.nodeAssets.backMountTop.clone(true);
 
-        const radius = C.nodeMesh.mount.roundCornerRadius;
+        const backMountBody = FBS.nodeAssets.backMountBody.clone();
+        backMountBody.position.setX(this.nodeWidth/2);
 
-        const headShape = new THREE.Shape();
-        headShape.moveTo(radius, 0);
-        headShape.lineTo(w - radius, 0);
-        headShape.quadraticCurveTo(w, 0 , w, -radius);
-        headShape.lineTo(0, -radius);
-        headShape.quadraticCurveTo(0, 0, radius, 0);
+        const backMountBottom = FBS.nodeAssets.backMountBottom.clone(true);
 
-        const head = new THREE.Mesh(
-            new THREE.ShapeGeometry( headShape ),
-            new THREE.MeshBasicMaterial({color: FBS.theme.node.mount.back.color})
-        );
-        head.name = 'backMountHead';
-
-        const body = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(w, 1),
-            new THREE.MeshBasicMaterial({color: FBS.theme.node.mount.back.color})
-        );
-
-        body.name = 'backMountBody';
-        body.position.setX(C.nodeMesh.mount.width/2);
-        this.scaleBackMountBody(body);
-
-        const footerShape = new THREE.Shape();
-        footerShape.moveTo(0, radius);
-        footerShape.lineTo(w, radius);
-        footerShape.quadraticCurveTo(w, 0, w-radius, 0);
-        footerShape.lineTo(radius, 0);
-        footerShape.quadraticCurveTo(0, 0, 0, radius);
-
-        const footer = new THREE.Mesh(
-            new THREE.ShapeGeometry( footerShape ),
-            new THREE.MeshBasicMaterial({color: FBS.theme.node.mount.back.color})
-        );
-        footer.name = 'backMountFooter';
-        this.setBackMountFooterPosition(footer);
-
-        const backMount = new THREE.Object3D();
-        backMount.add(head);
-        backMount.add(body);
-        backMount.add(footer);
+        const backMount = new THREE.Group();
+        backMount.add(backMountTop);
+        backMount.add(backMountBody);
+        backMount.add(backMountBottom);
 
         backMount.name = 'backMount';
+
+        const material = new THREE.MeshBasicMaterial({color: Theme.theme.node.mount.back.color});
+        backMount.traverse((o) => {
+            if(o.material) o.material = material;
+        });
 
         return backMount;
     }
 
     createFrontMount () {
-        const w = C.nodeMesh.mount.width - C.nodeMesh.mount.borderSize * 2;
-        const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
+        const headMaterial = new THREE.MeshBasicMaterial({color: Theme.theme.node.mount.front.headColor});
+        const bodyMaterial = new THREE.MeshBasicMaterial({color: Theme.theme.node.mount.front.bodyColor});
+        const footerMaterial = new THREE.MeshBasicMaterial({color: Theme.theme.node.footer.color});
 
-        const mount = new THREE.Object3D();
-        //head
-        const headShape = new THREE.Shape();
-        headShape.moveTo(radius, 0);
-        headShape.lineTo(w - radius, 0);
-        headShape.quadraticCurveTo(w, 0, w, -radius);
-        headShape.lineTo(w, -radius - C.nodeMesh.mount.front.headHeight);
-        headShape.lineTo(0, -radius - C.nodeMesh.mount.front.headHeight);
-        headShape.lineTo(0, -radius);
-        headShape.quadraticCurveTo(0, 0, radius, 0);
-        headShape.closePath();
+        const top = FBS.nodeAssets.frontMountTop.clone(true);
 
-        const headMesh = new THREE.Mesh(
-            new THREE.ShapeGeometry( headShape ),
-            new THREE.MeshBasicMaterial({color: FBS.theme.node.mount.front.headColor})
-        );
-        headMesh.name = 'frontMountHead';
-        mount.add(headMesh);
+        top.traverse((o) => {
+            if(o.material) o.material = headMaterial;
+        });
 
-        const bodyMesh = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(w, 1),
-            new THREE.MeshBasicMaterial({color: FBS.theme.node.mount.front.bodyColor})
-        );
-        bodyMesh.name = 'frontMountBody';
-        this.scaleFrontMountBody(bodyMesh);
-        bodyMesh.position.setX(w/2);
-        mount.add(bodyMesh);
 
-        //footer
-        const footer = this.createFooter();
-        mount.add(footer);
+        const body = FBS.nodeAssets.frontMountBody.clone();
+        body.position.setX(this.nodeWidth/2);
+        body.material = bodyMaterial;
+
+        const bottom = FBS.nodeAssets.frontMountBottom.clone(true);
+        const frontMountFooter = bottom.getObjectByName('frontMountFooter');
+        frontMountFooter.material = footerMaterial;
+        const frontMountCornerBottomLeft = bottom.getObjectByName('frontMountCornerBottomLeft');
+        frontMountCornerBottomLeft.material = footerMaterial;
+        const frontMountBodyBottom = bottom.getObjectByName('frontMountBodyBottom');
+        frontMountBodyBottom.material = footerMaterial;
+        const frontMountCornerBottomRight = bottom.getObjectByName('frontMountCornerBottomRight');
+        frontMountCornerBottomRight.material = footerMaterial;
+
+        const mount = new THREE.Group();
+        mount.add(top);
+        mount.add(body);
+        mount.add(bottom);
 
         mount.name = 'frontMount';
+
         mount.position.set(C.nodeMesh.mount.borderSize, -C.nodeMesh.mount.borderSize, C.layers.frontMount);
 
         return mount;
     }
 
-    createFooter(){
-        const w = C.nodeMesh.mount.width - C.nodeMesh.mount.borderSize * 2;
-        const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
-        const footerHeight = C.nodeMesh.footer.height;
-
-        const footer = new THREE.Object3D();
-
-
-        const footerShape = new THREE.Shape();
-        footerShape.moveTo(0, footerHeight + radius);
-        footerShape.lineTo(w , footerHeight + radius);
-        footerShape.lineTo(w, radius);
-        footerShape.quadraticCurveTo(w, 0, w-radius, 0);
-        footerShape.lineTo(radius, 0);
-        footerShape.quadraticCurveTo(0, 0, 0, radius);
-        footerShape.closePath();
-
-        const footerMesh = new THREE.Mesh(
-            new THREE.ShapeGeometry( footerShape ),
-            new THREE.MeshBasicMaterial({color: FBS.theme.node.footer.color})
+    createRightResizer(){
+        const mesh = new THREE.Mesh(
+            new THREE.PlaneBufferGeometry(C.nodeMesh.rightResizer.width, 1),
+            new THREE.MeshBasicMaterial({color: 'green', transparent: true, opacity:0.5})
         );
-        footerMesh.name = 'frontMountFooter';
+        mesh.name = 'rightResizer';
 
-        footer.add(footerMesh);
+        mesh.position.setX(this.nodeWidth);
 
-        const footerLabel = new Text();
-        footerLabel.name = 'footerLabel';
-        footerLabel.text = 'Learn more';
-        footerLabel.font = FBS.theme.fontPaths.mainNormal;
-        footerLabel.fontSize = C.nodeMesh.footer.label.fontSize;
-        footerLabel.color = FBS.theme.node.footer.label.color;
-        footerLabel.letterSpacing = C.nodeMesh.footer.label.letterSpacing;
-        footerLabel.anchorX = 'left';
-        footerLabel.anchorY = 'bottom';
-        footerLabel.position.set(C.nodeMesh.footer.label.leftMargin, C.nodeMesh.footer.label.bottomMargin, C.layers.footerLabel);
+        return mesh;
+    }
 
-        footer.add(footerLabel);
-        footer.name = 'footer';
-        footer.position.set(0, 0, C.layers.footer);
-        this.setFrontMountFooterPosition(footer);
-
-        return footer;
+    scaleRightResizer(mesh) {
+        mesh = mesh ? mesh : this.mesh.getObjectByName('rightResizer');
+        mesh.scale.setY(Math.abs(this.nodeHeight - C.nodeMesh.mount.roundCornerRadius * 2 -
+            this.cPortsOutput.length * C.nodeMesh.port.height - C.nodeMesh.footer.height));
+        mesh.position.setY(-C.nodeMesh.mount.roundCornerRadius - mesh.scale.y/2);
     }
 
     hoverFooterLabel(){
         const footerLabel = this.mesh.getObjectByName('footerLabel');
-        footerLabel.color = FBS.theme.node.footer.label.hoverColor;
+        footerLabel.color = Theme.theme.node.footer.label.hoverColor;
     }
 
     unhoverFooterLabel(){
         const footerLabel = this.mesh.getObjectByName('footerLabel');
-        footerLabel.color = FBS.theme.node.footer.label.color;
+        footerLabel.color = Theme.theme.node.footer.label.color;
     }
 
     play(mPlay){
@@ -558,22 +515,30 @@ export default class{
 
     select(){
         this.selected = true;
-        const mount = this.mesh.getObjectByName('backMount');
-        for(let i = 0; i < mount.children.length; i += 1){
-            mount.children[i].material.color.setStyle(FBS.theme.node.mount.back.selectedColor);
-        }
+        /**
+         * backMountBody имеет общий материал с:
+         * backMountBodyTop, backMountCornerTopRight, backMountCornerTopLeft, backMountCornerBottomLeft,
+         * backMountCornerBottomRight, backMountBodyBottom
+         */
+        const mount = this.mesh.getObjectByName('backMountBody');
+        mount.material.color.setStyle(Theme.theme.node.mount.back.selectedColor);
+
         const title = this.mesh.getObjectByName('title');
-        title.color = FBS.theme.node.title.fontSelectedColor;
+        title.color = Theme.theme.node.title.fontSelectedColor;
     }
 
     unselect(){
         this.selected = false;
-        const mount = this.mesh.getObjectByName('backMount');
-        for(let i = 0; i < mount.children.length; i += 1){
-            mount.children[i].material.color.setStyle(FBS.theme.node.mount.back.color);
-        }
+        /**
+         * backMountBody имеет общий материал с:
+         * backMountBodyTop, backMountCornerTopRight, backMountCornerTopLeft, backMountCornerBottomLeft,
+         * backMountCornerBottomRight, backMountBodyBottom
+         */
+        const mount = this.mesh.getObjectByName('backMountBody');
+        mount.material.color.setStyle(Theme.theme.node.mount.back.color);
+
         const title = this.mesh.getObjectByName('title');
-        title.color = FBS.theme.node.title.fontColor;
+        title.color = Theme.theme.node.title.fontColor;
     }
 
     getMNode(){
@@ -773,7 +738,7 @@ export default class{
 
         animateTasks.push(this.getRefreshLinesTask());
         FBS.animationControl.animate(animateTasks);
-        this.scaleNodeWithAnimation();
+        this.scaleHeightNodeWithAnimation();
         this.collapseButtonRotate();
     }
 
@@ -897,7 +862,7 @@ export default class{
                 if (cPseudoPortOutput) this.cPortsOutput = [cPseudoPortOutput];
 
                 const mFooter = this.mesh.getObjectByName('frontMountFooter');
-                mFooter.material.color.setStyle(FBS.theme.node.mount.front.bodyColor);
+                mFooter.material.color.setStyle(Theme.theme.node.mount.front.bodyColor);
                 const mFooterLabel = this.mesh.getObjectByName('footerLabel');
                 operationCount += 1;
                 animateTasks.push({
@@ -1009,7 +974,7 @@ export default class{
                 }
 
                 const mFooter = this.mesh.getObjectByName('frontMountFooter');
-                mFooter.material.color.setStyle(FBS.theme.node.footer.color);
+                mFooter.material.color.setStyle(Theme.theme.node.footer.color);
                 const mFooterLabel = this.mesh.getObjectByName('footerLabel');
                 operationCount += 1;
                 animateTasks.push({
@@ -1026,7 +991,7 @@ export default class{
 
             animateTasks.push(this.getRefreshLinesTask());
             FBS.animationControl.animate(animateTasks);
-            this.scaleNodeWithAnimation();
+            this.scaleHeightNodeWithAnimation();
             this.collapseButtonRotate();
         }
     }
@@ -1089,9 +1054,10 @@ export default class{
             this.collapseInputPorts(cPseudoPort, maxVisiblePorts);
         }
 
-        this.scaleNodeWithAnimation();
-        this.setPositionsForInputPorts(this.calcPositionsForInputPorts());
-        this.setPositionsForOutputPorts(this.calcPositionsForOutputPorts());
+        const positions = this.calcPositionsForInputPorts();
+        positions.length = positions.length - 1; //remove position for pseudo port. he moved by tween
+        this.setPositionsForInputPorts(positions);
+        this.scaleHeightNodeWithAnimation();
     }
 
     collapseInputPorts(cPseudoPort, maxVisiblePorts){
@@ -1121,7 +1087,7 @@ export default class{
         }
 
         const positions = this.calcPositionsForOutputPorts();
-        for(let i = this.cPortsOutput.length - 1; i >= 0; i -= 1){
+        for(let i = 0; i < this.cPortsOutput.length; i += 1){
             const mPort = this.cPortsOutput[i].getMPort();
             animateTasks.push({
                 target: mPort.position,
@@ -1168,7 +1134,7 @@ export default class{
         cPseudoPort.changeLabelText(false);
         cPseudoPort.hideConnector();
         this.calcNodeHeight();
-        for(let i = this.cPortsOutput.length - 1; i >= 0; i -= 1){
+        for(let i = 0; i < this.cPortsOutput.length; i += 1){
             const mPort = this.cPortsOutput[i].getMPort();
             const positions = this.calcPositionsForOutputPorts();
             animateTasks.push({
@@ -1190,9 +1156,11 @@ export default class{
             this.collapseOutputPorts(cPseudoPort, maxVisiblePorts);
         }
 
-        this.scaleNodeWithAnimation();
-        this.setPositionsForInputPorts(this.calcPositionsForInputPorts());
-        this.setPositionsForOutputPorts(this.calcPositionsForOutputPorts());
+        const positions = this.calcPositionsForOutputPorts();
+        positions.length = positions.length - 1; //remove position for pseudo port. he moved by tween
+
+        this.setPositionsForOutputPorts(positions);
+        this.scaleHeightNodeWithAnimation();
     }
 
     collapseOutputPorts(cPseudoPort, maxVisiblePorts){
@@ -1282,14 +1250,14 @@ export default class{
         FBS.animationControl.animate(animateTasks);
     }
 
-
-    scaleNodeWithAnimation(){
+    scaleHeightNodeWithAnimation(){
+        this.scaleRightResizer();
         const tasks = [];
         const mBackMount = this.mesh.getObjectByName('backMountBody');
         tasks.push({
             target: mBackMount.scale,
             time: C.animation.nodeCollapseTime,
-            value: {x: 1, y: this.nodeHeight - C.nodeMesh.mount.roundCornerRadius * 2, z: 1}
+            value: {x: this.nodeWidth, y: this.nodeHeight - C.nodeMesh.mount.roundCornerRadius * 2, z: 1}
         });
         tasks.push({
             target: mBackMount.position,
@@ -1301,22 +1269,30 @@ export default class{
         tasks.push({
             target: mFrontMount.scale,
             time: C.animation.nodeCollapseTime,
-            value: {x: 1, y: this.nodeHeight - C.nodeMesh.mount.roundCornerRadius  * 2 - C.nodeMesh.mount.front.headHeight - C.nodeMesh.footer.height, z: 1}
+            value: {
+                x: this.nodeWidth - C.nodeMesh.mount.borderSize * 2,
+                y: this.nodeHeight - C.nodeMesh.mount.roundCornerRadius  * 2 - C.nodeMesh.mount.front.headHeight - C.nodeMesh.footer.height,
+                z: 1
+            }
         });
         tasks.push({
             target: mFrontMount.position,
             time: C.animation.nodeCollapseTime,
-            value: {x: mFrontMount.position.x, y: -(this.nodeHeight - C.nodeMesh.mount.roundCornerRadius  * 2 - C.nodeMesh.mount.front.headHeight - C.nodeMesh.footer.height)/2 - C.nodeMesh.mount.front.headHeight - C.nodeMesh.mount.roundCornerRadius + C.nodeMesh.mount.borderSize, z: mFrontMount.position.z}
+            value: {
+                x: mFrontMount.position.x,
+                y: -(this.nodeHeight - C.nodeMesh.mount.roundCornerRadius  * 2 - C.nodeMesh.mount.front.headHeight - C.nodeMesh.footer.height)/2 - C.nodeMesh.mount.front.headHeight - C.nodeMesh.mount.roundCornerRadius + C.nodeMesh.mount.borderSize,
+                z: mFrontMount.position.z
+            }
         });
 
-        const mFrontFooter = this.mesh.getObjectByName('footer');
+        const mFrontFooter = this.mesh.getObjectByName('frontMountBottom');
         tasks.push({
             target: mFrontFooter.position,
             time: C.animation.nodeCollapseTime,
             value: {x: mFrontFooter.position.x, y: -this.nodeHeight + C.nodeMesh.mount.borderSize*2, z: mFrontFooter.position.z}
         });
 
-        const mBackFooter = this.mesh.getObjectByName('backMountFooter');
+        const mBackFooter = this.mesh.getObjectByName('backMountBottom');
         tasks.push({
             target: mBackFooter.position,
             time: C.animation.nodeCollapseTime,
@@ -1327,36 +1303,99 @@ export default class{
     }
 
     scaleNode(){
+        this.moveIndicator();
+        this.moveOutputPorts();
+        this.moveMenuButton();
+        this.movePlayButton();
         this.scaleBackMountBody();
         this.scaleFrontMountBody();
-        this.setFrontMountFooterPosition()
-        this.setBackMountFooterPosition()
+        this.scaleRightResizer();
     }
 
-    scaleBackMountBody(body){
-        body = body ? body : this.mesh.getObjectByName('backMountBody');
-        body.scale.setY(this.nodeHeight - C.nodeMesh.mount.roundCornerRadius * 2);
+    setNodeWidth(width){
+        this.nodeWidth = Math.max(C.nodeMesh.mount.minWidth, Math.min(C.nodeMesh.mount.maxWidth, width));
+    }
+
+    moveIndicator(){
+        const indicator = this.mesh.getObjectByName('indicator');
+        indicator.position.setX(this.nodeWidth - C.nodeMesh.indicator.rightMargin);
+    }
+
+    moveOutputPorts(){
+        for(let i = 0; i < this.cPortsOutput.length; i += 1){
+            if(this.cPortsOutput[i].type === 'pseudo') {
+                this.cPortsOutput[i].getMPort().position.setX(this.nodeWidth);
+            }
+        }
+        for(let i = 0; i < this.allCPorts.length; i += 1){
+            if(this.allCPorts[i].direction === 'input') continue;
+            this.allCPorts[i].getMPort().position.setX(this.nodeWidth);
+        }
+    }
+
+    moveMenuButton(){
+        const menu = this.mesh.getObjectByName('menuButton');
+        menu.position.setX(this.nodeWidth - C.nodeMesh.header.menu.rightMargin);
+    }
+
+    movePlayButton(){
+        const play = this.mesh.getObjectByName('playButton');
+        play.position.setX(this.nodeWidth - C.nodeMesh.header.play.rightMargin);
+    }
+
+    scaleBackMountBody(){
+        const top = this.mesh.getObjectByName('backMountTop');
+        const topBody = top.getObjectByName('backMountBodyTop');
+        topBody.scale.set(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius * 2, 1, 1);
+        topBody.position.setX(this.nodeWidth/2);
+        const topRightCorner = top.getObjectByName('backMountCornerTopRight');
+        topRightCorner.position.setX(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius);
+
+        const body = this.mesh.getObjectByName('backMountBody');
+        body.scale.set( this.nodeWidth, this.nodeHeight - C.nodeMesh.mount.roundCornerRadius * 2, 1);
         body.position.setY(-this.nodeHeight/2);
+        body.position.setX(this.nodeWidth/2);
+
+        const bottom = this.mesh.getObjectByName('backMountBottom');
+        bottom.position.setY(-this.nodeHeight);
+        const bottomBody = bottom.getObjectByName('backMountBodyBottom');
+        bottomBody.scale.set(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius * 2, 1, 1);
+        bottomBody.position.setX(this.nodeWidth/2);
+        const bottomRightCorner = bottom.getObjectByName('backMountCornerBottomRight');
+        bottomRightCorner.position.setX(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius);
     }
 
-    scaleFrontMountBody(body){
-        body = body ? body : this.mesh.getObjectByName('frontMountBody');
+    scaleFrontMountBody(){
+        const top = this.mesh.getObjectByName('frontMountTop');
+        const topBody = top.getObjectByName('frontMountBodyTop');
+        topBody.scale.set(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius * 2, 1, 1);
+        topBody.position.setX(this.nodeWidth/2 - C.nodeMesh.mount.borderSize);
+        const topRightCorner = top.getObjectByName('frontMountCornerTopRight');
+        topRightCorner.position.setX(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize);
+        const header = top.getObjectByName('frontMountHeader');
+        header.scale.setX(this.nodeWidth - C.nodeMesh.mount.borderSize * 2);
+        header.position.setX(this.nodeWidth/2 - C.nodeMesh.mount.borderSize);
 
-        const h = this.nodeHeight - C.nodeMesh.mount.roundCornerRadius  * 2 - C.nodeMesh.mount.front.headHeight -
-            C.nodeMesh.footer.height;
+        const bodyHeight = this.nodeHeight - C.nodeMesh.mount.roundCornerRadius  * 2 - C.nodeMesh.mount.front.headHeight - C.nodeMesh.footer.height;
+        const body = this.mesh.getObjectByName('frontMountBody');
+        body.scale.set(this.nodeWidth - C.nodeMesh.mount.borderSize * 2, bodyHeight, 1);
+        body.position.setY(-bodyHeight/2 - C.nodeMesh.mount.front.headHeight - C.nodeMesh.mount.roundCornerRadius + C.nodeMesh.mount.borderSize);
+        body.position.setX(this.nodeWidth/2 - C.nodeMesh.mount.borderSize);
 
-        body.scale.setY(h);
-        body.position.setY(-h/2 - C.nodeMesh.mount.front.headHeight - C.nodeMesh.mount.roundCornerRadius + C.nodeMesh.mount.borderSize);
-    }
-
-    setFrontMountFooterPosition(footer){
-        footer = footer ? footer : this.mesh.getObjectByName('footer');
-        footer.position.setY(-this.nodeHeight + C.nodeMesh.mount.borderSize*2);
-    }
-
-    setBackMountFooterPosition(footer){
-        footer = footer ? footer : this.mesh.getObjectByName('backMountFooter');
-        footer.position.setY(-this.nodeHeight);
+        const bottom = this.mesh.getObjectByName('frontMountBottom');
+        bottom.position.setY(-this.nodeHeight + C.nodeMesh.mount.borderSize * 2);
+        const frontMountFooter = bottom.getObjectByName('frontMountFooter');
+        frontMountFooter.scale.setX(this.nodeWidth - C.nodeMesh.mount.borderSize * 2);
+        frontMountFooter.position.set(
+            this.nodeWidth/2 - C.nodeMesh.mount.borderSize,
+            C.nodeMesh.footer.height/2 + C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize,
+            frontMountFooter.position.z
+        );
+        const bottomBody = bottom.getObjectByName('frontMountBodyBottom');
+        bottomBody.scale.setX(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius * 2);
+        bottomBody.position.setX(this.nodeWidth/2 - C.nodeMesh.mount.borderSize);
+        const bottomRightCorner = bottom.getObjectByName('frontMountCornerBottomRight');
+        bottomRightCorner.position.setX(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize);
     }
 
     calcNodeHeight(portsCount) {
@@ -1418,48 +1457,62 @@ export default class{
         let m;
         m = this.mesh.getObjectByName('title');
         if(m){
-            m.color = FBS.theme.node.title.fontColor;
-            m.font = FBS.theme.fontPaths.mainMedium;
+            m.color = Theme.theme.node.title.fontColor;
+            m.font = Theme.theme.fontPaths.mainMedium;
         }
 
         m = this.mesh.getObjectByName('indicator');
         if(m){
-            m.color = FBS.theme.node.indicator.fontColor;
-            m.font = FBS.theme.fontPaths.mainNormal;
+            m.color = Theme.theme.node.indicator.fontColor;
+            m.font = Theme.theme.fontPaths.mainNormal;
         }
 
         m = this.mesh.getObjectByName('collapseButton');
-        if(m) m.color = FBS.theme.node.header.collapse.fontColor;
+        if(m) m.color = Theme.theme.node.header.collapse.fontColor;
 
         m = this.mesh.getObjectByName('playButton');
-        if(m) m.color = FBS.theme.node.header.play.fontColor;
+        if(m) m.color = Theme.theme.node.header.play.fontColor;
 
         m = this.mesh.getObjectByName('menuButton');
-        if(m) m.color = FBS.theme.node.header.menu.fontColor;
+        if(m) m.color = Theme.theme.node.header.menu.fontColor;
 
-        m = this.mesh.getObjectByName('frontMountHead');
-        if(m) m.material.color.setStyle(FBS.theme.node.mount.front.headColor);
+        /**
+         *frontMountHeader имеет общий материал с:
+         * frontMountCornerTopLeft, frontMountBodyTop, frontMountCornerTopRight
+         */
+        m = this.mesh.getObjectByName('frontMountHeader');
+        if(m) m.material.color.setStyle(Theme.theme.node.mount.front.headColor);
+
 
         m = this.mesh.getObjectByName('frontMountBody');
-        if(m) m.material.color.setStyle(FBS.theme.node.mount.front.bodyColor);
+        if(m) m.material.color.setStyle(Theme.theme.node.mount.front.bodyColor);
 
+        /**
+         * frontMountFooter имеет общий материал с:
+         * frontMountCornerBottomLeft, frontMountBodyBottom, frontMountCornerBottomRight
+         */
         m = this.mesh.getObjectByName('frontMountFooter');
-        if(m) m.material.color.setStyle(FBS.theme.node.footer.color);
+        if(m) {
+            if (this.fullCollapse.isCollapsed) {
+                m.material.color.setStyle(Theme.theme.node.mount.front.bodyColor);
+            } else {
+                m.material.color.setStyle(Theme.theme.node.footer.color);
+            }
+        }
 
         m = this.mesh.getObjectByName('footerLabel');
         if(m) {
-            m.color = FBS.theme.node.footer.label.color;
-            m.font = FBS.theme.fontPaths.mainNormal;
+            m.color = Theme.theme.node.footer.label.color;
+            m.font = Theme.theme.fontPaths.mainNormal;
         }
 
-        m = this.mesh.getObjectByName('backMountHead');
-        if(m) m.material.color.setStyle(FBS.theme.node.mount.back.color);
-
+        /**
+         * backMountBody имеет общий материал с:
+         * backMountBodyTop, backMountCornerTopRight, backMountCornerTopLeft, backMountCornerBottomLeft,
+         * backMountCornerBottomRight, backMountBodyBottom
+         */
         m = this.mesh.getObjectByName('backMountBody');
-        if(m) m.material.color.setStyle(FBS.theme.node.mount.back.color);
-
-        m = this.mesh.getObjectByName('backMountFooter');
-        if(m) m.material.color.setStyle(FBS.theme.node.mount.back.color);
+        if(m) m.material.color.setStyle(Theme.theme.node.mount.back.color);
 
         if(this.selected) this.select();
 
