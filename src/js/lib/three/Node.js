@@ -312,7 +312,6 @@ export default class{
         for(let i = 0; i < this.cPortsOutput.length; i += 1){
             if(!positions[i]) break;
             const mPort = this.cPortsOutput[i].getMPort();
-            clog(this.cPortsOutput[i].type, i);
             mPort.position.set(positions[i].x, positions[i].y, positions[i].z);
         }
     }
@@ -472,7 +471,7 @@ export default class{
     createRightResizer(){
         const mesh = new THREE.Mesh(
             new THREE.PlaneBufferGeometry(C.nodeMesh.rightResizer.width, 1),
-            new THREE.MeshBasicMaterial({color: 'green', transparent: true, opacity:0.5})
+            new THREE.MeshBasicMaterial({color: 'green', transparent: true, opacity:0})
         );
         mesh.name = 'rightResizer';
 
