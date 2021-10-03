@@ -1,35 +1,58 @@
 import * as THREE from 'three';
-import Theme from './../../themes/Theme';
+import ThemeControl from './../../themes/ThemeControl';
 import C from "../Constants";
 import {Text} from "troika-three-text";
-import FBS from './../FlowBuilderStore';
+import MaterialControl from './MaterialControl';
 
 export default class{
     constructor() {
-        this.defaultMaterial = new THREE.MeshBasicMaterial({color: 'green'});
-        this.defaultTransparentMaterial = new THREE.MeshBasicMaterial({
-            color: 'red', transparent: true, opacity: 0, side: THREE.DoubleSide});
+        //elements
+        this.bigMount = this.createBigMount();
 
-        this.bigMount = this.getBigMount();
+        //CONTROL
+        this.title = this.createTitle();
+        this.indicator = this.createIndicator();
+        this.rightResizer = this.createRightResizer();
 
-        //REGULAR
-        this.backMountTop = this.getBackTop();
-        this.backMountBody = this.getBackBody();
-        this.backMountBottom = this.getBackBottom();
-        this.frontMountTop = this.getFrontTop();
-        this.frontMountBody = this.getFrontBody();
-        this.frontMountBottom = this.getFrontBottom();
+        //BACK
+        this.backCornerTopLeft = this.createBackCornerTopLeft();
+        this.backCornerTopRight = this.createBackCornerTopRight();
+        this.backCornerBottomLeft = this.createBackCornerBottomLeft();
+        this.backCornerBottomRight = this.createBackCornerBottomRight();
+        this.backBody = this.createBackBody();
+        this.backTopBody = this.createBackTopBody();
+        this.backBottomBody = this.createBackBottomBody();
+
+        //FRONT
+        this.frontCornerTopLeft = this.createFrontCornerTopLeft();
+        this.frontTopBody = this.createFrontTopBody();
+        this.frontCornerTopRight = this.createFrontCornerTopRight();
+        this.frontHeader = this.createFrontHeader();
+        this.frontBody = this.createFrontBody();
+        this.frontCornerBottomLeft = this.createFrontCornerBottomLeft();
+        this.frontBottomBody = this.createFrontBottomBody();
+        this.frontFooter = this.createFrontFooter();
+        this.footerLabel = this.createFooterLabel();
+        this.frontCornerBottomRight = this.createFrontCornerBottomRight();
 
         //MINI
-        this.miniBack = this.getMiniBack();
-        this.miniFrontTop = this.getMiniFrontTop();
-        this.miniFrontBody = this.getMiniFrontBody();
-        this.miniFrontBottom = this.getMiniFrontBottom();
-        this.miniIndicatorMount = this.getMiniIndicatorMount();
-        this.miniMenuButton = this.getMiniMenuButton();
+        this.miniBack = this.createMiniBack();
+        this.miniFrontTop = this.createMiniFrontTop();
+        this.miniFrontBody = this.createMiniFrontBody();
+        this.miniFrontBottom = this.createMiniFrontBottom();
+        this.miniIndicatorMount = this.createMiniIndicatorMount();
+        this.miniMenuButton = this.createMiniMenuButton();
+
+        //CONTROL PANEL
+        this.collapseButton = this.createCollapseButton();
+        this.menuButton = this.createMenuButton();
+        this.playButton = this.createPlayButton();
     }
 
-    getBigMount(){
+    createBigMount(){
+        const name = 'bigMount';
+        const material = MaterialControl.getMaterial(name);
+
         const r = C.nodeMesh.bigMount.radius;
         const w = 1;
         const shape = new THREE.Shape();
@@ -44,314 +67,303 @@ export default class{
         shape.quadraticCurveTo(0, 0, r, 0);
         shape.closePath();
 
-        const name = 'bigMount';
-        const material = FBS.materialControl.getMaterial(name, false)
-        const mesh = new THREE.Mesh(
-            new THREE.ShapeGeometry( shape ),
-            material
-        );
+        const mesh = new THREE.Mesh(new THREE.ShapeGeometry( shape ), material);
         mesh.name = name;
 
         return mesh;
     }
 
-    //----------------------------------------------BACK------------------------------------------------
+    //BACK
 
-    //BACK MOUNT TOP
+    getBackMount(){
+        const backMount = new THREE.Group();
+        backMount.add(this.getBackTop());
+        backMount.add(this.backBody);
+        backMount.add(this.getBackBottom());
+
+        backMount.name = 'backMount';
+
+        return backMount;
+    }
 
     getBackTop(){
         const group = new THREE.Group();
-        group.add(this.createBackCornerTopLeft());
-        group.add(this.createBackTopBody());
-        group.add(this.createBackCornerTopRight());
+        group.add(this.backCornerTopLeft);
+        group.add(this.backTopBody);
+        group.add(this.backCornerTopRight);
 
-        group.name = 'backMountTop';
+        group.name = 'backTop';
 
         return group;
     }
 
     createBackCornerTopLeft(){
+        const name = 'backCornerTopLeft';
+        const material = MaterialControl.getMaterial(name);
+
         const radius = C.nodeMesh.mount.roundCornerRadius;
+        const shape = new THREE.Shape();
+        shape.moveTo(radius, 0);
+        shape.lineTo(radius, -radius);
+        shape.lineTo(0, -radius);
+        shape.quadraticCurveTo(0, 0, radius, 0);
 
-        const cornerTopLeftShape = new THREE.Shape();
-        cornerTopLeftShape.moveTo(radius, 0);
-        cornerTopLeftShape.lineTo(radius, -radius);
-        cornerTopLeftShape.lineTo(0, -radius);
-        cornerTopLeftShape.quadraticCurveTo(0, 0, radius, 0);
-        const cornerTopLeft = new THREE.Mesh(
-            new THREE.ShapeGeometry( cornerTopLeftShape ),
-            this.defaultMaterial
-        );
-        cornerTopLeft.name = 'backMountCornerTopLeft';
+        const mesh = new THREE.Mesh(new THREE.ShapeGeometry( shape ), material);
+        mesh.name = 'backCornerTopLeft';
 
-        return cornerTopLeft;
+        return mesh;
     }
 
     createBackTopBody(){
-        const mesh = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(1, C.nodeMesh.mount.roundCornerRadius),
-            this.defaultMaterial
-        );
+        const name = 'backBodyTop';
+        const material = MaterialControl.getMaterial(name);
 
-        mesh.name = 'backMountBodyTop';
+        const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, C.nodeMesh.mount.roundCornerRadius), material);
 
+        mesh.name = name;
         mesh.position.setY(-C.nodeMesh.mount.roundCornerRadius/2);
 
         return mesh;
     }
 
     createBackCornerTopRight() {
-        const radius = C.nodeMesh.mount.roundCornerRadius;
+        const name = 'backCornerTopRight';
+        const material = MaterialControl.getMaterial(name);
 
+        const radius = C.nodeMesh.mount.roundCornerRadius;
         const shape = new THREE.Shape();
         shape.moveTo(0, 0);
         shape.quadraticCurveTo(radius, 0, radius, -radius);
         shape.lineTo(0, -radius);
         shape.lineTo(0, 0);
-        const mesh = new THREE.Mesh(
-            new THREE.ShapeGeometry(shape),
-            this.defaultMaterial
-        );
-        mesh.name = 'backMountCornerTopRight';
+        const mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), material);
+        mesh.name = name;
 
         return mesh;
     }
 
-    //BACK MOUNT BODY
+    createBackBody(){
+        const name = 'backBody';
+        const material = MaterialControl.getMaterial(name);
 
-    getBackBody(){
-        const mesh = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(1, 1),
-            this.defaultMaterial
-        );
-
-        mesh.name = 'backMountBody';
+        const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1), material);
+        mesh.name = name;
 
         return mesh;
     }
-
-    //BACK MOUNT BOTTOM
 
     getBackBottom(){
         const group = new THREE.Group();
-        group.add(this.createBackCornerBottomLeft());
-        group.add(this.createBackBottomBody());
-        group.add(this.createBackCornerBottomRight());
+        group.add(this.backCornerBottomLeft);
+        group.add(this.backBottomBody);
+        group.add(this.backCornerBottomRight);
 
-        group.name = 'backMountBottom';
+        group.name = 'backBottom';
 
         return group;
     }
 
     createBackCornerBottomLeft(){
-        const radius = C.nodeMesh.mount.roundCornerRadius;
+        const name = 'backCornerBottomLeft';
+        const material = MaterialControl.getMaterial(name);
 
+        const radius = C.nodeMesh.mount.roundCornerRadius;
         const shape = new THREE.Shape();
         shape.moveTo(0, radius);
         shape.lineTo(radius, radius);
         shape.lineTo(radius, 0);
         shape.quadraticCurveTo(0, 0, 0, radius);
 
-        const mesh = new THREE.Mesh(
-            new THREE.ShapeGeometry( shape ),
-            this.defaultMaterial
-        );
-        mesh.name = 'backMountCornerBottomLeft';
+        const mesh = new THREE.Mesh(new THREE.ShapeGeometry( shape ), material);
+        mesh.name = name;
 
         return mesh;
     }
 
     createBackBottomBody(){
-        const mesh = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(1, C.nodeMesh.mount.roundCornerRadius),
-            this.defaultMaterial
-        );
+        const name = 'backBodyBottom';
+        const material = MaterialControl.getMaterial(name);
 
-        mesh.name = 'backMountBodyBottom';
+        const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, C.nodeMesh.mount.roundCornerRadius), material);
+        mesh.name = name;
         mesh.position.setY(C.nodeMesh.mount.roundCornerRadius/2);
+
         return mesh;
     }
 
     createBackCornerBottomRight(){
-        const radius = C.nodeMesh.mount.roundCornerRadius;
+        const name = 'backCornerBottomRight';
+        const material = MaterialControl.getMaterial(name);
 
+        const radius = C.nodeMesh.mount.roundCornerRadius;
         const shape = new THREE.Shape();
         shape.moveTo(0, radius);
         shape.lineTo( radius, radius);
         shape.quadraticCurveTo(radius, 0, 0, 0);
         shape.lineTo( 0, radius);
 
-        const mesh = new THREE.Mesh(
-            new THREE.ShapeGeometry( shape ),
-            this.defaultMaterial
-        );
-        mesh.name = 'backMountCornerBottomRight';
+        const mesh = new THREE.Mesh(new THREE.ShapeGeometry( shape ), material);
+        mesh.name = name;
 
         return mesh;
     }
 
-    //----------------------------------------------FRONT------------------------------------------------
-
-    //FRONT MOUNT TOP
+    //FRONT
 
     getFrontTop(){
         const group = new THREE.Group();
-        group.add(this.createFrontCornerTopLeft());
-        group.add(this.createFrontTopBody());
-        group.add(this.createFrontCornerTopRight());
-        group.add(this.createFrontHeader());
+        group.add(this.frontCornerTopLeft);
+        group.add(this.frontTopBody);
+        group.add(this.frontCornerTopRight);
+        group.add(this.frontHeader);
 
-        group.name = 'frontMountTop';
+        group.name = 'frontTop';
 
         return group;
     }
 
     createFrontCornerTopLeft(){
+        const name = 'frontCornerTopLeft';
+        const material = MaterialControl.getMaterial(name);
+
         const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
+        const shape = new THREE.Shape();
+        shape.moveTo(radius, 0);
+        shape.lineTo(radius, -radius);
+        shape.lineTo(0, -radius);
+        shape.quadraticCurveTo(0, 0, radius, 0);
 
-        const cornerTopLeftShape = new THREE.Shape();
-        cornerTopLeftShape.moveTo(radius, 0);
-        cornerTopLeftShape.lineTo(radius, -radius);
-        cornerTopLeftShape.lineTo(0, -radius);
-        cornerTopLeftShape.quadraticCurveTo(0, 0, radius, 0);
-        const cornerTopLeft = new THREE.Mesh(
-            new THREE.ShapeGeometry( cornerTopLeftShape ),
-            this.defaultMaterial
-        );
-        cornerTopLeft.name = 'frontMountCornerTopLeft';
+        const mesh = new THREE.Mesh(new THREE.ShapeGeometry( shape ), material);
+        mesh.name = name;
 
-        return cornerTopLeft;
+        return mesh;
     }
 
     createFrontTopBody(){
+        const name = 'frontBodyTop';
+        const material = MaterialControl.getMaterial(name);
+
         const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
-        const mesh = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(1, radius),
-            this.defaultMaterial
-        );
+        const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, radius), material);
 
-        mesh.name = 'frontMountBodyTop';
-
+        mesh.name = name;
         mesh.position.setY(-radius/2);
 
         return mesh;
     }
 
     createFrontCornerTopRight() {
-        const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
+        const name = 'frontCornerTopRight';
+        const material = MaterialControl.getMaterial(name);
 
+        const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
         const shape = new THREE.Shape();
         shape.moveTo(0, 0);
         shape.quadraticCurveTo(radius, 0, radius, -radius);
         shape.lineTo(0, -radius);
         shape.lineTo(0, 0);
-        const mesh = new THREE.Mesh(
-            new THREE.ShapeGeometry(shape),
-            this.defaultMaterial
-        );
-        mesh.name = 'frontMountCornerTopRight';
+
+        const mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), material);
+        mesh.name = name;
 
         return mesh;
     }
 
     createFrontHeader(){
-        const mesh = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(1, C.nodeMesh.mount.front.headHeight),
-            this.defaultMaterial
-        );
+        const name = 'frontHeader';
+        const material = MaterialControl.getMaterial(name);
 
-        mesh.name = 'frontMountHeader';
+        const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, C.nodeMesh.mount.front.headHeight), material);
 
+        mesh.name = name;
         mesh.position.setY(-C.nodeMesh.mount.front.headHeight/2 - C.nodeMesh.mount.roundCornerRadius + C.nodeMesh.mount.borderSize);
 
         return mesh;
     }
 
-    //FRONT MOUNT BODY
+    createFrontBody(){
+        const name = 'frontBody';
+        const material = MaterialControl.getMaterial(name);
 
-    getFrontBody(){
-        const mesh = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(1, 1),
-            this.defaultMaterial
-        );
-
-        mesh.name = 'frontMountBody';
+        const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1), material);
+        mesh.name = name;
 
         return mesh;
     }
 
-    //FRONT MOUNT BOTTOM
-
     getFrontBottom(){
         const group = new THREE.Group();
-        group.add(this.createFrontCornerBottomLeft());
-        group.add(this.createFrontBottomBody());
-        group.add(this.createFrontFooter());
-        group.add(this.createFooterLabel());
-        group.add(this.createFrontCornerBottomRight());
+        group.add(this.frontCornerBottomLeft);
+        group.add(this.frontBottomBody);
+        group.add(this.frontFooter);
+        group.add(this.footerLabel);
+        group.add(this.frontCornerBottomRight);
 
-        group.name = 'frontMountBottom';
+        group.name = 'frontBottom';
 
         return group;
     }
 
     createFrontFooter(){
-        const mountFooter = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(1, C.nodeMesh.footer.height),
-            this.defaultMaterial
-        );
+        const name = 'frontFooter';
+        const material = MaterialControl.getMaterial(name);
 
-        mountFooter.name = 'frontMountFooter';
+        const mountFooter = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, C.nodeMesh.footer.height), material);
+
+        mountFooter.name = name;
 
         return mountFooter;
     }
 
     createFooterLabel(){
-        const footerLabel = new Text();
-        footerLabel.name = 'footerLabel';
-        footerLabel.text = 'Learn more';
-        footerLabel.font = Theme.theme.fontPaths.mainNormal;
-        footerLabel.fontSize = C.nodeMesh.footer.label.fontSize;
-        footerLabel.color = Theme.theme.node.footer.label.color;
-        footerLabel.letterSpacing = C.nodeMesh.footer.label.letterSpacing;
-        footerLabel.anchorX = 'left';
-        footerLabel.anchorY = 'bottom';
-        footerLabel.position.set(C.nodeMesh.footer.label.leftMargin, C.nodeMesh.footer.label.bottomMargin, C.layers.footerLabel);
+        const mesh = new Text();
+        mesh.name = 'footerLabel';
+        mesh.text = 'Learn more';
+        mesh.font = ThemeControl.theme.fontPaths.mainNormal;
+        mesh.fontSize = C.nodeMesh.footer.label.fontSize;
+        mesh.material = MaterialControl.getMaterial(mesh.name);
+        mesh.letterSpacing = C.nodeMesh.footer.label.letterSpacing;
+        mesh.anchorX = 'left';
+        mesh.anchorY = 'bottom';
+        mesh.position.set(C.nodeMesh.footer.label.leftMargin, C.nodeMesh.footer.label.bottomMargin, C.layers.footerLabel);
 
-        return footerLabel;
+        return mesh;
     }
 
     createFrontCornerBottomLeft(){
-        const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
+        const name = 'frontCornerBottomLeft';
+        const material = MaterialControl.getMaterial(name);
 
+        const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
         const shape = new THREE.Shape();
         shape.moveTo(0, radius);
         shape.lineTo(radius, radius);
         shape.lineTo(radius, 0);
         shape.quadraticCurveTo(0, 0, 0, radius);
 
-        const mesh = new THREE.Mesh(
-            new THREE.ShapeGeometry( shape ),
-            this.defaultMaterial
-        );
-        mesh.name = 'frontMountCornerBottomLeft';
+        const mesh = new THREE.Mesh(new THREE.ShapeGeometry( shape ), material);
+        mesh.name = name;
 
         return mesh;
     }
 
     createFrontBottomBody(){
-        const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
-        const mesh = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(1, radius),
-            this.defaultMaterial
-        );
+        const name = 'frontBodyBottom';
+        const material = MaterialControl.getMaterial(name);
 
-        mesh.name = 'frontMountBodyBottom';
+        const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
+        const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, radius), material);
+
+        mesh.name = name;
         mesh.position.setY(radius/2);
+
         return mesh;
     }
 
     createFrontCornerBottomRight(){
+        const name = 'frontCornerBottomRight';
+        const material = MaterialControl.getMaterial(name);
+
         const radius = C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize;
 
         const shape = new THREE.Shape();
@@ -360,18 +372,160 @@ export default class{
         shape.quadraticCurveTo(radius, 0, 0, 0);
         shape.lineTo( 0, radius);
 
-        const mesh = new THREE.Mesh(
-            new THREE.ShapeGeometry( shape ),
-            this.defaultMaterial
-        );
-        mesh.name = 'frontMountCornerBottomRight';
+        const mesh = new THREE.Mesh(new THREE.ShapeGeometry( shape ), material);
+        mesh.name = name;
 
         return mesh;
     }
 
-    //MINI NODE
+    getFrontMount(){
+        const group = new THREE.Group();
+        group.add(this.getFrontTop());
+        group.add(this.frontBody);
+        group.add(this.getFrontBottom());
 
-    getMiniBack(){
+        group.name = 'frontMount';
+
+        group.position.set(C.nodeMesh.mount.borderSize, -C.nodeMesh.mount.borderSize, C.layers.frontMount);
+
+        return group;
+    }
+
+    //CONTROL PANEL
+
+    createCollapseButton(){
+        const mesh = new Text();
+        mesh.name = 'collapseButton';
+        mesh.text = '';
+        mesh.font = C.fontPaths.awSolid;
+        mesh.fontSize = C.nodeMesh.header.collapse.fontSize;
+        mesh.material = MaterialControl.getMaterial(mesh.name);
+        mesh.anchorX = 8;
+        mesh.anchorY = -9.4;
+        mesh.textAlign = 'center';
+        mesh.rotateZ(Math.PI);
+        mesh.position.set(C.nodeMesh.header.collapse.leftMargin, C.nodeMesh.header.height/2-C.nodeMesh.header.collapse.topMargin, 0);
+
+        return mesh;
+    }
+
+    createPlayButton(){
+        const mesh = new Text();
+        mesh.name = 'playButton';
+        mesh.text = '';
+        mesh.font = C.fontPaths.awSolid;
+        mesh.fontSize = C.nodeMesh.header.play.fontSize;
+        mesh.material = MaterialControl.getMaterial(mesh.name);
+        mesh.anchorX = 'right';
+        mesh.anchorY = 'top';
+        mesh.position.setY( C.nodeMesh.header.height/2 - C.nodeMesh.header.play.topMargin);
+
+        return mesh;
+    }
+
+    createMenuButton(){
+        const mesh = new Text();
+        mesh.name = 'menuButton';
+        mesh.text = '';
+        mesh.font = C.fontPaths.awSolid;
+        mesh.fontSize = C.nodeMesh.header.menu.fontSize;
+        mesh.material = MaterialControl.getMaterial(mesh.name);
+        mesh.anchorX = 'right';
+        mesh.anchorY = 'top';
+        mesh.name = 'menuButton';
+        mesh.position.setY(  C.nodeMesh.header.height/2 - C.nodeMesh.header.menu.topMargin);
+
+        return mesh;
+    }
+
+    getControlPanel(withCollapseButton){
+        const group = new THREE.Group();
+        group.name = 'controlPanel';
+
+        if(withCollapseButton) group.add(this.collapseButton);
+        group.add(this.playButton);
+        group.add(this.menuButton);
+
+        group.position.set(0, -C.nodeMesh.header.height/2, C.layers.header);
+
+        return group;
+    }
+
+    //SHIELD
+
+    getRegularShield(options){
+        const group = new THREE.Group();
+
+        group.add(this.getBackMount());
+        group.add(this.getFrontMount());
+        group.add(this.rightResizer);
+        group.add(this.getControlPanel(options.withCollapseButton));
+
+        group.name = 'regularMount';
+
+        return group;
+    }
+
+    getMiniShield(){
+        const group = new THREE.Group();
+        group.add(this.miniBack);
+        group.add(this.miniFrontTop);
+        group.add(this.miniFrontBody);
+        group.add(this.miniFrontBottom);
+        group.add(this.miniIndicatorMount);
+        group.add(this.miniMenuButton);
+
+        group.name = 'miniMount';
+
+        group.visible = false;
+        group.scale.set(0, 0, 1);
+
+        return group;
+    }
+
+    createTitle() {
+        const mesh = new Text();
+        mesh.name = 'title';
+        mesh.font = ThemeControl.theme.fontPaths.mainMedium;
+        mesh.fontSize = C.nodeMesh.title.fontSize;
+        mesh.color = ThemeControl.theme.node.title.fontColor;
+        mesh.material = MaterialControl.getMaterial(mesh.name);
+        mesh.anchorX = 'left';
+        mesh.anchorY = 'bottom';
+        mesh.position.set(C.nodeMesh.title.leftMargin, C.nodeMesh.title.bottomMargin, 0);
+
+        return mesh;
+    }
+
+    createIndicator(){
+        const mesh = new Text();
+        mesh.name = 'indicator';
+        mesh.font = ThemeControl.theme.fontPaths.mainNormal;
+        mesh.fontSize = C.nodeMesh.indicator.fontSize;
+        mesh.color = ThemeControl.theme.node.indicator.fontColor;
+        mesh.material = MaterialControl.getMaterial(mesh.name);
+        mesh.anchorX = 'right';
+        mesh.anchorY = 'bottom';
+        mesh.position.setZ(C.layers.indicator);
+
+        return mesh;
+    }
+
+    createRightResizer(){
+        const name = 'rightResizer';
+        const material = MaterialControl.getMaterial(name);
+        const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(C.nodeMesh.rightResizer.width, 1), material);
+        mesh.name = name;
+
+        return mesh;
+    }
+
+    //MINI
+
+    createMiniBack(){
+        const name = 'miniBackMount';
+        const material = MaterialControl.getMaterial(name);
+
         const r = C.miniNodeMesh.roundCornerRadius;
         const w = C.miniNodeMesh.width;
         const h = C.miniNodeMesh.height;
@@ -388,16 +542,16 @@ export default class{
         shape.quadraticCurveTo(0, 0, r, 0);
         shape.closePath();
 
-        const mesh = new THREE.Mesh(
-            new THREE.ShapeGeometry( shape ),
-            this.defaultMaterial
-        );
-        mesh.name = 'miniBackMount';
+        const mesh = new THREE.Mesh(new THREE.ShapeGeometry( shape ), material);
+        mesh.name = name;
 
         return mesh;
     }
 
-    getMiniFrontTop(){
+    createMiniFrontTop(){
+        const name = 'miniFrontTop';
+        const material = MaterialControl.getMaterial(name);
+
         const r = C.miniNodeMesh.roundCornerRadius;
         const w = C.miniNodeMesh.width;
 
@@ -408,31 +562,30 @@ export default class{
         shape.lineTo(0, -r);
         shape.quadraticCurveTo(0, 0, r, 0);
 
-        const mesh = new THREE.Mesh(
-            new THREE.ShapeGeometry( shape ),
-            this.defaultMaterial
-        );
-        mesh.position.set(0,0, 0);
-        mesh.name = 'miniFrontTop';
+        const mesh = new THREE.Mesh(new THREE.ShapeGeometry( shape ), material);
+        mesh.name = name;
 
         return mesh;
     }
 
-    getMiniFrontBody(){
+    createMiniFrontBody(){
+        const name = 'miniFrontBody';
+        const material = MaterialControl.getMaterial(name);
+
         const w = C.miniNodeMesh.width - C.miniNodeMesh.borderSize*2;
         const h = C.miniNodeMesh.height - C.miniNodeMesh.roundCornerRadius * 2 - C.miniNodeMesh.footerHeight;
-        const mesh = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(w, h),
-            this.defaultMaterial
-        );
+        const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(w, h), material);
 
-        mesh.name = 'miniFrontBody';
+        mesh.name = name;
         mesh.position.set(C.miniNodeMesh.width/2, -h/2 - C.miniNodeMesh.roundCornerRadius, 0);
 
         return mesh;
     }
 
-    getMiniFrontBottom(){
+    createMiniFrontBottom(){
+        const name = 'miniFrontBottom';
+        const material = MaterialControl.getMaterial(name);
+
         const r = C.miniNodeMesh.roundCornerRadius;
         const w = C.miniNodeMesh.width - C.miniNodeMesh.borderSize*2;
         const h = C.miniNodeMesh.footerHeight;
@@ -445,12 +598,9 @@ export default class{
         shape.quadraticCurveTo(0, -h-r, 0, -h);
         shape.lineTo(0, 0);
 
-        const mesh = new THREE.Mesh(
-            new THREE.ShapeGeometry( shape ),
-            this.defaultMaterial
-        );
+        const mesh = new THREE.Mesh(new THREE.ShapeGeometry( shape ), material);
 
-        mesh.name = 'miniFrontBottom';
+        mesh.name = name;
         mesh.position.set(
             C.miniNodeMesh.borderSize,
             -C.miniNodeMesh.height + C.miniNodeMesh.borderSize + r + h,
@@ -460,7 +610,10 @@ export default class{
         return mesh;
     }
 
-    getMiniIndicatorMount(){
+    createMiniIndicatorMount(){
+        const name = 'miniIndicatorMount';
+        const material = MaterialControl.getMaterial(name);
+
         const r = C.miniNodeMesh.roundCornerRadius;
         const w = C.miniNodeMesh.indicatorMountWidth;
         const h = C.miniNodeMesh.indicatorMountHeight;
@@ -477,24 +630,21 @@ export default class{
         shape.quadraticCurveTo(0, 0, r, 0);
         shape.closePath();
 
-        const mesh = new THREE.Mesh(
-            new THREE.ShapeGeometry( shape ),
-            this.defaultMaterial
-        );
+        const mesh = new THREE.Mesh(new THREE.ShapeGeometry( shape ), material);
 
         mesh.position.set((C.miniNodeMesh.width - w)/2, -(C.miniNodeMesh.height - h)/2, 0);
-        mesh.name = 'miniIndicatorMount';
+        mesh.name = name;
 
         return mesh;
     }
 
-    getMiniMenuButton(){
+    createMiniMenuButton(){
         const mesh = new Text();
         mesh.name = 'miniMenuButton';
         mesh.text = '';
         mesh.font = C.fontPaths.awSolid;
         mesh.fontSize = C.miniNodeMesh.menuButtonFontSize;
-        mesh.color = Theme.theme.node.header.menu.fontColor;
+        mesh.material = MaterialControl.getMaterial(mesh.name);
         mesh.letterSpacing = 0.0001;
         mesh.anchorX = 'center';
         mesh.anchorY = 'middle';

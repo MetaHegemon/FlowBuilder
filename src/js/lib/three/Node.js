@@ -2,8 +2,7 @@ import * as THREE from "three";
 import Port from './NodePort';
 import PseudoPort from "./NodePseudoPort";
 import C from "./../Constants";
-import {Text} from "troika-three-text";
-import Theme from '../../themes/Theme';
+import ThemeControl from '../../themes/ThemeControl';
 import FBS from "../FlowBuilderStore";
 
 export default class{
@@ -55,22 +54,21 @@ export default class{
         nodeObject.name = 'node';
 
         //create title
-        const title = this.createTitle(this.data.name);
+        const title = FBS.nodeAssets.title.clone();
+        title.text = this.data.name;
         nodeObject.add(title);
 
         //create indicator
-        const indicator = this.createIndicator(this.data.indicator);
+        const indicator = FBS.nodeAssets.indicator.clone();
+        indicator.text = this.data.indicator;
         nodeObject.add(indicator);
 
-        const regularNode = this.createRegularNode();
-        nodeObject.add(regularNode);
+        const regularShield = FBS.nodeAssets.getRegularShield({withCollapseButton: this.data.inputs.length > 1 || this.data.outputs.length > 1});
+        nodeObject.add(regularShield.clone(true));
 
-        const miniNode = this.createMiniNode();
-        nodeObject.add(miniNode);
+        nodeObject.add(FBS.nodeAssets.getMiniShield().clone(true));
 
-        //create big mount
-        const bigMount = this.createBigMount();
-        nodeObject.add(bigMount);
+        nodeObject.add(FBS.nodeAssets.bigMount.clone());
 
         //input ports
         //create ports before calc height of node
@@ -97,235 +95,6 @@ export default class{
         }.bind(this));
 
         return nodeObject;
-    }
-
-    createRegularNode(){
-        const group = new THREE.Group();
-
-        //create shield
-        const backMount = this.createBackMountMesh();
-        group.add(backMount);
-
-        const frontMount = this.createFrontMount();
-        group.add(frontMount);
-
-        //resizer
-        const rightResizer = this.createRightResizer();
-        group.add(rightResizer);
-
-        //header
-        const header = this.createHeaderButtons();
-        group.add(header);
-
-        group.visible = true;
-
-        group.name = 'regularMount';
-
-        return group;
-    }
-
-    createMiniNode(){
-        const group = new THREE.Group();
-
-        const back = FBS.nodeAssets.miniBack.clone();
-        back.material = new THREE.MeshBasicMaterial({color: Theme.theme.node.mount.back.color});
-        group.add(back);
-
-        const frontTop = FBS.nodeAssets.miniFrontTop.clone();
-        frontTop.material = new THREE.MeshBasicMaterial({color: Theme.theme.node.mount.front.headColor});
-
-        group.add(frontTop);
-
-        const frontBody = FBS.nodeAssets.miniFrontBody.clone();
-        frontBody.material = new THREE.MeshBasicMaterial({color: Theme.theme.node.mount.front.bodyColor});
-        group.add(frontBody);
-
-        const frontBottom = FBS.nodeAssets.miniFrontBottom.clone();
-        frontBottom.material = new THREE.MeshBasicMaterial({color: Theme.theme.node.footer.color});
-        group.add(frontBottom);
-
-        const indicatorMount = FBS.nodeAssets.miniIndicatorMount.clone();
-        indicatorMount.material = new THREE.MeshBasicMaterial({color: Theme.theme.node.mount.front.headColor});
-        group.add(indicatorMount);
-
-        const menu = FBS.nodeAssets.miniMenuButton.clone();
-        group.add(menu);
-
-        group.name = 'miniMount';
-
-        group.visible = false;
-        group.scale.set(0, 0, 1);
-
-        return group;
-    }
-
-    createTitle(name) {
-        const title = new Text();
-        title.text = name;
-        title.font = Theme.theme.fontPaths.mainMedium;
-        title.fontSize = C.nodeMesh.title.fontSize;
-        title.color = Theme.theme.node.title.fontColor;
-        title.anchorX = 'left';
-        title.anchorY = 'bottom';
-        title.position.set(C.nodeMesh.title.leftMargin, C.nodeMesh.title.bottomMargin, 0);
-        title.name = 'title';
-
-        return title;
-    }
-
-    createIndicator(name){
-        const title = new Text();
-        title.text = name;
-        title.font = Theme.theme.fontPaths.mainNormal;
-        title.fontSize = C.nodeMesh.indicator.fontSize;
-        title.color = Theme.theme.node.indicator.fontColor;
-        title.anchorX = 'right';
-        title.anchorY = 'bottom';
-        title.name = 'indicator';
-        title.position.setZ(C.layers.indicator)
-        return title;
-    }
-
-    createBigMount(){
-        return FBS.nodeAssets.bigMount.clone();
-    }
-
-    createBackMountMesh(){
-        const backMountTop = FBS.nodeAssets.backMountTop.clone(true);
-
-        const backMountBody = FBS.nodeAssets.backMountBody.clone();
-        backMountBody.position.setX(this.nodeWidth/2);
-
-        const backMountBottom = FBS.nodeAssets.backMountBottom.clone(true);
-
-        const backMount = new THREE.Group();
-        backMount.add(backMountTop);
-        backMount.add(backMountBody);
-        backMount.add(backMountBottom);
-
-        backMount.name = 'backMount';
-
-        const material = new THREE.MeshBasicMaterial({color: Theme.theme.node.mount.back.color});
-        backMount.traverse((o) => {
-            if(o.material) o.material = material;
-        });
-
-        return backMount;
-    }
-
-    createFrontMount () {
-        const headMaterial = new THREE.MeshBasicMaterial({color: Theme.theme.node.mount.front.headColor});
-        const bodyMaterial = new THREE.MeshBasicMaterial({color: Theme.theme.node.mount.front.bodyColor});
-        const footerMaterial = new THREE.MeshBasicMaterial({color: Theme.theme.node.footer.color});
-
-        const top = FBS.nodeAssets.frontMountTop.clone(true);
-
-        top.traverse((o) => {
-            if(o.material) o.material = headMaterial;
-        });
-
-        const body = FBS.nodeAssets.frontMountBody.clone();
-        body.position.setX(this.nodeWidth/2);
-        body.material = bodyMaterial;
-
-        const bottom = FBS.nodeAssets.frontMountBottom.clone(true);
-        const frontMountFooter = bottom.getObjectByName('frontMountFooter');
-        frontMountFooter.material = footerMaterial;
-        const frontMountCornerBottomLeft = bottom.getObjectByName('frontMountCornerBottomLeft');
-        frontMountCornerBottomLeft.material = footerMaterial;
-        const frontMountBodyBottom = bottom.getObjectByName('frontMountBodyBottom');
-        frontMountBodyBottom.material = footerMaterial;
-        const frontMountCornerBottomRight = bottom.getObjectByName('frontMountCornerBottomRight');
-        frontMountCornerBottomRight.material = footerMaterial;
-
-        const mount = new THREE.Group();
-        mount.add(top);
-        mount.add(body);
-        mount.add(bottom);
-
-        mount.name = 'frontMount';
-
-        mount.position.set(C.nodeMesh.mount.borderSize, -C.nodeMesh.mount.borderSize, C.layers.frontMount);
-
-        return mount;
-    }
-
-    createRightResizer(){
-        const mesh = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(C.nodeMesh.rightResizer.width, 1),
-            new THREE.MeshBasicMaterial({color: 'green', transparent: true, opacity:0})
-        );
-        mesh.name = 'rightResizer';
-
-        mesh.position.setX(this.nodeWidth);
-
-        return mesh;
-    }
-
-    createHeaderButtons(){
-        const controlPanel = new THREE.Group();
-        controlPanel.name = 'controlPanel';
-
-        //triangle
-        if(this.data.inputs.length > 1 || this.data.outputs.length > 1) {
-            const collapse = this.createCollapseButton();
-            controlPanel.add(collapse);
-        }
-
-        //play
-        const play = this.createPlayButton();
-        controlPanel.add(play);
-
-        //menu
-        const menu = this.createMenuButton();
-        controlPanel.add(menu);
-        controlPanel.position.set(0, -C.nodeMesh.header.height/2, C.layers.header);
-
-        return controlPanel;
-    }
-
-    createCollapseButton(){
-        const collapse = new Text();
-        collapse.text = '';
-        collapse.font = C.fontPaths.awSolid;
-        collapse.fontSize = C.nodeMesh.header.collapse.fontSize;
-        collapse.color = Theme.theme.node.header.collapse.fontColor;
-        collapse.anchorX = 8;
-        collapse.anchorY = -9.4;
-        collapse.textAlign = 'center';
-        collapse.rotateZ(Math.PI);
-        collapse.position.set(C.nodeMesh.header.collapse.leftMargin, C.nodeMesh.header.height/2-C.nodeMesh.header.collapse.topMargin, 0);
-        collapse.name = 'collapseButton';
-
-        return collapse;
-    }
-
-    createPlayButton(){
-        const play = new Text();
-        play.text = '';
-        play.font = C.fontPaths.awSolid;
-        play.fontSize = C.nodeMesh.header.play.fontSize;
-        play.color = Theme.theme.node.header.play.fontColor;
-        play.anchorX = 'right';
-        play.anchorY = 'top';
-        play.position.setY( C.nodeMesh.header.height/2 - C.nodeMesh.header.play.topMargin);
-        play.name = 'playButton';
-
-        return play;
-    }
-
-    createMenuButton(){
-        const menu = new Text();
-        menu.text = '';
-        menu.font = C.fontPaths.awSolid;
-        menu.fontSize = C.nodeMesh.header.menu.fontSize;
-        menu.color = Theme.theme.node.header.menu.fontColor;
-        menu.anchorX = 'right';
-        menu.anchorY = 'top';
-        menu.name = 'menuButton';
-        menu.position.setY(  C.nodeMesh.header.height/2 - C.nodeMesh.header.menu.topMargin);
-
-        return menu;
     }
 
     createInputPorts(inputs) {
@@ -538,17 +307,17 @@ export default class{
         mesh = mesh ? mesh : this.mesh.getObjectByName('rightResizer');
         mesh.scale.setY(Math.abs(this.nodeHeight - C.nodeMesh.mount.roundCornerRadius * 2 -
             this.cPortsOutput.length * C.nodeMesh.port.height - C.nodeMesh.footer.height));
-        mesh.position.setY(-C.nodeMesh.mount.roundCornerRadius - mesh.scale.y/2);
+        mesh.position.set(this.nodeWidth, -C.nodeMesh.mount.roundCornerRadius - mesh.scale.y/2, mesh.position.z);
     }
 
     hoverFooterLabel(){
         const footerLabel = this.mesh.getObjectByName('footerLabel');
-        footerLabel.color = Theme.theme.node.footer.label.hoverColor;
+        footerLabel.color = ThemeControl.theme.node.footer.label.hoverColor;
     }
 
     unhoverFooterLabel(){
         const footerLabel = this.mesh.getObjectByName('footerLabel');
-        footerLabel.color = Theme.theme.node.footer.label.color;
+        footerLabel.color = ThemeControl.theme.node.footer.label.color;
     }
 
     play(mPlay){
@@ -572,17 +341,13 @@ export default class{
         if(this.fullCollapse.isCollapsed){
             mount = this.mesh.getObjectByName('miniBackMount');
         } else {
-            /**
-             * backMountBody have a same material that:
-             * backMountBodyTop, backMountCornerTopRight, backMountCornerTopLeft, backMountCornerBottomLeft,
-             * backMountCornerBottomRight, backMountBodyBottom
-             */
-            mount = this.mesh.getObjectByName('backMountBody');
+
+            mount = this.mesh.getObjectByName('backBody');
         }
-        mount.material.color.setStyle(Theme.theme.node.mount.back.selectedColor);
+        mount.material.color.setStyle(ThemeControl.theme.node.mount.back.selectedColor);
 
         const title = this.mesh.getObjectByName('title');
-        title.color = Theme.theme.node.title.fontSelectedColor;
+        title.color = ThemeControl.theme.node.title.fontSelectedColor;
     }
 
     unselect(){
@@ -591,17 +356,13 @@ export default class{
         if(this.fullCollapse.isCollapsed){
             mount = this.mesh.getObjectByName('miniBackMount');
         } else {
-            /**
-             * backMountBody имеет общий материал с:
-             * backMountBodyTop, backMountCornerTopRight, backMountCornerTopLeft, backMountCornerBottomLeft,
-             * backMountCornerBottomRight, backMountBodyBottom
-             */
-            mount = this.mesh.getObjectByName('backMountBody');
+
+            mount = this.mesh.getObjectByName('backBody');
         }
-        mount.material.color.setStyle(Theme.theme.node.mount.back.color);
+        mount.material.color.setStyle(ThemeControl.theme.node.mount.back.color);
 
         const title = this.mesh.getObjectByName('title');
-        title.color = Theme.theme.node.title.fontColor;
+        title.color = ThemeControl.theme.node.title.fontColor;
     }
 
     getMNode(){
@@ -934,8 +695,8 @@ export default class{
                 if (cPseudoPortInput) this.cPortsInput = [cPseudoPortInput];
                 if (cPseudoPortOutput) this.cPortsOutput = [cPseudoPortOutput];
 
-                const mFooter = this.mesh.getObjectByName('frontMountFooter');
-                mFooter.material.color.setStyle(Theme.theme.node.mount.front.bodyColor);
+                const mFooter = this.mesh.getObjectByName('frontFooter');
+                mFooter.material.color.setStyle(ThemeControl.theme.node.mount.front.bodyColor);
                 const mFooterLabel = this.mesh.getObjectByName('footerLabel');
                 operationCount += 1;
                 animateTasks.push({
@@ -1080,8 +841,8 @@ export default class{
                     if (cPseudoPortOutput) this.animatePseudoOutputPortBack(cPseudoPortOutput.getMPort());
                 }
 
-                const mFooter = this.mesh.getObjectByName('frontMountFooter');
-                mFooter.material.color.setStyle(Theme.theme.node.footer.color);
+                const mFooter = this.mesh.getObjectByName('frontFooter');
+                mFooter.material.color.setStyle(ThemeControl.theme.node.footer.color);
                 const mFooterLabel = this.mesh.getObjectByName('footerLabel');
                 operationCount += 1;
                 animateTasks.push({
@@ -1128,7 +889,7 @@ export default class{
         const indicator = this.mesh.getObjectByName('indicator');
         indicator.position.set(C.miniNodeMesh.width/2, -C.miniNodeMesh.height/2, indicator.position.z);
         indicator.fontSize = C.miniNodeMesh.indicatorFontSize;
-        indicator.color = Theme.theme.node.indicator.miniFontColor;
+        indicator.color = ThemeControl.theme.node.indicator.miniFontColor;
         indicator.anchorX = 'center'; //TODO Изначально выставить правильно
         indicator.anchorY = 'middle';
 
@@ -1163,7 +924,7 @@ export default class{
         const indicator = this.mesh.getObjectByName('indicator');
         indicator.position.set(this.nodeWidth - C.nodeMesh.indicator.rightMargin, 0,  indicator.position.z);
         indicator.fontSize = C.nodeMesh.indicator.fontSize;
-        indicator.color = Theme.theme.node.indicator.fontColor;
+        indicator.color = ThemeControl.theme.node.indicator.fontColor;
         indicator.anchorX = 'right';
         indicator.anchorY = 'bottom';
 
@@ -1441,7 +1202,7 @@ export default class{
     scaleNodeWithAnimation(){
         this.scaleRightResizer();
         const tasks = [];
-        const mBackMount = this.mesh.getObjectByName('backMountBody');
+        const mBackMount = this.mesh.getObjectByName('backBody');
         tasks.push({
             target: mBackMount.scale,
             time: C.animation.nodeCollapseTime,
@@ -1453,7 +1214,7 @@ export default class{
             value: {x: mBackMount.position.x, y: -this.nodeHeight / 2, z: mBackMount.position.z}
         });
 
-        const mFrontMount = this.mesh.getObjectByName('frontMountBody');
+        const mFrontMount = this.mesh.getObjectByName('frontBody');
         tasks.push({
             target: mFrontMount.scale,
             time: C.animation.nodeCollapseTime,
@@ -1473,14 +1234,14 @@ export default class{
             }
         });
 
-        const mFrontFooter = this.mesh.getObjectByName('frontMountBottom');
+        const mFrontFooter = this.mesh.getObjectByName('frontBottom');
         tasks.push({
             target: mFrontFooter.position,
             time: C.animation.nodeCollapseTime,
             value: {x: mFrontFooter.position.x, y: -this.nodeHeight + C.nodeMesh.mount.borderSize*2, z: mFrontFooter.position.z}
         });
 
-        const mBackFooter = this.mesh.getObjectByName('backMountBottom');
+        const mBackFooter = this.mesh.getObjectByName('backBottom');
         tasks.push({
             target: mBackFooter.position,
             time: C.animation.nodeCollapseTime,
@@ -1496,8 +1257,8 @@ export default class{
         this.moveMenuButton();
         this.movePlayButton();
         this.scaleBigMount();
-        this.scaleBackMountBody();
-        this.scaleFrontMountBody();
+        this.scaleBackBody();
+        this.scaleFrontBody();
         this.scaleRightResizer();
     }
 
@@ -1538,58 +1299,57 @@ export default class{
         mesh.updateWorldMatrix();
     }
 
-    scaleBackMountBody(){
-        const top = this.mesh.getObjectByName('backMountTop');
-        const topBody = top.getObjectByName('backMountBodyTop');
+    scaleBackBody(){
+        const top = this.mesh.getObjectByName('backTop');
+        const topBody = top.getObjectByName('backBodyTop');
         topBody.scale.set(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius * 2, 1, 1);
         topBody.position.setX(this.nodeWidth/2);
-        const topRightCorner = top.getObjectByName('backMountCornerTopRight');
+        const topRightCorner = top.getObjectByName('backCornerTopRight');
         topRightCorner.position.setX(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius);
 
-        const body = this.mesh.getObjectByName('backMountBody');
+        const body = this.mesh.getObjectByName('backBody');
         body.scale.set( this.nodeWidth, this.nodeHeight - C.nodeMesh.mount.roundCornerRadius * 2, 1);
-        body.position.setY(-this.nodeHeight/2);
-        body.position.setX(this.nodeWidth/2);
+        body.position.set(this.nodeWidth/2, -this.nodeHeight/2, body.position.z);
 
-        const bottom = this.mesh.getObjectByName('backMountBottom');
+        const bottom = this.mesh.getObjectByName('backBottom');
         bottom.position.setY(-this.nodeHeight);
-        const bottomBody = bottom.getObjectByName('backMountBodyBottom');
+        const bottomBody = bottom.getObjectByName('backBodyBottom');
         bottomBody.scale.set(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius * 2, 1, 1);
         bottomBody.position.setX(this.nodeWidth/2);
-        const bottomRightCorner = bottom.getObjectByName('backMountCornerBottomRight');
+        const bottomRightCorner = bottom.getObjectByName('backCornerBottomRight');
         bottomRightCorner.position.setX(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius);
     }
 
-    scaleFrontMountBody(){
-        const top = this.mesh.getObjectByName('frontMountTop');
-        const topBody = top.getObjectByName('frontMountBodyTop');
+    scaleFrontBody(){
+        const top = this.mesh.getObjectByName('frontTop');
+        const topBody = top.getObjectByName('frontBodyTop');
         topBody.scale.set(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius * 2, 1, 1);
         topBody.position.setX(this.nodeWidth/2 - C.nodeMesh.mount.borderSize);
-        const topRightCorner = top.getObjectByName('frontMountCornerTopRight');
+        const topRightCorner = top.getObjectByName('frontCornerTopRight');
         topRightCorner.position.setX(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize);
-        const header = top.getObjectByName('frontMountHeader');
+        const header = top.getObjectByName('frontHeader');
         header.scale.setX(this.nodeWidth - C.nodeMesh.mount.borderSize * 2);
         header.position.setX(this.nodeWidth/2 - C.nodeMesh.mount.borderSize);
 
         const bodyHeight = this.nodeHeight - C.nodeMesh.mount.roundCornerRadius  * 2 - C.nodeMesh.mount.front.headHeight - C.nodeMesh.footer.height;
-        const body = this.mesh.getObjectByName('frontMountBody');
+        const body = this.mesh.getObjectByName('frontBody');
         body.scale.set(this.nodeWidth - C.nodeMesh.mount.borderSize * 2, bodyHeight, 1);
         body.position.setY(-bodyHeight/2 - C.nodeMesh.mount.front.headHeight - C.nodeMesh.mount.roundCornerRadius + C.nodeMesh.mount.borderSize);
         body.position.setX(this.nodeWidth/2 - C.nodeMesh.mount.borderSize);
 
-        const bottom = this.mesh.getObjectByName('frontMountBottom');
+        const bottom = this.mesh.getObjectByName('frontBottom');
         bottom.position.setY(-this.nodeHeight + C.nodeMesh.mount.borderSize * 2);
-        const frontMountFooter = bottom.getObjectByName('frontMountFooter');
-        frontMountFooter.scale.setX(this.nodeWidth - C.nodeMesh.mount.borderSize * 2);
-        frontMountFooter.position.set(
+        const frontFooter = bottom.getObjectByName('frontFooter');
+        frontFooter.scale.setX(this.nodeWidth - C.nodeMesh.mount.borderSize * 2);
+        frontFooter.position.set(
             this.nodeWidth/2 - C.nodeMesh.mount.borderSize,
             C.nodeMesh.footer.height/2 + C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize,
-            frontMountFooter.position.z
+            frontFooter.position.z
         );
-        const bottomBody = bottom.getObjectByName('frontMountBodyBottom');
+        const bottomBody = bottom.getObjectByName('frontBodyBottom');
         bottomBody.scale.setX(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius * 2);
         bottomBody.position.setX(this.nodeWidth/2 - C.nodeMesh.mount.borderSize);
-        const bottomRightCorner = bottom.getObjectByName('frontMountCornerBottomRight');
+        const bottomRightCorner = bottom.getObjectByName('frontCornerBottomRight');
         bottomRightCorner.position.setX(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize);
     }
 
@@ -1652,85 +1412,74 @@ export default class{
         let m;
         m = this.mesh.getObjectByName('title');
         if(m){
-            m.color = Theme.theme.node.title.fontColor;
-            m.font = Theme.theme.fontPaths.mainMedium;
+            m.color = ThemeControl.theme.node.title.fontColor;
+            m.font = ThemeControl.theme.fontPaths.mainMedium;
         }
 
         m = this.mesh.getObjectByName('indicator');
         if(m){
             if(this.fullCollapse.isCollapsed){
-                m.color = Theme.theme.node.indicator.miniFontColor;
+                m.color = ThemeControl.theme.node.indicator.miniFontColor;
             } else {
-                m.color = Theme.theme.node.indicator.fontColor;
+                m.color = ThemeControl.theme.node.indicator.fontColor;
             }
-            m.font = Theme.theme.fontPaths.mainNormal;
+            m.font = ThemeControl.theme.fontPaths.mainNormal;
         }
 
         m = this.mesh.getObjectByName('collapseButton');
-        if(m) m.color = Theme.theme.node.header.collapse.fontColor;
+        if(m) m.color = ThemeControl.theme.node.header.collapse.fontColor;
 
         m = this.mesh.getObjectByName('playButton');
-        if(m) m.color = Theme.theme.node.header.play.fontColor;
+        if(m) m.color = ThemeControl.theme.node.header.play.fontColor;
 
         m = this.mesh.getObjectByName('menuButton');
-        if(m) m.color = Theme.theme.node.header.menu.fontColor;
+        if(m) m.color = ThemeControl.theme.node.header.menu.fontColor;
 
-        /**
-         *frontMountHeader имеет общий материал с:
-         * frontMountCornerTopLeft, frontMountBodyTop, frontMountCornerTopRight
-         */
-        m = this.mesh.getObjectByName('frontMountHeader');
-        if(m) m.material.color.setStyle(Theme.theme.node.mount.front.headColor);
+        m = this.mesh.getObjectByName('frontHeader');
+        if(m) m.material.color.setStyle(ThemeControl.theme.node.mount.front.headColor);
 
 
-        m = this.mesh.getObjectByName('frontMountBody');
-        if(m) m.material.color.setStyle(Theme.theme.node.mount.front.bodyColor);
+        m = this.mesh.getObjectByName('frontBody');
+        if(m) m.material.color.setStyle(ThemeControl.theme.node.mount.front.bodyColor);
 
-        /**
-         * frontMountFooter имеет общий материал с:
-         * frontMountCornerBottomLeft, frontMountBodyBottom, frontMountCornerBottomRight
-         */
-        m = this.mesh.getObjectByName('frontMountFooter');
+
+        m = this.mesh.getObjectByName('frontFooter');
         if(m) {
             if (this.fullCollapse.isCollapsed) {
-                m.material.color.setStyle(Theme.theme.node.mount.front.bodyColor);
+                m.material.color.setStyle(ThemeControl.theme.node.mount.front.bodyColor);
             } else {
-                m.material.color.setStyle(Theme.theme.node.footer.color);
+                m.material.color.setStyle(ThemeControl.theme.node.footer.color);
             }
         }
 
         m = this.mesh.getObjectByName('footerLabel');
         if(m) {
-            m.color = Theme.theme.node.footer.label.color;
-            m.font = Theme.theme.fontPaths.mainNormal;
+            m.color = ThemeControl.theme.node.footer.label.color;
+            m.font = ThemeControl.theme.fontPaths.mainNormal;
         }
 
-        /**
-         * backMountBody имеет общий материал с:
-         * backMountBodyTop, backMountCornerTopRight, backMountCornerTopLeft, backMountCornerBottomLeft,
-         * backMountCornerBottomRight, backMountBodyBottom
-         */
-        m = this.mesh.getObjectByName('backMountBody');
-        if(m) m.material.color.setStyle(Theme.theme.node.mount.back.color);
+
+        m = this.mesh.getObjectByName('backBody');
+        if(m) m.material.color.setStyle(ThemeControl.theme.node.mount.back.color);
 
         m = this.mesh.getObjectByName('miniBackMount');
-        if(m) m.material.color.setStyle(Theme.theme.node.mount.back.color);
+        if(m) m.material.color.setStyle(ThemeControl.theme.node.mount.back.color);
 
         m = this.mesh.getObjectByName('miniFrontTop');
-        if(m) m.material.color.setStyle(Theme.theme.node.mount.front.headColor);
+        if(m) m.material.color.setStyle(ThemeControl.theme.node.mount.front.headColor);
 
         m = this.mesh.getObjectByName('miniFrontBody');
-        if(m) m.material.color.setStyle(Theme.theme.node.mount.front.bodyColor);
+        if(m) m.material.color.setStyle(ThemeControl.theme.node.mount.front.bodyColor);
 
         m = this.mesh.getObjectByName('miniFrontBottom');
-        if(m) m.material.color.setStyle(Theme.theme.node.footer.color);
+        if(m) m.material.color.setStyle(ThemeControl.theme.node.footer.color);
 
         m = this.mesh.getObjectByName('miniIndicatorMount');
-        if(m) m.material.color.setStyle(Theme.theme.node.mount.front.headColor);
+        if(m) m.material.color.setStyle(ThemeControl.theme.node.mount.front.headColor);
 
         m = this.mesh.getObjectByName('miniMenuButton');
         if(m) {
-            m.color = Theme.theme.node.header.menu.fontColor;
+            m.color = ThemeControl.theme.node.header.menu.fontColor;
         }
 
         if(this.selected) this.select();

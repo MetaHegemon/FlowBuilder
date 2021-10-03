@@ -3,7 +3,7 @@ import {LineGeometry} from "three/examples/jsm/lines/LineGeometry";
 import {LineMaterial} from "three/examples/jsm/lines/LineMaterial";
 import {Line2} from "three/examples/jsm/lines/Line2";
 import C from './../Constants';
-import Theme from './../../themes/Theme';
+import ThemeControl from '../../themes/ThemeControl';
 import FBS from "../FlowBuilderStore";
 
 export default class {
@@ -28,7 +28,7 @@ export default class {
     create(){
         this.geometry.setPositions([0, 0, 0, 0, 0, 0]);
         const material = new LineMaterial({
-            color: Theme.theme.line.colorOnActive,
+            color: ThemeControl.theme.line.colorOnActive,
             linewidth: C.lines.lineWidth
         });
 
@@ -94,7 +94,7 @@ export default class {
 
         const smallCircle = new THREE.Mesh(
             new THREE.CircleBufferGeometry(C.lines.watchPoint.smallCircleRadius, 32),
-            new THREE.MeshBasicMaterial({color: Theme.theme.scene.backgroundColor})
+            new THREE.MeshBasicMaterial({color: ThemeControl.theme.scene.backgroundColor})
         );
         smallCircle.name = 'watchPointSmall';
         smallCircle.userData.class = this;
@@ -214,7 +214,7 @@ export default class {
             this.unselect();
         }
         this.isPort1Collapsed = true;
-        this.setColor(Theme.theme.node.portTypes.pseudo.connectorColor);
+        this.setColor(ThemeControl.theme.node.portTypes.pseudo.connectorColor);
 
     }
 
@@ -223,7 +223,7 @@ export default class {
             this.unselect();
         }
         this.isPort2Collapsed = true;
-        this.setColor(Theme.theme.node.portTypes.pseudo.connectorColor);
+        this.setColor(ThemeControl.theme.node.portTypes.pseudo.connectorColor);
     }
 
     unCollapsedPort1(){
@@ -254,7 +254,7 @@ export default class {
     select(){
         if(!this.selected) {
             this.selected = true;
-            this.mesh.material.color.setStyle(Theme.theme.line.selectedColor);
+            this.mesh.material.color.setStyle(ThemeControl.theme.line.selectedColor);
             this.cPort1.selectConnector();
             this.cPort2.selectConnector();
         }
@@ -286,19 +286,19 @@ export default class {
 
     updateTheme(){
         if(this.selected){
-            this.setColor(Theme.theme.line.selectedColor);
+            this.setColor(ThemeControl.theme.line.selectedColor);
             this.cPort1.selectConnector();
             this.cPort2.selectConnector();
         } else {
             if(this.isPort1Collapsed || this.isPort2Collapsed){
-                this.setColor(Theme.theme.node.portTypes.pseudo.connectorColor);
+                this.setColor(ThemeControl.theme.node.portTypes.pseudo.connectorColor);
             } else {
                 this.setColor(this.cPort1.getColor());
             }
         }
         if(this.watchPoint) {
             const watchPointSmall = this.watchPoint.getObjectByName('watchPointSmall');
-            watchPointSmall.material.color.setStyle(Theme.theme.scene.backgroundColor);
+            watchPointSmall.material.color.setStyle(ThemeControl.theme.scene.backgroundColor);
         }
     }
 }

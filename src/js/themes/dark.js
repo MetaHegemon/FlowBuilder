@@ -16,15 +16,7 @@ export default {
             miniFontColor: '#ffffff'
         },
         header: {
-            collapse: {
-                fontColor: '#ffffff',
-            },
-            play: {
-                fontColor: '#ffffff',
-            },
-            menu: {
-                fontColor: '#ffffff',
-            }
+            fontColor: '#ffffff'
         },
         mount: {
             front: {

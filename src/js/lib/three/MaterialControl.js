@@ -1,29 +1,76 @@
-import C from "../Constants";
 import * as THREE from "three";
-import Theme from './../../themes/Theme';
+import ThemeControl from "../../themes/ThemeControl";
 
-export default class{
+class MaterialControl{
     constructor() {
         this.materials = [
             {
                 names: ['bigMount', 'rightResizer'],
                 material: new THREE.MeshBasicMaterial({transparent: true, opacity: 0})
-            }
+            },
+            {
+                names: ['backMount', 'backCornerTopLeft', 'backBodyTop', 'backCornerTopRight', 'backBody',
+                    'backCornerBottomLeft', 'backBodyBottom', 'backCornerBottomRight', 'miniBackMount'],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.mount.back.color})
+            },
+            {
+                names: ['frontTop', 'frontCornerTopLeft', 'frontBodyTop', 'frontCornerTopRight', 'frontHeader',
+                'miniFrontTop', ],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.mount.front.headColor})
+            },
+            {
+                names: ['frontBody', 'miniFrontBody'],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.mount.front.bodyColor})
+            },
+            {
+                names: ['frontBottom', 'frontFooter', 'frontCornerBottomLeft', 'frontCornerBottomRight', 'frontBodyBottom',
+                    'miniFrontBottom'],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.footer.color})
+            },
+            {
+                names: ['miniBackMount'],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.footer.color})
+            },
+            {
+                names: ['miniIndicatorMount'],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.mount.front.headColor})
+            },
+            {
+                names: ['collapseButton','playButton', 'menuButton', 'miniMenuButton', ],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.header.fontColor})
+            },
+            {
+                names: ['footerLabel'],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.footer.label.color})
+            },
+            {
+                names: ['title'],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.title.fontColor})
+            },
+            {
+                names: ['indicator'],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.indicator.fontColor})
+            },
         ];
 
     }
 
-    getMaterial(name, needClone){
+    getMaterial(name){
         let result = null;
         cycle: for(let i = 0; i < this.materials.length; i += 1){
             for(let j = 0; j < this.materials[i].names.length; j += 1){
                 if(this.materials[i].names[j] === name){
-                    result = needClone ? m.material.clone() : m.material;
+                    result = this.materials[i].material;
                     break cycle;
                 }
             }
         }
         return result;
     }
-};
+}
+
+const materialControl = new MaterialControl();
+
+export default materialControl;
+
 

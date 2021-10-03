@@ -1,4 +1,5 @@
 export default {
+    defaultTheme: 'light',
     animation:{
         nodeCollapseTime: 150, //milliseconds
         portHideTime: 150,

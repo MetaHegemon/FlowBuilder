@@ -1,4 +1,4 @@
-import Theme from './../../themes/Theme';
+import ThemeControl from './../../themes/ThemeControl';
 import FBS from "../FlowBuilderStore";
 import * as THREE from 'three';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
@@ -100,7 +100,7 @@ export default class {
 
         const end = {r: color.r, g: color.g, b: color.b};
 
-        color.setStyle(Theme.theme.scene.backgroundColor);
+        color.setStyle(ThemeControl.theme.scene.backgroundColor);
         const start = {r: color.r, g: color.g, b: color.b};
 
         this.tween = new TWEEN.Tween(start)

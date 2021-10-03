@@ -1,9 +1,8 @@
-import Theme from './../themes/Theme';
-//import FBS from './../lib/FlowBuilderStore';
+import C from './../lib/Constants';
 import light from './light';
 import dark from "./dark";
 
-export default class {
+class ThemeControl {
     constructor(themeName){
         this.theme = this.getCurrentTheme(themeName);
     }
@@ -25,7 +24,6 @@ export default class {
         } else {
             this.theme = light;
         }
-        Theme.theme = this.theme;
     }
 
     update(FBS){
@@ -37,3 +35,7 @@ export default class {
         FBS.lineControl.updateTheme();
     }
 }
+
+const themesControl = new ThemeControl(C.defaultTheme);
+
+export default themesControl;

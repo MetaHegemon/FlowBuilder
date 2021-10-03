@@ -3,7 +3,7 @@ import DragControl from './DragControl';
 import C from "./../Constants";
 import { SelectionBox } from './SelectionBox';
 import  SelectionHelper  from './SelectHelper';
-import Theme from "../../themes/Theme";
+import ThemeControl from "../../themes/ThemeControl";
 import FBS from './../FlowBuilderStore';
 import TextEditor from "./../three/TextEditor";
 import RightResizer from './RightResizer';
@@ -59,8 +59,8 @@ export default class{
             FBS.dom.canvas.classList.add('grab');
         } else if(e.code === 'KeyT'){
             if(!e.repeat) {
-                Theme.themesControl.switch();
-                Theme.themesControl.update(FBS);
+                ThemeControl.switch();
+                ThemeControl.update(FBS);
             }
         } else if(e.code === 'Backspace' || e.code === 'Delete'){
             if(this.select.cLines.length > 0){
@@ -199,7 +199,6 @@ export default class{
                 }
             } else {
                 this.intersects = this.raycaster.intersectObjects(FBS.sceneControl.scene.children, true);
-                clog(this.intersects);
                 if (e.buttons === 0) {
                     if (this.intersects.length > 0) {
                         const firstObject = this.intersects[0].object;

@@ -1,8 +1,7 @@
 import C from "../Constants";
 import * as THREE from "three";
 import {Text} from "troika-three-text";
-import Theme from './../../themes/Theme';
-import FBS from "../FlowBuilderStore";
+import ThemeControl from './../../themes/ThemeControl';
 
 export default class {
     constructor(direction, data, cNode) {
@@ -60,7 +59,7 @@ export default class {
 
         const connectorMesh = this.connectorMesh = new THREE.Mesh(
             new THREE.ShapeGeometry( shapeConnector ),
-            new THREE.MeshBasicMaterial({color: Theme.theme.node.portTypes[this.data.type].connectorColor})
+            new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.portTypes[this.data.type].connectorColor})
         );
         if(this.direction === 'output') {
             connectorMesh.rotateZ(Math.PI);
@@ -112,7 +111,7 @@ export default class {
             .lineTo(0, h/2 - r);
         const markMountMesh = new THREE.Mesh(
             new THREE.ShapeGeometry( markMountShape ),
-            new THREE.MeshBasicMaterial({color: Theme.theme.node.portTypes[this.data.type].markColor})
+            new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.portTypes[this.data.type].markColor})
         );
         markMountMesh.name = 'mark';
 
@@ -121,9 +120,9 @@ export default class {
         const label = new Text();
         label.text = this.data.mark;
         label.name = 'markLabel';
-        label.font = Theme.theme.fontPaths.mainNormal;
+        label.font = ThemeControl.theme.fontPaths.mainNormal;
         label.fontSize = C.nodeMesh.port.mark.fontSize;
-        label.color = Theme.theme.node.portTypes[this.data.type].markFontColor;
+        label.color = ThemeControl.theme.node.portTypes[this.data.type].markFontColor;
 
         label.anchorX = 'center';
         label.anchorY = 'middle';
@@ -145,9 +144,9 @@ export default class {
         const label = new Text();
         label.text = this.data.name;
         label.name = 'portLabelText';
-        label.font = Theme.theme.fontPaths.mainNormal;
+        label.font = ThemeControl.theme.fontPaths.mainNormal;
         label.fontSize = C.nodeMesh.port.label.fontSize;
-        label.color = Theme.theme.node.portTypes[this.data.type].labelColor;
+        label.color = ThemeControl.theme.node.portTypes[this.data.type].labelColor;
         label.anchorX = this.direction === 'input' ? 'left' : 'right';
         label.anchorY = 'bottom';
         label.letterSpacing = C.nodeMesh.port.label.letterSpacing;
@@ -173,13 +172,13 @@ export default class {
 
     hoverLabel(){
         for(let i = 0; i < this.label.children.length; i += 1){
-            this.label.children[i].color = Theme.theme.node.port.label.hoverColor;
+            this.label.children[i].color = ThemeControl.theme.node.port.label.hoverColor;
         }
     }
 
     unhoverLabel(){
         for(let i = 0; i < this.label.children.length; i += 1){
-            this.label.children[i].color = Theme.theme.node.portTypes[this.data.type].labelColor;
+            this.label.children[i].color = ThemeControl.theme.node.portTypes[this.data.type].labelColor;
         }
     }
 
@@ -192,7 +191,7 @@ export default class {
     }
 
     selectConnector = ()=>{
-        this.connectorMesh.material.color.setStyle(Theme.theme.line.selectedColor);
+        this.connectorMesh.material.color.setStyle(ThemeControl.theme.line.selectedColor);
     };
 
     getConnectorPos(){
@@ -213,15 +212,15 @@ export default class {
 
     setConnectorInactive(){
         this.connectorActive = false;
-        this.connectorMesh.material.color.setStyle(Theme.theme.node.portTypes["pseudo"].connectorColor);
+        this.connectorMesh.material.color.setStyle(ThemeControl.theme.node.portTypes["pseudo"].connectorColor);
     }
 
     getColor(){
-        return Theme.theme.node.portTypes[this.data.type].connectorColor;
+        return ThemeControl.theme.node.portTypes[this.data.type].connectorColor;
     }
 
     resetConnectorColor(){
-        this.connectorMesh.material.color.setStyle(Theme.theme.node.portTypes[this.data.type].connectorColor);
+        this.connectorMesh.material.color.setStyle(ThemeControl.theme.node.portTypes[this.data.type].connectorColor);
     }
 
     getCLines(){
@@ -254,22 +253,22 @@ export default class {
 
         m = this.mesh.getObjectByName('connector');
         if (m) m.material.color.setStyle(
-            this.connectorActive ? Theme.theme.node.portTypes[this.data.type].connectorColor : Theme.theme.node.portTypes["pseudo"].connectorColor
+            this.connectorActive ? ThemeControl.theme.node.portTypes[this.data.type].connectorColor : ThemeControl.theme.node.portTypes["pseudo"].connectorColor
         );
 
         m = this.mesh.getObjectByName('portLabelText');
         if(m){
-            m.color = Theme.theme.node.portTypes[this.data.type].labelColor;
-            m.font = Theme.theme.fontPaths.mainNormal;
+            m.color = ThemeControl.theme.node.portTypes[this.data.type].labelColor;
+            m.font = ThemeControl.theme.fontPaths.mainNormal;
         }
 
         m = this.mesh.getObjectByName('mark');
-        if(m) m.material.color.setStyle(Theme.theme.node.portTypes[this.data.type].markColor);
+        if(m) m.material.color.setStyle(ThemeControl.theme.node.portTypes[this.data.type].markColor);
 
         m = this.mesh.getObjectByName('markLabel');
         if(m){
-            m.color = Theme.theme.node.portTypes[this.data.type].markFontColor;
-            m.font = Theme.theme.fontPaths.mainNormal;
+            m.color = ThemeControl.theme.node.portTypes[this.data.type].markFontColor;
+            m.font = ThemeControl.theme.fontPaths.mainNormal;
         }
     }
 };

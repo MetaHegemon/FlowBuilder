@@ -1,5 +1,5 @@
 import Line from '../three/Line';
-import Theme from './../../themes/Theme';
+import ThemeControl from '../../themes/ThemeControl';
 import FBS from './../FlowBuilderStore';
 
 export default class{
@@ -24,7 +24,7 @@ export default class{
         }
         const mesh = this.cLine.getMLine();
 
-        this.cLine.setColor(Theme.theme.line.colorOnActive);
+        this.cLine.setColor(ThemeControl.theme.line.colorOnActive);
 
         FBS.sceneControl.addObjectsToScene([mesh]);
     }
