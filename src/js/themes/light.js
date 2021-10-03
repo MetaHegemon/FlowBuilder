@@ -13,6 +13,7 @@ export default {
         },
         indicator: {
             fontColor: '#000000',
+            miniFontColor: '#ffffff'
         },
         header: {
             collapse: {

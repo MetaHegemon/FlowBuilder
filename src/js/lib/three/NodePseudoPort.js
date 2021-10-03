@@ -34,7 +34,7 @@ export default class extends Port{
 
     removeLabelText(){
         const label = this.mesh.getObjectByName('portLabelText');
-        label.visible = false;
+        label.scale.set(0,0,1);
         label.text = '';
     }
 

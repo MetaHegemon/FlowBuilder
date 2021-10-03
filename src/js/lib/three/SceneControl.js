@@ -60,8 +60,11 @@ export default class {
             1,
             1000
         );
-        this.camera.position.z = 100;
         this.camera.lookAt(0,0,0);
+        this.camera.position.x = 300;
+        this.camera.position.y = 500;
+        this.camera.position.z = 100;
+
 
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(Theme.theme.scene.backgroundColor);

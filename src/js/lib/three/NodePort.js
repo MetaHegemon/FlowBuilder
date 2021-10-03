@@ -245,6 +245,10 @@ export default class {
         return this.cNode;
     }
 
+    getMLabel(){
+        return this.mesh.getObjectByName('portLabelText');
+    }
+
     updateTheme(){
         let m;
 

@@ -105,8 +105,8 @@ export default class{
                     if(this.checkOnIntersect(this.intersects, ['rightResizer'])){
                         const intersect = this.checkOnIntersect(this.intersects, ['rightResizer']);
                         this.selectedOnPointerDown = intersect.object;
-                    } else if (this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter'])) {
-                        const intersect = this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter'])
+                    } else if (this.checkOnIntersect(this.intersects, ['bigMount'])) {
+                        const intersect = this.checkOnIntersect(this.intersects, ['bigMount']);
                         this.selectedOnPointerDown = intersect.object.userData.nodeClass.getMNode();
                     } else if (this.checkOnIntersect(this.intersects, ['connector'])) {
                         const intersect = this.checkOnIntersect(this.intersects, ['connector']);
@@ -160,8 +160,8 @@ export default class{
             } else {
                 allSelected = this.select.box.selectOnTouch();
             }
-            for (let i = 0; i < allSelected.length; i += 1) {//'backMountHead', 'backMountBody', 'backMountFooter'
-                if (allSelected[i].name !== 'backMountBody') continue;
+            for (let i = 0; i < allSelected.length; i += 1) {
+                if (allSelected[i].name !== 'bigMount') continue;
                 const cNode = allSelected[i].userData.nodeClass;
                 this.addCNodeToSelected(cNode);
             }
@@ -199,6 +199,7 @@ export default class{
                 }
             } else {
                 this.intersects = this.raycaster.intersectObjects(FBS.sceneControl.scene.children, true);
+                clog(this.intersects);
                 if (e.buttons === 0) {
                     if (this.intersects.length > 0) {
                         const firstObject = this.intersects[0].object;
@@ -246,9 +247,8 @@ export default class{
                             Resizer.enable(this.selectedOnPointerDown);
                         } else if (this.selectedOnPointerDown.name === 'node') {
                             if (this.isMoved(this.pointerPos3d, this.pointerDownPos)) {
-                                const backMountIntersect = this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter']);
+                                const backMountIntersect = this.checkOnIntersect(this.intersects, ['bigMount']);
                                 if (backMountIntersect) {
-
                                     const cNode = backMountIntersect.object.userData.nodeClass;
                                     let objectsForDrag;
                                     if(cNode.isSelected()){
@@ -326,8 +326,8 @@ export default class{
                             this.onPortLabelClick(this.intersects[0].object);
                         } else {
 
-                            if (this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter'])) {
-                                const intersect = this.checkOnIntersect(this.intersects, ['backMountHead', 'backMountBody', 'backMountFooter']);
+                            if (this.checkOnIntersect(this.intersects, ['bigMount'])) {
+                                const intersect = this.checkOnIntersect(this.intersects, ['bigMount']);
                                 const cNode = intersect.object.userData.nodeClass;
                                 this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
                             } else if (this.checkOnIntersect(this.intersects, ['line', 'watchPointPointer'])) {

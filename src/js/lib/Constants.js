@@ -1,17 +1,17 @@
 export default {
     animation:{
-        nodeCollapseTime: 200, //milliseconds
-        portHideTime: 200,
-        collapseButtonRotateTime: 200,
-        footerLabelHideTime: 200,
-        caretBlinkingTime: 400,
+        nodeCollapseTime: 150, //milliseconds
+        portHideTime: 150,
+        collapseButtonRotateTime: 150,
+        footerLabelHideTime: 150,
+        caretBlinkingTime: 300,
         failEditingTextTime: 300,
     },
     layers: {
         nodeStep: 0.1,
         backMount: 0,
         title: 0,
-        indicator: 0,
+        indicator: 0.3,
         frontMount: 0.01,
         header: 0.02,
         port: 0.02,
@@ -35,6 +35,18 @@ export default {
             bigCircleRadius: 6,
             smallCircleRadius: 3
         }
+    },
+    miniNodeMesh: {
+        height: 59,
+        width: 59,
+        roundCornerRadius: 5,
+        footerHeight: 3, //without radius
+        borderSize: 1,
+        indicatorMountWidth: 20,
+        indicatorMountHeight: 20,
+        indicatorFontSize: 18,
+        titleFontSize: 12,
+        menuButtonFontSize: 8
     },
     nodeMesh: {
         constraints: {
@@ -67,6 +79,9 @@ export default {
                 rightMargin: 16,
                 topMargin: 21
             }
+        },
+        bigMount: {
+            radius: 0.01
         },
         mount: {
             width: 293,
@@ -123,13 +138,16 @@ export default {
     },
     three: {
         zoom: {
-            default: 2000,                      //start zoom value(frustum)
-            min: 3500,                          //frustum size how near camera can zoom
-            max: 300,                           //frustum size how far camera can zoom
+            /**
+             * frustum 700 = 242% figma
+             */
+            default: 350,                      //start zoom value(frustum)
+            min: 3000,                          //frustum size how near camera can zoom
+            max: 500,                           //frustum size how far camera can zoom
             damping: 0.8,                       //bigger than shorter inertia
             speed: 8,
-            limitForFullCollapseNodes: 2100,    //frustum size, for all nodes collapsed
-            limitForFullUnCollapseNodes: 1700   //frustum size, for all nodes uncollapsed
+            limitForFullCollapseNodes: 1300,    //frustum size, for all nodes collapsed
+            limitForFullUnCollapseNodes: 1200   //frustum size, for all nodes uncollapsed
         }
     }
 };
