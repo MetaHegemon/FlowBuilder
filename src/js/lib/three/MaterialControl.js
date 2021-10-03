@@ -5,7 +5,7 @@ class MaterialControl{
     constructor() {
         this.materials = [
             {
-                names: ['bigMount', 'rightResizer'],
+                names: ['bigMount', 'rightResizer', 'connectorMagnet'],
                 material: new THREE.MeshBasicMaterial({transparent: true, opacity: 0})
             },
             {
@@ -66,6 +66,22 @@ class MaterialControl{
             }
         }
         return result;
+    }
+
+    getPortConnectorMaterial(type){
+        return new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.portTypes[type].connectorColor});
+    }
+
+    getPortLabelMaterial(type){
+        return new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.portTypes[type].labelColor});
+    }
+
+    getPortMarkMountMaterial(type){
+        return new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.portTypes[type].markColor});
+    }
+
+    getPortMarkLabelMaterial(type){
+        return new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.portTypes[type].markFontColor});
     }
 }
 

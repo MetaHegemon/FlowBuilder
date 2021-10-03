@@ -1,169 +1,31 @@
-import C from "../Constants";
 import * as THREE from "three";
-import {Text} from "troika-three-text";
 import ThemeControl from './../../themes/ThemeControl';
+import FBS from "../FlowBuilderStore";
 
 export default class {
     constructor(direction, data, cNode) {
         this.type = 'regular'; //TODO see instance
         this.cNode = cNode;
-        this.label = null;
-        this.connectorMesh = null;
         this.direction = direction;
         this.data = data;
-        this.mesh = this.createPort();
+        this.mesh = this.create();
         this.cLines = [];
 
         this.connectorActive = true;
     }
 
-    createPort(){
-        const portMesh = new THREE.Object3D();
-        portMesh.name = 'port';
+    create(){
+        const port = FBS.nodeAssets.getPort(this.data.name, this.data.type, this.direction, this.data.mark).clone();
 
-        const connectorMagnet = this.createPortConnectorMagnet();
-        portMesh.add(connectorMagnet);
-
-        const connector = this.createPortConnector();
-        portMesh.add(connector);
-
-        if(this.data.mark) {
-            const mark = this.createPortMark();
-            portMesh.add(mark);
-        }
-
-        const label = this.label = this.createPortLabel();
-        portMesh.add(label);
-
-        //set class for all children
-        portMesh.traverse(function (object) {
+        port.traverse(function (object) {
             object.userData.portClass = this;
         }.bind(this));
 
-        return portMesh
-    }
-
-    createPortConnector(){
-        const w = C.nodeMesh.port.connector.width;
-        const h = C.nodeMesh.port.connector.height;
-        const r = C.nodeMesh.port.connector.cornerRadius;
-
-        const shapeConnector = new THREE.Shape()
-            .moveTo(0, h/2 - r)
-            .lineTo(0, -h/2 + r)
-            .quadraticCurveTo(0, -h/2, r, -h/2)
-            .lineTo(w, -h/2)
-            .lineTo( w, h/2)
-            .lineTo(r, h/2)
-            .quadraticCurveTo(0, h/2, 0, h/2 - r);
-
-        const connectorMesh = this.connectorMesh = new THREE.Mesh(
-            new THREE.ShapeGeometry( shapeConnector ),
-            new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.portTypes[this.data.type].connectorColor})
-        );
-        if(this.direction === 'output') {
-            connectorMesh.rotateZ(Math.PI);
-            connectorMesh.position.setX(w);
-        } else {
-            connectorMesh.position.setX(-w);
-        }
-
-        connectorMesh.name = 'connector';
-        return connectorMesh;
-    }
-
-    createPortConnectorMagnet(){
-        const w = C.nodeMesh.port.magnet.width;
-        const h = C.nodeMesh.port.height;
-
-        const magnet = new THREE.Mesh(
-            new THREE.BoxBufferGeometry( w, h ),
-            new THREE.MeshBasicMaterial({color: '#00ff00', transparent: true, opacity: 0})
-        );
-
-        if(this.direction === 'output') {
-            magnet.position.setX(w/2);
-        } else {
-            magnet.position.setX(-w/2);
-        }
-
-        magnet.position.setZ(-1);
-
-        magnet.name = 'connectorMagnet';
-        return magnet;
-    }
-
-    createPortMark(){
-        const markObject = new THREE.Object3D();
-
-        const w = C.nodeMesh.port.mark.width;
-        const h = C.nodeMesh.port.mark.height;
-        const r = C.nodeMesh.port.mark.cornerRadius;
-        const markMountShape = new THREE.Shape()
-            .moveTo(0, h/2-r)
-            .quadraticCurveTo(0, h/2, r, h/2)
-            .lineTo(w - r, h/2)
-            .quadraticCurveTo(w, h/2, w, h/2 - r)
-            .lineTo(w, -h/2 + r)
-            .quadraticCurveTo(w, -h/2, w-r, -h/2)
-            .lineTo(r, -h/2, 0, -h/2 + r)
-            .quadraticCurveTo(0, -h/2, 0, -h/2 + r)
-            .lineTo(0, h/2 - r);
-        const markMountMesh = new THREE.Mesh(
-            new THREE.ShapeGeometry( markMountShape ),
-            new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.portTypes[this.data.type].markColor})
-        );
-        markMountMesh.name = 'mark';
-
-        markObject.add(markMountMesh);
-
-        const label = new Text();
-        label.text = this.data.mark;
-        label.name = 'markLabel';
-        label.font = ThemeControl.theme.fontPaths.mainNormal;
-        label.fontSize = C.nodeMesh.port.mark.fontSize;
-        label.color = ThemeControl.theme.node.portTypes[this.data.type].markFontColor;
-
-        label.anchorX = 'center';
-        label.anchorY = 'middle';
-        label.position.set(C.nodeMesh.port.mark.width/2 + C.nodeMesh.port.mark.label.leftMargin, C.nodeMesh.port.mark.label.topMargin, 0);
-
-        markObject.add(label);
-
-        const posX = this.direction === 'input' ? C.nodeMesh.port.mark.leftMargin : -C.nodeMesh.port.mark.leftMargin - C.nodeMesh.port.mark.width
-        const posY = C.nodeMesh.port.height/2 - C.nodeMesh.port.mark.topMargin;
-        markObject.position.set(posX, posY, 0);
-
-        return markObject;
-    }
-
-    createPortLabel(){
-        const labelObj = new THREE.Object3D();
-        labelObj.name = 'portLabel';
-
-        const label = new Text();
-        label.text = this.data.name;
-        label.name = 'portLabelText';
-        label.font = ThemeControl.theme.fontPaths.mainNormal;
-        label.fontSize = C.nodeMesh.port.label.fontSize;
-        label.color = ThemeControl.theme.node.portTypes[this.data.type].labelColor;
-        label.anchorX = this.direction === 'input' ? 'left' : 'right';
-        label.anchorY = 'bottom';
-        label.letterSpacing = C.nodeMesh.port.label.letterSpacing;
-        labelObj.add(label);
-
-        const posX = this.data.mark ? C.nodeMesh.port.label.leftMargin : C.nodeMesh.port.label.pseudoLeftMargin;
-        labelObj.position.set(
-            this.direction === 'input' ? posX : -posX,
-            -C.nodeMesh.port.label.topMargin,
-            0
-        );
-
-        return labelObj;
+        return port
     }
 
     hover(){
-        this.hoverLabel();
+        this.hoverLabel(); //TODO что за фигня?
     }
 
     unhover(){
@@ -171,15 +33,13 @@ export default class {
     }
 
     hoverLabel(){
-        for(let i = 0; i < this.label.children.length; i += 1){
-            this.label.children[i].color = ThemeControl.theme.node.port.label.hoverColor;
-        }
+        const label = this.mesh.getObjectByName('portLabelText');
+        label.material.color.setStyle(ThemeControl.theme.node.port.label.hoverColor);
     }
 
     unhoverLabel(){
-        for(let i = 0; i < this.label.children.length; i += 1){
-            this.label.children[i].color = ThemeControl.theme.node.portTypes[this.data.type].labelColor;
-        }
+        const label = this.mesh.getObjectByName('portLabelText');
+        label.material.color.setStyle(ThemeControl.theme.node.portTypes[this.data.type].labelColor);
     }
 
     getMPort(){
@@ -187,20 +47,22 @@ export default class {
     }
 
     getMConnector(){
-        return this.connectorMesh;
+        return this.mesh.getObjectByName('connector');
     }
 
-    selectConnector = ()=>{
-        this.connectorMesh.material.color.setStyle(ThemeControl.theme.line.selectedColor);
+    selectConnector(){
+        const connector = this.mesh.getObjectByName('connector');
+        connector.material.color.setStyle(ThemeControl.theme.line.selectedColor);
     };
 
     getConnectorPos(){
         const pos = new THREE.Vector3();
-        this.connectorMesh.getWorldPosition(pos);
+        const connector = this.mesh.getObjectByName('connector');
+        connector.getWorldPosition(pos);
         return pos;
     }
 
-    unselectConnector = ()=>{
+    unselectConnector(){
         this.resetConnectorColor();
 
     }
@@ -212,7 +74,8 @@ export default class {
 
     setConnectorInactive(){
         this.connectorActive = false;
-        this.connectorMesh.material.color.setStyle(ThemeControl.theme.node.portTypes["pseudo"].connectorColor);
+        const connector = this.mesh.getObjectByName('connector');
+        connector.material.color.setStyle(ThemeControl.theme.node.portTypes["pseudo"].connectorColor);
     }
 
     getColor(){
@@ -220,7 +83,8 @@ export default class {
     }
 
     resetConnectorColor(){
-        this.connectorMesh.material.color.setStyle(ThemeControl.theme.node.portTypes[this.data.type].connectorColor);
+        const connector = this.mesh.getObjectByName('connector');
+        connector.material.color.setStyle(ThemeControl.theme.node.portTypes[this.data.type].connectorColor);
     }
 
     getCLines(){
