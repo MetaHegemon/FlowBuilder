@@ -63,10 +63,12 @@ export default class{
         indicator.text = this.data.indicator;
         nodeObject.add(indicator);
 
-        const regularShield = FBS.nodeAssets.getRegularShield({withCollapseButton: this.data.inputs.length > 1 || this.data.outputs.length > 1});
-        nodeObject.add(regularShield.clone(true));
+        const regularShield = FBS.nodeAssets.getRegularShield({
+            withCollapseButton: this.data.inputs.length > 1 || this.data.outputs.length > 1
+        }).clone();
+        nodeObject.add(regularShield);
 
-        nodeObject.add(FBS.nodeAssets.getMiniShield().clone(true));
+        nodeObject.add(FBS.nodeAssets.getMiniShield().clone());
 
         nodeObject.add(FBS.nodeAssets.bigMount.clone());
 
@@ -341,7 +343,6 @@ export default class{
         if(this.fullCollapse.isCollapsed){
             mount = this.mesh.getObjectByName('miniBackMount');
         } else {
-
             mount = this.mesh.getObjectByName('backBody');
         }
         mount.material.color.setStyle(ThemeControl.theme.node.mount.back.selectedColor);
@@ -861,7 +862,6 @@ export default class{
 
             animateTasks.push(this.getRefreshLinesTask());
             FBS.animationControl.animate(animateTasks);
-            this.scaleBigMount(C.miniNodeMesh.width, C.miniNodeMesh.height);
             this.collapseButtonRotate();
         }
     }

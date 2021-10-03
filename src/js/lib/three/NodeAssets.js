@@ -76,14 +76,22 @@ export default class{
     //BACK
 
     getBackMount(){
-        const backMount = new THREE.Group();
-        backMount.add(this.getBackTop());
-        backMount.add(this.backBody);
-        backMount.add(this.getBackBottom());
+        const group = new THREE.Group();
+        group.add(this.getBackTop());
+        group.add(this.backBody);
+        group.add(this.getBackBottom());
 
-        backMount.name = 'backMount';
+        group.name = 'backMount';
 
-        return backMount;
+        /**
+         * Clone material for interactive elements
+         */
+        const material = MaterialControl.getMaterial('backMount').clone();
+        group.traverse(o=>{
+            if(o.isMesh) o.material = material;
+        });
+
+        return group;
     }
 
     getBackTop(){
@@ -462,6 +470,8 @@ export default class{
         group.add(this.getControlPanel(options.withCollapseButton));
 
         group.name = 'regularMount';
+
+
 
         return group;
     }
