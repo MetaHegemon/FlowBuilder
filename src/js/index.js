@@ -14,7 +14,6 @@ FBS.sceneControl.setScene();
 FBS.nodeControl.buildNodes(flowData.nodes);
 FBS.sceneControl.addObjectsToScene(FBS.nodeControl.getMNodes());
 
-const interactive = new Interactive();
-interactive.fullCollapseNode(true);
+new Interactive();
 
 FBS.sceneControl.run();

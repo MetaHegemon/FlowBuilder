@@ -142,13 +142,13 @@ export default {
             /**
              * frustum 700 = 242% figma
              */
-            default: 350,                      //start zoom value(frustum)
+            default: 1600,                      //start zoom value(frustum)
             min: 3000,                          //frustum size how near camera can zoom
             max: 500,                           //frustum size how far camera can zoom
             damping: 0.8,                       //bigger than shorter inertia
             speed: 8,
-            limitForFullCollapseNodes: 1300,    //frustum size, for all nodes collapsed
-            limitForFullUnCollapseNodes: 1200   //frustum size, for all nodes uncollapsed
+            limitForFullCollapseNodes: 1800,    //frustum size, for all nodes collapsed
+            limitForFullUnCollapseNodes: 1700   //frustum size, for all nodes uncollapsed //TODO убрать одно из значений
         }
     }
 };

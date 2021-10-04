@@ -1427,13 +1427,13 @@ export default class{
         }
 
         m = this.mesh.getObjectByName('collapseButton');
-        if(m) m.color = ThemeControl.theme.node.header.collapse.fontColor;
+        if(m) m.color = ThemeControl.theme.node.header.fontColor;
 
         m = this.mesh.getObjectByName('playButton');
-        if(m) m.color = ThemeControl.theme.node.header.play.fontColor;
+        if(m) m.color = ThemeControl.theme.node.header.fontColor;
 
         m = this.mesh.getObjectByName('menuButton');
-        if(m) m.color = ThemeControl.theme.node.header.menu.fontColor;
+        if(m) m.color = ThemeControl.theme.node.header.fontColor;
 
         m = this.mesh.getObjectByName('frontHeader');
         if(m) m.material.color.setStyle(ThemeControl.theme.node.mount.front.headColor);
@@ -1479,7 +1479,7 @@ export default class{
 
         m = this.mesh.getObjectByName('miniMenuButton');
         if(m) {
-            m.color = ThemeControl.theme.node.header.menu.fontColor;
+            m.color = ThemeControl.theme.node.header.fontColor;
         }
 
         if(this.selected) this.select();
