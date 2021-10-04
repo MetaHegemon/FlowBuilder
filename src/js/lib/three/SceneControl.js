@@ -153,11 +153,11 @@ export default class {
     render(){
         stats.begin();
 
-
         this.smoothZoom();
         this.listenZoom()
         this.renderer.render( this.scene, this.camera );
         FBS.tween.update();
+
         stats.end();
         requestAnimationFrame( ()=> this.render() );
     }

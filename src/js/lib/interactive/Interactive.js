@@ -348,9 +348,16 @@ export default class{
 
     onDblclick(){
         if(this.intersects.length > 0) {
-            const titleIntersect = this.checkOnIntersect(this.intersects, ['title']);
-            if(titleIntersect && !this.textEditor.active){
-                this.textEditor.enable(titleIntersect.object);
+            if(this.checkOnIntersect(this.intersects, ['title']) && !this.textEditor.active){
+                const intersect = this.checkOnIntersect(this.intersects, ['title']);
+                this.textEditor.enable(intersect.object);
+            } else if(this.checkOnIntersect(this.intersects, ['bigMount'])){
+
+                const intersect = this.checkOnIntersect(this.intersects, ['bigMount']);
+                const cNode = intersect.object.userData.nodeClass;
+                if(cNode.fullCollapse.isCollapsed){
+                    cNode.fullCollapseNode(false);
+                }
             }
         }
     }
