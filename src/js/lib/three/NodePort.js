@@ -6,7 +6,6 @@ import C from "../Constants";
 export default class {
     constructor(direction, data, cNode) {
         this.type = 'regular'; //TODO see instance
-        this.visible = true;
         this.cNode = cNode;
         this.direction = direction;
         this.data = data;
@@ -25,24 +24,6 @@ export default class {
         }.bind(this));
 
         return port
-    }
-
-    show(needAnimation){
-        if(needAnimation){
-            clog('needPortAnimation');
-        } else {
-            this.visible = true;
-            this.mesh.visible = true;
-        }
-    }
-
-    hide(needAnimation){
-        if(needAnimation){
-            clog('needPortAnimation');
-        } else {
-            this.visible = false;
-            this.mesh.visible = false;
-        }
     }
 
     hover(){
@@ -133,24 +114,36 @@ export default class {
         return this.mesh.getObjectByName('portLabelText');
     }
 
+    hide(){
+        this.mesh.scale(0,0,0);
+    }
+/*
+    show(){
+        this.mesh.scale(1, 1, 1);
+    }
+*/
+
+    addToNode(mNode){
+        mNode.add(this.mesh);
+    }
+
     animateHide(callback){
         new FBS.tween.Tween( this.mesh.scale)
             .to( {x: 0, y: 0, z: 0}, C.animation.portHideTime )
             .easing( FBS.tween.Easing.Exponential.InOut )
             .onComplete(()=>{
-                callback();
+                callback ? callback() : void null;
                 this.mesh.removeFromParent();
             })
             .start();
     }
 
-    animateShow(mParent, callback){
-        mParent.add(this.mesh);
+    animateShow(callback){
         new FBS.tween.Tween( this.mesh.scale)
             .to( {x: 1, y: 1, z: 1}, C.animation.portHideTime )
             .easing( FBS.tween.Easing.Exponential.InOut )
             .onComplete(()=>{
-                callback();
+                callback ? callback() : void null;
             })
             .start();
     }
@@ -166,7 +159,17 @@ export default class {
             .to( {x: 1, y: 1, z: 1}, C.animation.footerLabelHideTime )
             .easing( FBS.tween.Easing.Exponential.InOut )
             .onComplete(()=>{
-                callback();
+                callback ? callback() : void null;
+            })
+            .start();
+    }
+
+    animateMoving(to, callback){
+        new FBS.tween.Tween( this.mesh.position)
+            .to( to, C.animation.portHideTime )
+            .easing( FBS.tween.Easing.Exponential.InOut )
+            .onComplete(()=>{
+                callback ? callback() : void null;
             })
             .start();
     }

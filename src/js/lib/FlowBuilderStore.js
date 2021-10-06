@@ -3,7 +3,6 @@ import Dom from './webElements/Dom';
 import SceneControl from "./three/SceneControl";
 import LineControl from './interactive/LineControl';
 import NodeControl from './three/NodeControl';
-import AnimationControl from "./three/AnimationControl";
 import NodeAssets from './three/NodeAssets';
 
 
@@ -11,7 +10,6 @@ import NodeAssets from './three/NodeAssets';
 export default {
     nodeAssets: new NodeAssets(),
     tween: TWEEN,
-    animationControl: new AnimationControl(),
     dom:     new Dom(),
     sceneControl:   new SceneControl(),
     lineControl:    new LineControl(),
