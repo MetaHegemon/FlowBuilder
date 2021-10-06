@@ -147,8 +147,7 @@ export default {
             max: 500,                           //frustum size how far camera can zoom
             damping: 0.8,                       //bigger than shorter inertia
             speed: 8,
-            limitForFullCollapseNodes: 1300,    //frustum size, for all nodes collapsed
-            limitForFullUnCollapseNodes: 1200   //frustum size, for all nodes uncollapsed //TODO убрать одно из значений
+            fullCollapseBorder: 1800,    //frustum size, for all nodes collapsed
         }
     }
 };

@@ -1,15 +1,18 @@
 import * as THREE from "three";
 import ThemeControl from './../../themes/ThemeControl';
 import FBS from "../FlowBuilderStore";
+import C from "../Constants";
 
 export default class {
     constructor(direction, data, cNode) {
         this.type = 'regular'; //TODO see instance
+        this.visible = true;
         this.cNode = cNode;
         this.direction = direction;
         this.data = data;
         this.mesh = this.create();
         this.cLines = [];
+
 
         this.connectorActive = true;
     }
@@ -22,6 +25,24 @@ export default class {
         }.bind(this));
 
         return port
+    }
+
+    show(needAnimation){
+        if(needAnimation){
+            clog('needPortAnimation');
+        } else {
+            this.visible = true;
+            this.mesh.visible = true;
+        }
+    }
+
+    hide(needAnimation){
+        if(needAnimation){
+            clog('needPortAnimation');
+        } else {
+            this.visible = false;
+            this.mesh.visible = false;
+        }
     }
 
     hover(){
@@ -110,6 +131,44 @@ export default class {
 
     getMLabel(){
         return this.mesh.getObjectByName('portLabelText');
+    }
+
+    animateHide(callback){
+        new FBS.tween.Tween( this.mesh.scale)
+            .to( {x: 0, y: 0, z: 0}, C.animation.portHideTime )
+            .easing( FBS.tween.Easing.Exponential.InOut )
+            .onComplete(()=>{
+                callback();
+                this.mesh.removeFromParent();
+            })
+            .start();
+    }
+
+    animateShow(mParent, callback){
+        mParent.add(this.mesh);
+        new FBS.tween.Tween( this.mesh.scale)
+            .to( {x: 1, y: 1, z: 1}, C.animation.portHideTime )
+            .easing( FBS.tween.Easing.Exponential.InOut )
+            .onComplete(()=>{
+                callback();
+            })
+            .start();
+    }
+
+    hideLabel(){
+        const label = this.getMLabel();
+        label.scale.set(0,0,1);
+    }
+
+    animateShowLabel(callback){
+        const label = this.getMLabel();
+        new FBS.tween.Tween( label.scale)
+            .to( {x: 1, y: 1, z: 1}, C.animation.footerLabelHideTime )
+            .easing( FBS.tween.Easing.Exponential.InOut )
+            .onComplete(()=>{
+                callback();
+            })
+            .start();
     }
 
     updateTheme(){

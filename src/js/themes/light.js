@@ -34,7 +34,7 @@ export default {
             },
         },
         footer: {
-            color: '#EEEFF2',
+            color: '#F2EFEE',
             label: {
                 color: '#000000',
                 hoverColor: '#2491F6',

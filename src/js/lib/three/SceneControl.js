@@ -35,8 +35,8 @@ export default class {
         this.zoomEvent = {
             inEvent: new Event('needFullUnCollapse'),
             outEvent: new Event('needFullCollapse'),
-            inDispatched: this.frustumSize < C.three.zoom.limitForFullCollapseNodes,
-            outDispatched: this.frustumSize > C.three.zoom.limitForFullCollapseNodes
+            inDispatched: this.frustumSize < C.three.zoom.fullCollapseBorder,
+            outDispatched: this.frustumSize > C.three.zoom.fullCollapseBorder
         };
     }
 
@@ -190,11 +190,11 @@ export default class {
     }
 
     listenZoom(){
-        if(this.frustumSize > C.three.zoom.limitForFullCollapseNodes && !this.zoomEvent.outDispatched){
+        if(this.frustumSize > C.three.zoom.fullCollapseBorder && !this.zoomEvent.outDispatched){
             this.canvas.dispatchEvent(this.zoomEvent.outEvent);
             this.zoomEvent.outDispatched = true;
             this.zoomEvent.inDispatched = false;
-        } else if(this.frustumSize < C.three.zoom.limitForFullCollapseNodes && !this.zoomEvent.inDispatched){
+        } else if(this.frustumSize < C.three.zoom.fullCollapseBorder && !this.zoomEvent.inDispatched){
             this.canvas.dispatchEvent(this.zoomEvent.inEvent);
             this.zoomEvent.inDispatched = true;
             this.zoomEvent.outDispatched = false;

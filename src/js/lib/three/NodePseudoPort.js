@@ -18,18 +18,18 @@ export default class extends Port{
 
     }
 
-    changeLabelText(collapsed){
+    setCollapsedText(count){
         const label = this.mesh.getObjectByName('portLabelText');
-        if(collapsed){
-            label.text = 'Show more' + ' (' + this.hidedCPorts.length + ')';
+        label.text = 'Show more' + ' (' + count + ')';
+    }
+
+    setUncollapsedText(){
+        const label = this.mesh.getObjectByName('portLabelText');
+        if(this.direction === 'input'){
+            label.text = 'Hide inputs';
         } else {
-            if(this.direction === 'input'){
-                label.text = 'Hide inputs';
-            } else {
-                label.text = 'Hide outputs';
-            }
+            label.text = 'Hide outputs';
         }
-        label.visible = true;
     }
 
     removeLabelText(){
