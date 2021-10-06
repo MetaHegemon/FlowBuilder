@@ -7,7 +7,7 @@ import FBS from "../FlowBuilderStore";
 
 export default class{
     constructor(data, originZ){
-        this.originZ = originZ;
+        this.originZ = originZ;                     //координата Z
         this.selected = false;
         this.nodeHeight = 0;
         this.nodeWidth = C.nodeMesh.mount.width;
@@ -75,7 +75,7 @@ export default class{
         //input ports
         const inputPorts = this.createInputPorts(this.data.inputs);
         this.allCPorts.push(...inputPorts);
-        this.cPortsInput = this.packPortsWithPseudo( inputPorts, 'input', C.nodeMesh.constraints.maxVisiblePorts);
+        this.cPortsInput = this.packPortsWithPseudo( inputPorts, 'input');
         for (let i = 0; i < this.cPortsInput.length; i += 1) {
             nodeObject.add(this.cPortsInput[i].getMPort());
         }
@@ -83,7 +83,7 @@ export default class{
         //output ports
         const outputPorts = this.createOutputPorts(this.data.outputs);
         this.allCPorts.push(...outputPorts);
-        this.cPortsOutput = this.packPortsWithPseudo( outputPorts, 'output', C.nodeMesh.constraints.maxVisiblePorts);
+        this.cPortsOutput = this.packPortsWithPseudo( outputPorts, 'output');
         for (let i = 0; i < this.cPortsOutput.length; i += 1) {
             nodeObject.add(this.cPortsOutput[i].getMPort());
         }
@@ -100,26 +100,21 @@ export default class{
 
     createInputPorts(inputs) {
         const cPorts = [];
-        for(let i = 0; i < inputs.length; i += 1) {
-            const cPort = new Port('input', inputs[i], this);
-            cPorts.push(cPort);
-        }
+        inputs.map((i)=> cPorts.push(new Port('input', i, this)));
 
         return cPorts;
     }
 
+    /**
+     * Создание выходных портов
+     * @param outputs - входные данные выходных портов
+     * @returns {*[]} -
+     */
     createOutputPorts (outputs){
         let cPorts = [];
-        for(let i = 0; i < outputs.length; i += 1) {
-            const cPort = new Port('output', outputs[i], this);
-            cPorts.push(cPort);
-        }
+        outputs.map((o)=> cPorts.push(new Port('output', o, this)));
 
         return cPorts;
-    }
-
-    getOriginZ(){
-        return this.originZ;
     }
 
     /**
@@ -237,12 +232,23 @@ export default class{
         }
     }
 
-    packPortsWithPseudo(cPorts, direction, maxVisiblePorts, cPseudoPort){
+    /**
+     * Упаковка портов вместе с псевдо-портом. Лишние порты скрываются и закрепляются за псевдо-портом.
+     * Псевдопорт добавляется к общему списку видимых портов
+     * @param cPorts {Array}
+     * @param direction {String}
+     * @param cPseudoPort {Class}
+     * @returns {Array}
+     */
+    packPortsWithPseudo(cPorts, direction, cPseudoPort){
         const portsForHide = [];
+        const maxVisiblePorts = C.nodeMesh.constraints.maxVisiblePorts;
+        //определение списка портов для скрытия
         for(let i = maxVisiblePorts - 1; i < cPorts.length; i += 1){
             portsForHide.push(cPorts[i]);
         }
         if(portsForHide.length > 1){
+            //оставляем порты для показа
             for(let i = 0; i < cPorts.length; i += 1){
                 for(let j = 0; j < portsForHide.length; j += 1){
                     if(cPorts[i] === portsForHide[j]){
@@ -255,7 +261,7 @@ export default class{
             if(!cPseudoPort){
                 cPseudoPort = new PseudoPort(direction, this);
             }
-
+            //скрытые порты присваиваются псевдо порту и хранятся там, пока порты не будут развёрнуты
             cPseudoPort.setHidedCPorts(portsForHide);
             this.changePseudoPortName(cPseudoPort);
             cPorts.push(cPseudoPort);
@@ -289,16 +295,19 @@ export default class{
             this.playing = true;
             mPlay.text = '';
         }
-
     }
 
     isSelected(){
         return this.selected;
     }
 
+    /**
+     * Выделение ноды на сцене
+     */
     select(){
         this.selected = true;
         let mount;
+        //при полном схлопывании нода имеет другую подложки
         if(this.fullCollapse.isCollapsed){
             mount = this.mesh.getObjectByName('miniBackMount');
         } else {
@@ -310,13 +319,16 @@ export default class{
         title.color = ThemeControl.theme.node.title.fontSelectedColor;
     }
 
+    /**
+     * Снятие выделения ноды на сцене
+     */
     unselect(){
         this.selected = false;
         let mount;
+        //при полном схлопывании нода имеет другую подложки
         if(this.fullCollapse.isCollapsed){
             mount = this.mesh.getObjectByName('miniBackMount');
         } else {
-
             mount = this.mesh.getObjectByName('backBody');
         }
         mount.material.color.setStyle(ThemeControl.theme.node.mount.back.color);
@@ -325,10 +337,18 @@ export default class{
         title.color = ThemeControl.theme.node.title.fontColor;
     }
 
+    /**
+     * @returns {Group} 3д объект ноды
+     */
     getMNode(){
         return this.mesh;
     }
 
+    /**
+     * Поиск существующего и видимого на ноде псевдо-порта
+     * @param type {string} input, output
+     * @returns {Class} NodePort
+     */
     getPseudoPort(type) {
         let cPort, cPorts;
         if (type === 'input') {
@@ -345,80 +365,83 @@ export default class{
         return cPort;
     }
 
-    middleCollapsePorts(){
+    /**
+     * Частичное схлопывание ноды в результате остаются видны 1 порт слева, 1 порт справа, кнопки управления и подвал
+     */
+    middleCollapseNode(){
         if(!this.middleCollapse.isCollapsed) //COLLAPSE
         {
             this.middleCollapse.isCollapsed = true;
+            //сохранение состояния портов
             this.middleCollapse.storeCPortsInput = [...this.cPortsInput];
             this.middleCollapse.storeCPortsOutput = [...this.cPortsOutput];
-
+            //получение псевдо-портов
             let cPseudoPortInput = this.getPseudoPort('input');
             let cPseudoPortOutput = this.getPseudoPort('output');
-
+            //сохранение наличия портов перед схдопыванием
             this.middleCollapse.isPseudoInputExist = !!cPseudoPortInput;
             this.middleCollapse.isPseudoOutputExist = !!cPseudoPortOutput;
-
+            //Создание входного псевдо порта, если его нет и есть порты, которые надо им объеденить
             if (!cPseudoPortInput && this.cPortsInput.length > 0) {
                 cPseudoPortInput = new PseudoPort('input', this);
+                //надпись нужно удалить сразу, что бы было красиво
                 cPseudoPortInput.removeLabelText();
-                const mesh = cPseudoPortInput.getMPort();
-                const positions = this.calcPositionsForInputPorts();
-                mesh.position.set(positions[0].x, positions[0].y, positions[0].z);
-                this.mesh.add(mesh);
+                const position = this.calcPositionsForInputPorts();
+                cPseudoPortInput.moving(position[0]);
+                cPseudoPortInput.addToNode(this.mesh);
             }
+            //Создание выходного псевдо порта, если его нет  и есть порты, которые надо им объеденить
             if (!cPseudoPortOutput && this.cPortsOutput.length > 0) {
                 cPseudoPortOutput = new PseudoPort('output', this);
-                cPseudoPortOutput.removeLabelText();
-                const mesh = cPseudoPortOutput.getMPort();
-                const positions = this.calcPositionsForOutputPorts();
-                mesh.position.set(positions[positions.length - 1].x, positions[positions.length - 1].y, positions[positions.length - 1].z);
-                this.mesh.add(mesh);
+                //надпись нужно удалить сразу, что бы было красиво
+                cPseudoPortOutput.hideLabel();
+                const position = this.calcPositionsForOutputPorts();
+                cPseudoPortOutput.moving(position[position.length - 1]);
+                cPseudoPortOutput.addToNode(this.mesh);
             }
 
             if(cPseudoPortInput) {
-                cPseudoPortInput.removeLabelText();
+                cPseudoPortInput.hideLabel();
                 cPseudoPortInput.showConnector();
+                //сохранение всех входящих линий с псевдо-порт, что бы потом их восстановить
                 this.middleCollapse.storeCLinesInput = [...cPseudoPortInput.getCLines()];
                 cPseudoPortInput.animateMoving({y: this.getFirstPortPositionY()});
             }
 
             if(cPseudoPortOutput) {
-                cPseudoPortOutput.removeLabelText();
+                cPseudoPortOutput.hideLabel();
                 cPseudoPortOutput.showConnector();
+                //сохранение всех входящих линий с псевдо-порт, что бы потом их восстановить
                 this.middleCollapse.storeCLinesOutput = [...cPseudoPortOutput.getCLines()];
                 cPseudoPortOutput.animateMoving({y: this.getFirstPortPositionY()});
             }
+
+            //анимация скрытия входных портов//TODO replace pseudo
+            this.cPortsInput.map(p=>p.type !== 'pseudo' ? p.animateHide() : void null);
+
+            //переключение всех входных линий на псевдо-порт
             const allInputLines = [];
-            for (let i = 0; i < this.cPortsInput.length; i += 1) {
-                allInputLines.push(...this.cPortsInput[i].getCLines());
-                if (this.cPortsInput[i].type === 'pseudo') continue;
-                this.cPortsInput[i].animateHide();
-            }
+            this.cPortsInput.map(p => allInputLines.push(...p.getCLines()));
             if (cPseudoPortInput) cPseudoPortInput.setCLines(allInputLines);
-            allInputLines.map((cLine) => {
-                cLine.collapsedPort2();
-            });
+            //для всех линий отмечается, что входной порт сколлапсирован
+            allInputLines.map(cLine => cLine.collapsedPort2());
 
+            //анимация скрытия выходных портов //TODO replace pseudo
+            this.cPortsOutput.map(p=>p.type !== 'pseudo' ? p.animateHide() : void null);
+
+            //переключение всех выходных линий на псевдо-порт
             const allOutputLines = [];
-            for (let i = 0; i < this.cPortsOutput.length; i += 1) {
-                allOutputLines.push(...this.cPortsOutput[i].getCLines());
-
-                if (this.cPortsOutput[i].type === 'pseudo') continue;
-                this.cPortsOutput[i].animateHide();
-            }
-
+            this.cPortsOutput.map(p => allOutputLines.push(...p.getCLines()));
             if (cPseudoPortOutput) cPseudoPortOutput.setCLines(allOutputLines);
             allOutputLines.map((cLine) => {
+                //для всех линий отмечается, что входной порт сколлапсирован
                 cLine.collapsedPort1();
-
-                /**
-                 * Для входных портов на другом конце линии коннектор делается неактивным
-                 */
+                //Для входных портов на другом конце линии коннектор делается неактивным
                 const cPort2 = cLine.getCPort2();
                 cPort2.setConnectorInactive();
-
             });
 
+            //единственными портами ноды становятся 1 входной и 1 выходной
             if (cPseudoPortInput) this.cPortsInput = [cPseudoPortInput];
             if (cPseudoPortOutput) this.cPortsOutput = [cPseudoPortOutput];
 
@@ -429,82 +452,102 @@ export default class{
             this.middleCollapse.isCollapsed = false;
 
             const cPseudoPortInput = this.getPseudoPort('input');
+
             if (this.middleCollapse.isPseudoInputExist) {
+                //входной псевдо-порт существовал на ноде, возвращается ему имя
+                cPseudoPortInput.hideLabel();
                 this.changePseudoPortName(cPseudoPortInput);
+                cPseudoPortInput.animateShowLabel();
+                //this.changePseudoPortName(cPseudoPortInput);
                 if (!this.shortCollapse.inputPortsCollapsed) cPseudoPortInput.hideConnector();
+                //псевдо-порту возвращаются его линии
                 cPseudoPortInput.setCLines(this.middleCollapse.storeCLinesInput);
             } else {
-                if(cPseudoPortInput){
-                    this.mesh.remove(cPseudoPortInput.getMPort());
-                }
+                //входного псевдо-порта не существовало, текущий порт удаляется
+                if(cPseudoPortInput) this.mesh.remove(cPseudoPortInput.getMPort());
             }
 
             const cPseudoPortOutput = this.getPseudoPort('output');
             if (this.middleCollapse.isPseudoOutputExist) {
+                //выходной псевдо-порт существовал на ноде, возвращается ему имя
+                cPseudoPortOutput.hideLabel();
                 this.changePseudoPortName(cPseudoPortOutput);
+                cPseudoPortOutput.animateShowLabel();
                 if (!this.shortCollapse.outputPortsCollapsed) cPseudoPortOutput.hideConnector();
+                //возвращаются линии
                 cPseudoPortOutput.setCLines(this.middleCollapse.storeCLinesOutput);
             }else {
-                if(cPseudoPortOutput){
-                    this.mesh.remove(cPseudoPortOutput.getMPort());
-                }
+                //выходного псевдо-порта не существовало, текущий порт удаляется
+                if(cPseudoPortOutput) this.mesh.remove(cPseudoPortOutput.getMPort());
             }
 
+            //восстановление состояния портов до коллапса
             this.cPortsInput = [...this.middleCollapse.storeCPortsInput];
             this.cPortsOutput = [...this.middleCollapse.storeCPortsOutput];
 
+            //очищение хранилища линий
             this.middleCollapse.storeCLinesInput = [];
             this.middleCollapse.storeCLinesOutput = [];
 
-            for (let i = 0; i < this.cPortsInput.length; i += 1) {
-                if (this.cPortsInput[i].type === 'pseudo') continue;
-                this.cPortsInput[i].addToNode(this.mesh);
-                this.cPortsInput[i].animateShow();
+            this.cPortsInput.map(p=>{
+                if (p.type !== 'pseudo') {
+                    //анимированный возврат портов в сцену
+                    p.addToNode(this.mesh);
+                    p.animateShow();
 
-                const cLines = this.cPortsInput[i].getCLines();
-                cLines.map((cLine) => {
-                    cLine.unCollapsedPort2();
-                });
-            }
+                    const cLines = p.getCLines();
+                    //отмечаем на линии, что входной порт больше не сколлапсирован
+                    cLines.map((cLine) => cLine.unCollapsedPort2());
+                }
+            });
 
-            for (let i = 0; i < this.cPortsOutput.length; i += 1) {
-                if (this.cPortsOutput[i].type === 'pseudo') continue;
-                this.cPortsOutput[i].addToNode(this.mesh);
-                this.cPortsOutput[i].animateShow();
+            this.cPortsOutput.map(p => {
+                if (p.type !== 'pseudo') {
+                    //анимированный возврат портов в сцену
+                    p.addToNode(this.mesh);
+                    p.animateShow();
 
-                const cLines = this.cPortsOutput[i].getCLines();
-                cLines.map((cLine) => {
-                    cLine.unCollapsedPort1();
+                    const cLines = p.getCLines();
+                    cLines.map((cLine) => {
+                        //отмечаем на линии, что входной порт больше не сколлапсирован
+                        cLine.unCollapsedPort1();
+                        // для входных портов на другом конце линии коннектор делается активным
+                        const cPort2 = cLine.getCPort2();
+                        cPort2.setConnectorActive();
+                    });
+                }
+            });
 
-                    /**
-                     * Для входных портов на другом конце линии коннектор делается активным
-                     */
-                    const cPort2 = cLine.getCPort2();
-                    cPort2.setConnectorActive();
-                });
-            }
-
+            //очищение хранилища портов
             this.middleCollapse.storeCPortsInput = [];
             this.middleCollapse.storeCPortsOutput = [];
+
+            //считаем высоту ноды, что впоследствии правильно рассчитать позицию псевдо-портов
             this.calcNodeHeight();
 
+            //анимированный возврат псевдо-портов на свои места
             if(cPseudoPortInput) {
-                const positions = this.calcPositionsForInputPorts();
-                cPseudoPortInput.animateMoving({y: positions[positions.length - 1].y});
+                const position = this.calcPositionsForInputPorts();
+                cPseudoPortInput.animateMoving({y: position[position.length - 1].y});
             }
 
             if(cPseudoPortOutput) {
-                const positions = this.calcPositionsForOutputPorts();
-                cPseudoPortOutput.animateMoving({x: this.nodeWidth, y: positions[positions.length - 1].y});
+                const position = this.calcPositionsForOutputPorts();
+                cPseudoPortOutput.animateMoving({x: this.nodeWidth, y: position[position.length - 1].y});
             }
+            clog({pi: cPseudoPortInput, po: cPseudoPortOutput});
         }
 
         this.animateRefreshLines();
         this.scaleNodeWithAnimation();
         this.scaleBigMount();
-        this.collapseButtonRotate();
+        this.animateButtonRotate();
     }
 
+    /**
+     * Изменение имени псевдо-порта в соответствии с состоянием ноды
+     * @param cPort
+     */
     changePseudoPortName(cPort) {
         if (cPort.direction === 'input') {
             if (this.shortCollapse.inputPortsCollapsed) {
@@ -521,18 +564,23 @@ export default class{
         }
     }
 
+    /**
+     * Полное схлопывание ноды
+     * @param isNeedCollapse {boolean}
+     * @returns {null}
+     */
     fullCollapseNode(isNeedCollapse){
-        /*
-        Ниже система очередей, если анимация не завершена и поступила другая задача,
-        то новая задача встаёт в очередь и выполняется после текущей
-         */
+        //Ниже система очередей, если анимация не завершена и поступила другая задача,
+        //то новая задача встаёт в очередь и выполняется после текущей
         if(this.fullCollapse.state === 'inProcess'){
             this.fullCollapse.queue.push(isNeedCollapse);
         } else {
             let operationCount = 0;
             let waitCount = 0;
+            //метод ожидания звершения всех анимаций
             const wait = () => {
                 waitCount += 1;
+                //ожидание завершения всех анимаций
                 if (waitCount === operationCount) {
                     this.fullCollapse.state = 'done';
                     const queue = this.fullCollapse.queue;
@@ -556,82 +604,90 @@ export default class{
                 this.fullCollapse.state = 'inProcess';
 
                 this.fullCollapse.isCollapsed = true;
+                //на маленькой ноде ресайзер не используется
                 this.turnOffResizer();
 
-                this.calcNodeMinHeight();
+                //сохранение состояния портов
                 this.fullCollapse.storeCPortsInput = [...this.cPortsInput];
                 this.fullCollapse.storeCPortsOutput = [...this.cPortsOutput];
 
                 let cPseudoPortInput = this.getPseudoPort('input');
                 let cPseudoPortOutput = this.getPseudoPort('output');
-
+                //сохранение наличия псевдо-портов ноды
                 this.fullCollapse.isPseudoInputExist = !!cPseudoPortInput;
                 this.fullCollapse.isPseudoOutputExist = !!cPseudoPortOutput;
-
+                //Создание входного псевдо порта, если его нет и есть порты, которые надо им объеденить
                 if (!cPseudoPortInput && this.cPortsInput.length > 0) {
                     cPseudoPortInput = new PseudoPort('input', this);
-                    cPseudoPortInput.removeLabelText();
-                    const mesh = cPseudoPortInput.getMPort();
-                    const positions = this.calcPositionsForInputPortsMin();
-                    mesh.position.set(positions[0].x, positions[0].y, positions[0].z);
-                    this.mesh.add(mesh);
+                    //надпись нужно удалить сразу, что бы было красиво
+                    cPseudoPortInput.hideLabel();
+                    const position = this.calcPositionsForInputPortsMin();
+                    cPseudoPortInput.moving(position[0]);
+                    cPseudoPortInput.addToNode(this.mesh);
                 }
+                //Создание выходного псевдо порта, если его нет и есть порты, которые надо им объеденить
                 if (!cPseudoPortOutput && this.cPortsOutput.length > 0) {
                     cPseudoPortOutput = new PseudoPort('output', this);
-                    cPseudoPortOutput.removeLabelText();
-                    const mesh = cPseudoPortOutput.getMPort();
-                    const positions = this.calcPositionsForOutputPortsMin();
-                    mesh.position.set(positions[positions.length - 1].x, positions[positions.length - 1].y, positions[positions.length - 1].z);
-                    this.mesh.add(mesh);
+                    //надпись нужно удалить сразу, что бы было красиво
+                    cPseudoPortOutput.hideLabel();
+                    const position = this.calcPositionsForOutputPortsMin();
+                    cPseudoPortOutput.moving(position[position.length - 1]);
+                    cPseudoPortOutput.addToNode(this.mesh);
                 }
 
                 if (cPseudoPortInput) {
-                    cPseudoPortInput.removeLabelText();
+                    cPseudoPortInput.hideLabel();
                     cPseudoPortInput.showConnector();
+                    //сохранение всех входящих линий с псевдо-порт, что бы потом их восстановить
                     this.fullCollapse.storeCLinesInput = [...cPseudoPortInput.getCLines()];
                     cPseudoPortInput.animateMoving({y: -C.miniNodeMesh.height/2});
                 }
 
                 if (cPseudoPortOutput) {
-                    cPseudoPortOutput.removeLabelText();
+                    cPseudoPortOutput.hideLabel();
                     cPseudoPortOutput.showConnector();
+                    //сохранение всех входящих линий с псевдо-порт, что бы потом их восстановить
                     this.fullCollapse.storeCLinesOutput = [...cPseudoPortOutput.getCLines()];
                     cPseudoPortOutput.animateMoving({x: C.miniNodeMesh.width, y: -C.miniNodeMesh.height/2});
                 }
 
-                const allInputLines = [];
-                for (let i = 0; i < this.cPortsInput.length; i += 1) {
-                    allInputLines.push(...this.cPortsInput[i].getCLines());
-                    if (this.cPortsInput[i].type === 'pseudo') continue;
-                    operationCount += 1;
-                    this.cPortsInput[i].animateHide(()=>wait());
-                }
+                //анимация скрытия входных портов
+                this.cPortsInput.map(p=>{
+                    if(p.type !== 'pseudo') {
+                        operationCount += 1;
+                        p.animateHide(() => wait());
+                    }
+                });
 
+                //переключение всех входных линий на псевдо-порт
+                const allInputLines = [];
+                this.cPortsInput.map(p => allInputLines.push(...p.getCLines()));
                 if (cPseudoPortInput) cPseudoPortInput.setCLines(allInputLines);
-                allInputLines.map((cLine) => {
-                    cLine.collapsedPort2();
+                //для всех линий отмечается, что входной порт сколлапсирован
+                allInputLines.map(cLine => cLine.collapsedPort2());
+
+                //анимация скрытия выходных портов
+                this.cPortsOutput.map(p=>{
+                    if(p.type !== 'pseudo') {//TODO replace pseudo
+                        operationCount += 1;
+                        p.animateHide(() => wait());
+                    }
                 });
 
                 const allOutputLines = [];
-                for (let i = 0; i < this.cPortsOutput.length; i += 1) {
-                    allOutputLines.push(...this.cPortsOutput[i].getCLines());
-
-                    if (this.cPortsOutput[i].type === 'pseudo') continue;
-                    operationCount += 1;
-                    this.cPortsOutput[i].animateHide(()=>wait());
-                }
-
+                this.cPortsOutput.map(p => allOutputLines.push(...p.getCLines()));
                 if (cPseudoPortOutput) cPseudoPortOutput.setCLines(allOutputLines);
-                allOutputLines.map((item) => {
-                    item.collapsedPort1();
-                });
+                //для всех линий отмечается, что входной порт сколлапсирован
+                allOutputLines.map(item => item.collapsedPort1());
 
+                //единственными портами ноды становятся 1 входной и 1 выходной
                 if (cPseudoPortInput) this.cPortsInput = [cPseudoPortInput];
                 if (cPseudoPortOutput) this.cPortsOutput = [cPseudoPortOutput];
 
                 this.showMenuButtons(false);
+                //переключение с большой ноды на маленькую осуществляется 2-я анимациями
                 operationCount += 2;
-                this.switchOnMiniNode(()=>wait());
+                this.switchOnMiniMount(()=>wait());
                 this.scaleBigMount(C.miniNodeMesh.width, C.miniNodeMesh.height);
             }
             else  //UNCOLLAPSE
@@ -640,31 +696,34 @@ export default class{
                 this.fullCollapse.state = 'inProcess';
 
                 this.fullCollapse.isCollapsed = false;
+
                 this.turnOnResizer();
 
                 const cPseudoPortInput = this.getPseudoPort('input');
                 if (this.fullCollapse.isPseudoInputExist) {
                     if(this.middleCollapse.isCollapsed){
-                        cPseudoPortInput.removeLabelText();
+                        //при среднем схлопывании у псевдо-портов нет подписи
+                        cPseudoPortInput.hideLabel();
                     } else {
-                        //Анимация плавного появления текста, иначе видно, как он скачет сверху вниз
+                        //Анимация плавного появления текста, иначе видно как он скачет сверху вниз
                         cPseudoPortInput.hideLabel();
                         this.changePseudoPortName(cPseudoPortInput);
                         operationCount += 1;
                         cPseudoPortInput.animateShowLabel(()=>wait());
                     }
                     if (!this.shortCollapse.inputPortsCollapsed) cPseudoPortInput.hideConnector();
+                    //псевдо-порту возвращаются его линии
                     cPseudoPortInput.setCLines(this.fullCollapse.storeCLinesInput);
                 } else {
-                    if (cPseudoPortInput) {
-                        this.mesh.remove(cPseudoPortInput.getMPort());
-                    }
+                    //входного псевдо-порта не существовало, текущий порт удаляется
+                    if (cPseudoPortInput) this.mesh.remove(cPseudoPortInput.getMPort());
                 }
 
                 const cPseudoPortOutput = this.getPseudoPort('output');
                 if (this.fullCollapse.isPseudoOutputExist) {
                     if(this.middleCollapse.isCollapsed){
-                        cPseudoPortOutput.removeLabelText();
+                        //при среднем схлопывании у псевдо-портов нет подписи
+                        cPseudoPortOutput.hideLabel();
                     } else {
                         //Анимация плавного появления текста, иначе видно, как он скачет сверху вниз
                         cPseudoPortOutput.hideLabel();
@@ -673,50 +732,58 @@ export default class{
                         cPseudoPortOutput.animateShowLabel(()=>wait());
                     }
                     if (!this.shortCollapse.outputPortsCollapsed) cPseudoPortOutput.hideConnector();
+                    //псевдо-порту возвращаются его линии
                     cPseudoPortOutput.setCLines(this.fullCollapse.storeCLinesOutput);
                 } else {
-                    if (cPseudoPortOutput) {
-                        this.mesh.remove(cPseudoPortOutput.getMPort());
-                    }
-                }
+                    //входного псевдо-порта не существовало, текущий порт удаляется
+                    if (cPseudoPortOutput) this.mesh.remove(cPseudoPortOutput.getMPort());
 
+                }
+                //восстановление состояния портов до коллапса
                 this.cPortsInput = [...this.fullCollapse.storeCPortsInput];
                 this.cPortsOutput = [...this.fullCollapse.storeCPortsOutput];
 
+                //очищение хранилища линий
                 this.fullCollapse.storeCLinesInput = [];
                 this.fullCollapse.storeCLinesOutput = [];
 
-                for (let i = 0; i < this.cPortsInput.length; i += 1) {
-                    if (this.cPortsInput[i].type === 'pseudo') continue;
-                    this.cPortsInput[i].addToNode(this.mesh);
-                    operationCount += 1;
-                    this.cPortsInput[i].animateShow( ()=>wait());
-                    const cLines = this.cPortsInput[i].getCLines();
-                    cLines.map((item) => {
-                        item.unCollapsedPort2();
-                    });
-                }
+                this.cPortsInput.map(p=>{
+                    if (p.type !== 'pseudo') {
+                        //анимированный возврат портов в сцену
+                        p.addToNode(this.mesh);
+                        operationCount += 1;
+                        p.animateShow( ()=>wait());
 
-                for (let i = 0; i < this.cPortsOutput.length; i += 1) {
-                    if (this.cPortsOutput[i].type === 'pseudo') continue;
-                    this.cPortsOutput[i].addToNode(this.mesh);
-                    operationCount += 1;
-                    this.cPortsOutput[i].animateShow( ()=>wait());
+                        const cLines = p.getCLines();
+                        //отмечаем на линии, что входной порт больше не сколлапсирован
+                        cLines.map((cLine) => cLine.unCollapsedPort2());
+                    }
+                });
 
-                    const cLines = this.cPortsOutput[i].getCLines();
-                    cLines.map((item) => {
-                        item.unCollapsedPort1();
-                    });
-                }
+                this.cPortsOutput.map(p => {
+                    if (p.type !== 'pseudo') {
+                        //анимированный возврат портов в сцену
+                        p.addToNode(this.mesh);
+                        operationCount += 1;
+                        p.animateShow( ()=>wait());
 
+                        const cLines = p.getCLines();
+                        //отмечаем на линии, что входной порт больше не сколлапсирован
+                        cLines.map(cLine => cLine.unCollapsedPort1());
+                    }
+                });
+
+                //очищение хранилища портов
                 this.fullCollapse.storeCPortsInput = [];
                 this.fullCollapse.storeCPortsOutput = [];
 
+                //анимированный возврат псевдо-портов на свои места
                 if(this.middleCollapse.isCollapsed){
                     this.calcNodeHeight(1);
                     if (cPseudoPortInput) cPseudoPortInput.animateMoving({y: this.getFirstPortPositionY()});
                     if (cPseudoPortOutput) cPseudoPortOutput.animateMoving({x: this.nodeWidth, y: this.getFirstPortPositionY()});
                 } else {
+                    //считаем высоту ноды, что впоследствии правильно рассчитать позицию псевдо-портов
                     this.calcNodeHeight();
                     if (cPseudoPortInput) {
                         const positions = this.calcPositionsForInputPorts();
@@ -729,17 +796,23 @@ export default class{
                 }
 
                 this.showMenuButtons(true);
+                //переключение с маленькой ноды на большую осуществляется 2-я анимациями
                 operationCount += 2;
                 this.switchOnRegularNode(()=>wait());
                 this.scaleBigMount();
             }
 
             this.animateRefreshLines();
-            this.collapseButtonRotate();
+            this.animateButtonRotate();
         }
     }
 
-    switchOnMiniNode(callback){
+    /**
+     * Переключение с большой подложки к маленькой
+     * @param callback
+     */
+    switchOnMiniMount(callback){
+        //разворот маленькой ноды
         const mini = this.mesh.getObjectByName('miniMount');
         mini.visible = true;
         new FBS.tween.Tween(mini.scale)
@@ -749,7 +822,7 @@ export default class{
                 callback();
             })
             .start();
-
+        //схлопывание большой ноды
         const regular = this.mesh.getObjectByName('regularMount');
         new FBS.tween.Tween(regular.scale)
             .to( {x: 0, y: 0, z: 1}, C.animation.nodeCollapseTime )
@@ -759,6 +832,7 @@ export default class{
             })
             .start();
 
+        //перемещение индикатора в центр
         const indicator = this.mesh.getObjectByName('indicator');
         indicator.position.set(C.miniNodeMesh.width/2, -C.miniNodeMesh.height/2, indicator.position.z);
         indicator.fontSize = C.miniNodeMesh.indicatorFontSize;
@@ -766,11 +840,17 @@ export default class{
         indicator.anchorX = 'center'; //TODO Изначально выставить правильно
         indicator.anchorY = 'middle';
 
+        //изменение размера шрифта для заголовка
         const title = this.mesh.getObjectByName('title');
         title.fontSize = C.miniNodeMesh.titleFontSize;
     }
 
+    /**
+     * Переключение с маленькой подложки на большую
+     * @param callback
+     */
     switchOnRegularNode(callback){
+        //схлопывание маленькой подложки
         const mini = this.mesh.getObjectByName('miniMount');
         new FBS.tween.Tween(mini.scale)
             .to( {x: 0, y: 0, z: 1}, C.animation.nodeCollapseTime )
@@ -781,6 +861,7 @@ export default class{
             })
             .start();
 
+        //разворот большой подложки
         const regular = this.mesh.getObjectByName('regularMount');
         regular.visible = true;
         new FBS.tween.Tween(regular.scale)
@@ -791,6 +872,7 @@ export default class{
             })
             .start();
 
+        //смещение индикатора в правый верхний угол
         const indicator = this.mesh.getObjectByName('indicator');
         indicator.position.set(this.nodeWidth - C.nodeMesh.indicator.rightMargin, 0,  indicator.position.z);
         indicator.fontSize = C.nodeMesh.indicator.fontSize;
@@ -798,20 +880,31 @@ export default class{
         indicator.anchorX = 'right';
         indicator.anchorY = 'bottom';
 
+        //изменение размера шрифта для заголовка
         const title = this.mesh.getObjectByName('title');
         title.fontSize = C.nodeMesh.title.fontSize;
     }
 
+    /**
+     * Включение активности ресайзера на сцене
+     */
     turnOnResizer(){
         const resizer = this.mesh.getObjectByName('rightResizer');
         resizer.visible = true;
     }
 
+    /**
+     * выключение активности ресайзера на сцене
+     */
     turnOffResizer(){
         const resizer = this.mesh.getObjectByName('rightResizer');
         resizer.visible = false;
     }
 
+    /**
+     * Показ/скрытие кнопок управления
+     * @param show {Boolean}
+     */
     showMenuButtons(show) {
         const mCollapseButton = this.mesh.getObjectByName('collapseButton');
         if(mCollapseButton) mCollapseButton.visible = show;
@@ -821,7 +914,10 @@ export default class{
         if(mMenuButton) mMenuButton.visible = show;
     }
 
-    collapseButtonRotate() {
+    /**
+     * Анимация вращения кнопки среднего схлопывания
+     */
+    animateButtonRotate() {
         const mCollapse = this.mesh.getObjectByName('collapseButton');
         if(mCollapse) {
             let angle;
@@ -838,7 +934,7 @@ export default class{
     }
 
     /**
-     * Animate refresh lines while node collapsing
+     * Анимация обновления линий при анимации схлопывания ноды
      */
     animateRefreshLines(){
         new FBS.tween.Tween({x:0})
@@ -850,66 +946,93 @@ export default class{
             .start();
     }
 
+    /**
+     * Схлопывание/разворачивание портов, через нажатие на псевдо-порт
+     * @param cPseudoPort {Class}
+     */
     shortCollapsePorts(cPseudoPort){
         if(cPseudoPort.direction === 'input'){
-            this.shortCollapseInputPorts(cPseudoPort, C.nodeMesh.constraints.maxVisiblePorts);
+            this.shortCollapseInputPorts(cPseudoPort);
         } else {
-            this.shortCollapseOutputPorts(cPseudoPort, C.nodeMesh.constraints.maxVisiblePorts);
+            this.shortCollapseOutputPorts(cPseudoPort);
         }
         this.scaleBigMount();
     }
 
-    shortCollapseInputPorts(cPseudoPort, maxVisiblePorts){
-        if(this.shortCollapse.inputPortsCollapsed){ //unCollapse
+    /**
+     * Схлопывание/разворачивание входящих портов
+     * @param cPseudoPort {Class}
+     */
+    shortCollapseInputPorts(cPseudoPort){
+        if(!this.shortCollapse.inputPortsCollapsed){ //схлопывание
+            this.shortCollapse.inputPortsCollapsed = true;
+            this.collapseInputPorts(cPseudoPort);
+        } else { //разворот
             this.shortCollapse.inputPortsCollapsed = false;
             this.unCollapseInputPorts(cPseudoPort);
-        } else { //collapse
-            this.shortCollapse.inputPortsCollapsed = true;
-            this.collapseInputPorts(cPseudoPort, maxVisiblePorts);
         }
 
         const positions = this.calcPositionsForInputPorts();
-        positions.length = positions.length - 1; //remove position for pseudo port. he moved by tween
+        //удаление последней позиции для порта, т.к. псевдо-порт будет перемещён анимацией
+        positions.length = positions.length - 1;
         this.setPositionsForInputPorts(positions);
         this.scaleNodeWithAnimation();
     }
 
-    collapseInputPorts(cPseudoPort, maxVisiblePorts){
+    /**
+     * Схлопывание входных портов
+     * @param cPseudoPort {Class}
+     */
+    collapseInputPorts(cPseudoPort){
+        //удаление псевдо-порта из списка входных
         for(let i = 0; i < this.cPortsInput.length; i += 1){
             if(this.cPortsInput[i] === cPseudoPort) {
                 this.cPortsInput.splice(i, 1);
                 break;
             }
         }
-        this.cPortsInput = this.packPortsWithPseudo(this.cPortsInput, 'input', maxVisiblePorts, cPseudoPort);
+        //составляем новый список видимых портов вместе с псевдо-портом
+        this.cPortsInput = this.packPortsWithPseudo(this.cPortsInput, 'input', cPseudoPort);
+        //считаем высоту ноды, что бы потом правильно рассчитать позиции портов
         this.calcNodeHeight();
+
+        //анимация скрытия портов
         const hidedCPorts = cPseudoPort.getHidedCPorts();
+        hidedCPorts.map(p => p.animateHide());
 
-        for(let i = 0; i < hidedCPorts.length; i += 1){
-            const cLines = hidedCPorts[i].getCLines();
-            cLines.map((item) => {item.collapsedPort2()});
-            hidedCPorts[i].animateHide();
-        }
+        hidedCPorts.map(p => {
+            const cLines = p.getCLines();
+            //устанавливаем отметку на линии, что второй порт сколлапсирован
+            cLines.map(l => l.collapsedPort2());
+        });
 
-        const positions = this.calcPositionsForOutputPorts();
+        //расстановка портов по местам
+        const positionOut = this.calcPositionsForOutputPorts();
         for(let i = 0; i < this.cPortsOutput.length; i += 1){
-            this.cPortsOutput[i].animateMoving({y: positions[i].y});
+            this.cPortsOutput[i].animateMoving({y: positionOut[i].y});
         }
 
         this.changePseudoPortName(cPseudoPort);
         cPseudoPort.showConnector();
-        cPseudoPort.animateMoving({y: positions[positions.length - 1].y});
+        const positionIn = this.calcPositionsForInputPorts();
+        cPseudoPort.animateMoving({y: positionIn[positionIn.length - 1].y});
     }
 
+    /**
+     * Разворачивание входных портов
+     * @param cPseudoPort {Class}
+     */
     unCollapseInputPorts(cPseudoPort){
         const hidedCPorts = cPseudoPort.getHidedCPorts();
-        for(let i = 0; i < hidedCPorts.length; i += 1){
-            this.cPortsInput.push(hidedCPorts[i]);
 
-            hidedCPorts[i].hide();
-            hidedCPorts[i].addToNode(this.mesh);
-            hidedCPorts[i].animateShow();
-        }
+        hidedCPorts.map(p => {
+            //включение скрытых портов в общий список видимых
+            this.cPortsInput.push(p);
+            //анимация появления портов
+            p.hide();
+            p.addToNode(this.mesh);
+            p.animateShow();
+        });
 
         for(let i = 0; i < this.cPortsInput.length; i += 1){
             if(this.cPortsInput[i] === cPseudoPort){
@@ -917,113 +1040,145 @@ export default class{
                 break;
             }
         }
-        for(let i = 0; i < this.cPortsInput.length; i += 1){
-            const cLines = this.cPortsInput[i].getCLines();
-            cLines.map((cLine) => {cLine.unCollapsedPort2()});
-        }
+
+        this.cPortsInput.map(p => {
+            const cLines = p.getCLines();
+            //устанавливаем отметку на линии, что второй порт развёрнут
+            cLines.map(l => l.unCollapsedPort2());
+        });
 
         this.cPortsInput.push(cPseudoPort);
         cPseudoPort.setHidedCPorts([]);
         this.changePseudoPortName(cPseudoPort);
         cPseudoPort.hideConnector();
+        //рассчитываем высоту ноды, что правильно рассчитать позиции портов
         this.calcNodeHeight();
+        //расстановка портов на позиции
+        const positionOut = this.calcPositionsForOutputPorts();
         for(let i = 0; i < this.cPortsOutput.length; i += 1){
-            const positions = this.calcPositionsForOutputPorts();
-            this.cPortsOutput[i].animateMoving({y: positions[i].y});
+            this.cPortsOutput[i].animateMoving({y: positionOut[i].y});
         }
 
-        const positions = this.calcPositionsForInputPorts();
-        cPseudoPort.animateMoving({y: positions[positions.length - 1].y});
+        //this.cPortsOutput.map(p => p.animateMoving({y: positionOut[i].y}));
+
+        const positionIn = this.calcPositionsForInputPorts();
+        cPseudoPort.animateMoving({y: positionIn[positionIn.length - 1].y});
     }
 
-    shortCollapseOutputPorts(cPseudoPort, maxVisiblePorts){
-        if(this.shortCollapse.outputPortsCollapsed){ //unCollapse
+    /**
+     * Схлопывание/разворачивание выходящих портов
+     * @param cPseudoPort {Class}
+     */
+    shortCollapseOutputPorts(cPseudoPort){
+        if(!this.shortCollapse.outputPortsCollapsed){ //сворачивание
+            this.shortCollapse.outputPortsCollapsed = true;
+            this.collapseOutputPorts(cPseudoPort);
+        } else { //разворот
             this.shortCollapse.outputPortsCollapsed = false;
             this.unCollapseOutputPorts(cPseudoPort);
-        } else { //collapse
-            this.shortCollapse.outputPortsCollapsed = true;
-            this.collapseOutputPorts(cPseudoPort, maxVisiblePorts);
         }
 
-        const positions = this.calcPositionsForOutputPorts();
-        positions.length = positions.length - 1; //remove position for pseudo port. he moved by tween
+        const position = this.calcPositionsForOutputPorts();
+        //удаление последней позиции для порта, т.к. псевдо-порт будет перемещён анимацией
+        position.length = position.length - 1;
 
-        this.setPositionsForOutputPorts(positions);
+        this.setPositionsForOutputPorts(position);
         this.scaleNodeWithAnimation();
     }
 
-    collapseOutputPorts(cPseudoPort, maxVisiblePorts){
-        for(let i = 0; i < this.cPortsOutput.length; i += 1){
-            if(this.cPortsOutput[i] === cPseudoPort) {
+    /**
+     * Схлопывание выходных портов
+     * @param cPseudoPort {Class}
+     */
+    collapseOutputPorts(cPseudoPort) {
+        //удаление псевдо-порта из списка входных
+        for (let i = 0; i < this.cPortsOutput.length; i += 1) {
+            if (this.cPortsOutput[i] === cPseudoPort) {
                 this.cPortsOutput.splice(i, 1);
                 break;
             }
         }
-        this.cPortsOutput = this.packPortsWithPseudo(this.cPortsOutput, 'output', maxVisiblePorts, cPseudoPort);
-        const hidedCPorts = cPseudoPort.getHidedCPorts();
+        //составляем новый список видимых портов вместе с псевдо-портом
+        this.cPortsOutput = this.packPortsWithPseudo(this.cPortsOutput, 'output', cPseudoPort);
 
+        //считаем высоту ноды, что бы потом правильно рассчитать позиции портов
         this.calcNodeHeight();
-        for(let i = 0; i < hidedCPorts.length; i += 1){
-            const cLines = hidedCPorts[i].getCLines();
-            cLines.map((cLine) => {
-                cLine.collapsedPort1();
 
-                /**
-                 * Для входных портов на другом конце линии коннектор делается неактивным
-                 */
-                if(!cLine.isPort2Collapsed) {
-                    const cPort2 = cLine.getCPort2();
+        //анимация скрытия портов
+        const hidedCPorts = cPseudoPort.getHidedCPorts();
+        hidedCPorts.map(p => p.animateHide());
+
+        hidedCPorts.map(p => {
+            const cLines = p.getCLines();
+            //устанавливаем отметку на линии, что первый порт сколлапсирован
+            cLines.map(l => {
+                l.collapsedPort1();
+
+                //для входных портов на другом конце линии коннектор делается неактивным
+                if (!l.isPort2Collapsed) {
+                    const cPort2 = l.getCPort2();
                     cPort2.setConnectorInactive();
                 }
             });
-
-            hidedCPorts[i].animateHide();
-        }
+        });
 
         this.changePseudoPortName(cPseudoPort);
         cPseudoPort.showConnector();
+        //расстановка портов по местам
         const positions = this.calcPositionsForOutputPorts();
-        cPseudoPort.animateMoving({ x: this.nodeWidth, y: positions[positions.length - 1].y});
+        cPseudoPort.animateMoving({x: this.nodeWidth, y: positions[positions.length - 1].y});
     }
 
+    /**
+     * Разворачивание выходных портов
+     * @param cPseudoPort {Class}
+     */
     unCollapseOutputPorts(cPseudoPort){
         const hidedCPorts = cPseudoPort.getHidedCPorts();
-        for(let i = 0; i < hidedCPorts.length; i += 1){
-            this.cPortsOutput.push(hidedCPorts[i]);
-            hidedCPorts[i].hide();
-            hidedCPorts[i].addToNode(this.mesh);
-            hidedCPorts[i].animateShow();
-        }
+        hidedCPorts.map(p => {
+            //включение скрытых портов в общий список видимых
+            this.cPortsOutput.push(p);
+            //анимация появления портов
+            p.hide();
+            p.addToNode(this.mesh);
+            p.animateShow();
+        });
+
         for(let i = 0; i < this.cPortsOutput.length; i += 1){
             if(this.cPortsOutput[i] === cPseudoPort){
                 this.cPortsOutput.splice(i, 1);
                 break;
             }
         }
-        for(let i = 0; i < this.cPortsOutput.length; i += 1){
-            const cLines = this.cPortsOutput[i].getCLines();
-            cLines.map((cLine) => {
-                cLine.unCollapsedPort1();
 
-                /**
-                 * Для входных портов на другом конце линии коннектор делается активным
-                 */
-                if(!cLine.isPort2Collapsed) {
+        this.cPortsInput.map(p => {
+            const cLines = p.getCLines();
+            //устанавливаем отметку на линии, что второй порт развёрнут
+            cLines.map(l => {
+                l.unCollapsedPort1();
+
+                //для входных портов на другом конце линии коннектор делается активным
+                if(!l.isPort2Collapsed) {
                     const cPort2 = cLine.getCPort2();
                     cPort2.setConnectorActive();
                 }
             });
-        }
+        });
 
         this.cPortsOutput.push(cPseudoPort);
         this.changePseudoPortName(cPseudoPort);
         cPseudoPort.setHidedCPorts([]);
         cPseudoPort.hideConnector();
+        //рассчитываем высоту ноды, что правильно рассчитать позиции портов
         this.calcNodeHeight();
-        const positions = this.calcPositionsForOutputPorts();
-        cPseudoPort.animateMoving({ x: this.nodeWidth, y: positions[positions.length - 1].y});
+        //расстановка портов на позиции
+        const position = this.calcPositionsForOutputPorts();
+        cPseudoPort.animateMoving({ x: this.nodeWidth, y: position[position.length - 1].y});
     }
 
+    /**
+     * Изменение размера ноды по высоте, при неполном схлопывании
+     */
     scaleNodeWithAnimation(){
         this.scaleRightResizer();
 
@@ -1069,6 +1224,9 @@ export default class{
             .start();
     }
 
+    /**
+     * Изменение размеров и перемещение элементов ноды без анимации
+     */
     scaleNode(){
         this.moveIndicator();
         this.moveOutputPorts();
@@ -1080,43 +1238,59 @@ export default class{
         this.scaleRightResizer();
     }
 
+    /**
+     * Задание ширины ноды
+     * @param width {number}
+     */
     setNodeWidth(width){
         this.nodeWidth = Math.max(C.nodeMesh.mount.minWidth, Math.min(C.nodeMesh.mount.maxWidth, width));
     }
 
+    /**
+     * Перемещение индикатора при изменении ширины ноды
+     */
     moveIndicator(){
         const indicator = this.mesh.getObjectByName('indicator');
         indicator.position.setX(this.nodeWidth - C.nodeMesh.indicator.rightMargin);
     }
 
+    /**
+     * Перемещение выходных портов при изменении ширины ноды
+     */
     moveOutputPorts(){
-        for(let i = 0; i < this.cPortsOutput.length; i += 1){
-            if(this.cPortsOutput[i].type === 'pseudo') {
-                this.cPortsOutput[i].getMPort().position.setX(this.nodeWidth);
-            }
-        }
-        for(let i = 0; i < this.allCPorts.length; i += 1){
-            if(this.allCPorts[i].direction === 'input') continue;
-            this.allCPorts[i].getMPort().position.setX(this.nodeWidth);
-        }
+        this.allCPorts.map(p => {
+            if(p.direction === 'output') p.getMPort().position.setX(this.nodeWidth);
+        });
     }
 
+    /**
+     * Перемещение кнопки меню при изменении ширины ноды
+     */
     moveMenuButton(){
         const menu = this.mesh.getObjectByName('menuButton');
         menu.position.setX(this.nodeWidth - C.nodeMesh.header.menu.rightMargin);
     }
 
+    /**
+     * Перемещение кнопки плей при изменении ширины ноды
+     */
     movePlayButton(){
         const play = this.mesh.getObjectByName('playButton');
         play.position.setX(this.nodeWidth - C.nodeMesh.header.play.rightMargin);
     }
 
+    /**
+     * Изменение размера большой подложки
+     */
     scaleBigMount(w, h){
         const mesh = this.mesh.getObjectByName('bigMount');
         mesh.scale.set(w ? w : this.nodeWidth, h ? h : this.nodeHeight, 1);
         mesh.updateWorldMatrix();
     }
 
+    /**
+     * Изменение размера задней подложки без анимации
+     */
     scaleBackBody(){
         const top = this.mesh.getObjectByName('backTop');
         const topBody = top.getObjectByName('backBodyTop');
@@ -1138,6 +1312,9 @@ export default class{
         bottomRightCorner.position.setX(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius);
     }
 
+    /**
+     * Изменение размера передней подложки без анимации
+     */
     scaleFrontBody(){
         const top = this.mesh.getObjectByName('frontTop');
         const topBody = top.getObjectByName('frontBodyTop');
@@ -1171,61 +1348,51 @@ export default class{
         bottomRightCorner.position.setX(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize);
     }
 
+    /**
+     * Расчёт высоты ноды в обычном состоянии(не при полном схлопывании). Главным образом зависит от количества портов
+     * @param portsCount {int}
+     */
     calcNodeHeight(portsCount) {
-        portsCount = portsCount ? portsCount : this.calcVisiblePortsCount();
+        const cPorts = this.getAllVisibleCPorts();
+        portsCount = portsCount ? portsCount : cPorts.length;
         const portsHeight = portsCount * C.nodeMesh.port.height;
         this.nodeHeight = C.nodeMesh.mount.roundCornerRadius + C.nodeMesh.mount.front.headHeight +
             C.nodeMesh.header.height + portsHeight + C.nodeMesh.footer.height + C.nodeMesh.mount.roundCornerRadius;
     }
 
-    calcNodeMinHeight(){
-        this.nodeHeight = C.nodeMesh.mount.roundCornerRadius * 2 + C.nodeMesh.mount.front.headHeight +
-            C.nodeMesh.port.height;
-    }
-
-    calcVisiblePortsCount() {
-        let count = 0;
-        const inPorts = this.cPortsInput;
-        if (inPorts.length > C.nodeMesh.constraints.maxVisiblePorts ) {
-            if(this.shortCollapse.inputPortsCollapsed) {
-                count += C.nodeMesh.constraints.maxVisiblePorts;
-            } else {
-                count += inPorts.length;
-            }
-        } else {
-            count += inPorts.length;
-        }
-
-        const outPorts = this.cPortsOutput;
-        if (outPorts.length > C.nodeMesh.constraints.maxVisiblePorts) {
-            if(this.shortCollapse.outputPortsCollapsed) {
-                count += C.nodeMesh.constraints.maxVisiblePorts;
-            } else {
-                count += outPorts.length;
-            }
-        } else {
-            count += outPorts.length;
-        }
-
-        return count;
-    }
-
+    /**
+     * Возвращает все порты закреплённые за этой нодой, кроме псевдо-портов
+     * @returns {[]}
+     */
     getAllCPorts(){
         return this.allCPorts;
     }
 
+    /**
+     *
+     * @returns {*[]}
+     */
     getAllVisibleCPorts(){
         return [...this.cPortsInput, ...this.cPortsOutput];
     }
 
+    /**
+     * Подъём ноды на верхний уровень по Z (над всеми остальными)
+     */
     moveToOverAllZ(){
         this.mesh.position.setZ(C.layers.topForNode);
     }
 
+    /**
+     * Возврат ноды на свой уровень по Z
+     */
     moveToOriginZ(){
         this.mesh.position.setZ(this.originZ);
     }
 
+    /**
+     * Обновление темы ноды
+     */
     updateTheme(){
         let m;
         m = this.mesh.getObjectByName('title');

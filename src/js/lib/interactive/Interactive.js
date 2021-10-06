@@ -388,7 +388,7 @@ export default class{
 
     onCollapseButtonClick(mCollapse){
         const cNode = mCollapse.userData.nodeClass;
-        cNode.middleCollapsePorts();
+        cNode.middleCollapseNode();
     }
 
     fullCollapseNode(isNeedCollapse){

@@ -12,7 +12,6 @@ export default class {
         this.mesh = this.create();
         this.cLines = [];
 
-
         this.connectorActive = true;
     }
 
@@ -115,7 +114,7 @@ export default class {
     }
 
     hide(){
-        this.mesh.scale(0,0,0);
+        this.mesh.scale.set(0,0,0);
     }
 /*
     show(){
@@ -172,6 +171,11 @@ export default class {
                 callback ? callback() : void null;
             })
             .start();
+    }
+
+    moving(to){
+        const pos = this.mesh.position;
+        this.mesh.position.set(to.x ? to.x : pos.x, to.y ? to.y : pos.y, to.z ? to.z : pos.z);
     }
 
     updateTheme(){

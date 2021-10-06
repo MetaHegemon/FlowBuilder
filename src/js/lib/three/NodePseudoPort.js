@@ -9,13 +9,9 @@ export default class extends Port{
             mark: null
         }
         super(direction, data, cNode);
+
         this.type = 'pseudo';
         this.hidedCPorts = [];
-        this.setName();
-    }
-
-    setName(){
-
     }
 
     setCollapsedText(count){
@@ -30,12 +26,6 @@ export default class extends Port{
         } else {
             label.text = 'Hide outputs';
         }
-    }
-
-    removeLabelText(){
-        const label = this.mesh.getObjectByName('portLabelText');
-        label.scale.set(0,0,1);
-        label.text = '';
     }
 
     hideConnector(){
