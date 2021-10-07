@@ -720,20 +720,20 @@ export default class{
     }
 
     createPortLabel(name, type, direction, mark){
-        const label = new Text();
-        label.text = name;
-        label.name = 'portLabelText';
-        label.font = ThemeControl.theme.fontPaths.mainNormal;
-        label.fontSize = C.nodeMesh.port.label.fontSize;
-        label.material = MaterialControl.getPortLabelMaterial(type);
-        label.anchorX = direction === 'input' ? 'left' : 'right';
-        label.anchorY = 'bottom';
-        label.letterSpacing = C.nodeMesh.port.label.letterSpacing;
+        const mesh = new Text();
+        mesh.text = name;
+        mesh.name = 'portLabelText';
+        mesh.font = ThemeControl.theme.fontPaths.mainNormal;
+        mesh.fontSize = C.nodeMesh.port.label.fontSize;
+        mesh.material = MaterialControl.getPortLabelMaterial(type);
+        mesh.anchorX = direction === 'input' ? 'left' : 'right';
+        mesh.anchorY = 'bottom';
+        mesh.letterSpacing = C.nodeMesh.port.label.letterSpacing;
 
         const posX = mark ? C.nodeMesh.port.label.leftMargin : C.nodeMesh.port.label.pseudoLeftMargin;
-        label.position.set(direction === 'input' ? posX : -posX, -C.nodeMesh.port.label.topMargin, 0);
+        mesh.position.set(direction === 'input' ? posX : -posX, -C.nodeMesh.port.label.topMargin, 0);
 
-        return label;
+        return mesh;
     }
 
     createPortMarkMount(type){

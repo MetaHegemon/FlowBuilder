@@ -7,11 +7,12 @@ import FBS from "../FlowBuilderStore";
 
 export default class{
     constructor(data, originZ){
-        this.originZ = originZ;                     //координата Z
-        this.selected = false;
-        this.nodeHeight = 0;
-        this.nodeWidth = C.nodeMesh.mount.width;
-        this.middleCollapse = {
+        this.data = data;                           //входные данные ноды
+        this.originZ = originZ;                     //координата Z для ноды, выдаётся при создании
+        this.selected = false;                      //флаг выбрана ли нода
+        this.nodeHeight = 0;                        //высота ноды
+        this.nodeWidth = C.nodeMesh.mount.width;    //ширина ноды
+        this.middleCollapse = {                     //объект для контроля за средним сворачиванием ноды
             isCollapsed: false,
             isPseudoInputExist: false,
             isPseudoOutputExist: false,
@@ -21,7 +22,7 @@ export default class{
             storeCLinesOutput: []
         };
 
-        this.fullCollapse = {
+        this.fullCollapse = {                       //объект для контроля за полным сворачиванием ноды
             isCollapsed: false,
             isPseudoInputExist: false,
             isPseudoOutputExist: false,
@@ -32,72 +33,78 @@ export default class{
             state: 'done',
             queue: []
         };
-        this.shortCollapse = {
+
+        this.shortCollapse = {                      //объект для контроля за сворачиванием портов
             inputPortsCollapsed: true,
             outputPortsCollapsed: true
         }
-        this.allCPorts = [];
-        this.playing = false;
-        this.cPortsInput = [];
-        this.cPortsOutput = [];
-        this.data = data;
+        this.allCPorts = [];                        //все порты ноды, кроме псевдопортов
+        this.playing = false;                       //
+        this.cPortsInput = [];                      //все видимые входные порты, включая псевдо-порт
+        this.cPortsOutput = [];                     //все видимые выходные порты, включая псевдопорт
 
-        this.mesh = this.create();
-        this.calcNodeHeight();
-        this.scaleNode();
-        this.setPositionsForInputPorts(this.calcPositionsForInputPorts());
-        this.setPositionsForOutputPorts(this.calcPositionsForOutputPorts());
+        this.mesh = this.create();                  //создание 3д-объекта ноды
+        this.calcNodeHeight();                      //расчёт высоты ноды
+        this.scaleNode();                           //расстановка элементов ноды в правильные позиции в соответствии с высотой и шириной
+        this.setPositionsForInputPorts(this.calcPositionsForInputPorts());  //расстановка входных портов на свои позиции
+        this.setPositionsForOutputPorts(this.calcPositionsForOutputPorts());//расстановка выходных портов на свои позиции
     }
 
+    /**
+     * Создание 3д-объекта ноды
+     * @returns {Group}
+     */
     create() {
         const nodeObject = new THREE.Group();
         nodeObject.name = 'node';
 
-        //create title
+        //заголовок
         const title = FBS.nodeAssets.title.clone();
         title.text = this.data.name;
         nodeObject.add(title);
 
-        //create indicator
+        //индикатор
         const indicator = FBS.nodeAssets.indicator.clone();
         indicator.text = this.data.indicator;
         nodeObject.add(indicator);
 
+        //обычная подложка
         const regularShield = FBS.nodeAssets.getRegularShield({
             withCollapseButton: this.data.inputs.length > 1 || this.data.outputs.length > 1
         }).clone();
         nodeObject.add(regularShield);
 
+        //мини-подложка
         nodeObject.add(FBS.nodeAssets.getMiniShield().clone());
 
+        //большая подложка. используется для интерактивности ноды(выделение, перемещение и т.д.)
         nodeObject.add(FBS.nodeAssets.bigMount.clone());
 
-        //input ports
+        //входные порты
         const inputPorts = this.createInputPorts(this.data.inputs);
         this.allCPorts.push(...inputPorts);
-        this.cPortsInput = this.packPortsWithPseudo( inputPorts, 'input');
-        for (let i = 0; i < this.cPortsInput.length; i += 1) {
-            nodeObject.add(this.cPortsInput[i].getMPort());
-        }
+        this.cPortsInput = this.packPortsWithPseudo(inputPorts, 'input', null);
+        this.cPortsInput.map(p => nodeObject.add(p.getMPort()));
 
-        //output ports
+        //выходные порты
         const outputPorts = this.createOutputPorts(this.data.outputs);
         this.allCPorts.push(...outputPorts);
         this.cPortsOutput = this.packPortsWithPseudo( outputPorts, 'output');
-        for (let i = 0; i < this.cPortsOutput.length; i += 1) {
-            nodeObject.add(this.cPortsOutput[i].getMPort());
-        }
+        this.cPortsOutput.map(p => nodeObject.add(p.getMPort()));
 
         nodeObject.position.set(this.data.position.x, this.data.position.y, this.originZ);
 
-        //set class for all children
-        nodeObject.traverse(function (object) {
-            object.userData.nodeClass = this;
-        }.bind(this));
+        //закрепляем за каждым дочерним объектом класс ноды, что бы из сцены получить к нему доступ
+        nodeObject.traverse(o => o.userData.nodeClass = this);
 
         return nodeObject;
     }
 
+    /**
+     * Создание входных портов
+     * @param inputs {Array}
+     * @returns {*[]}
+     */
     createInputPorts(inputs) {
         const cPorts = [];
         inputs.map((i)=> cPorts.push(new Port('input', i, this)));
@@ -107,7 +114,7 @@ export default class{
 
     /**
      * Создание выходных портов
-     * @param outputs - входные данные выходных портов
+     * @param outputs {Array}- входные данные выходных портов
      * @returns {*[]} -
      */
     createOutputPorts (outputs){
@@ -266,10 +273,13 @@ export default class{
             this.changePseudoPortName(cPseudoPort);
             cPorts.push(cPseudoPort);
         }
-
         return cPorts;
     }
 
+    /**
+     * Изменение и перемещение ресайзера, при изменении размеров ноды
+     * @param mesh {THREE.Mesh}
+     */
     scaleRightResizer(mesh) {
         mesh = mesh ? mesh : this.mesh.getObjectByName('rightResizer');
         mesh.scale.setY(Math.abs(this.nodeHeight - C.nodeMesh.mount.roundCornerRadius * 2 -
@@ -277,16 +287,26 @@ export default class{
         mesh.position.set(this.nodeWidth, -C.nodeMesh.mount.roundCornerRadius - mesh.scale.y/2, mesh.position.z);
     }
 
+    /**
+     * Подсветка при наведении на подпись подвала
+     */
     hoverFooterLabel(){
         const footerLabel = this.mesh.getObjectByName('footerLabel');
         footerLabel.color = ThemeControl.theme.node.footer.label.hoverColor;
     }
 
+    /**
+     * Снятие подсветки при наведении на подпись подвала
+     */
     unhoverFooterLabel(){
         const footerLabel = this.mesh.getObjectByName('footerLabel');
         footerLabel.color = ThemeControl.theme.node.footer.label.color;
     }
 
+    /**
+     * Обработка нажатия кнопки play
+     * @param mPlay {Text}
+     */
     play(mPlay){
         if(this.playing){
             this.playing = false;
@@ -297,6 +317,10 @@ export default class{
         }
     }
 
+    /**
+     * Выбрана ли нода
+     * @returns {boolean|*}
+     */
     isSelected(){
         return this.selected;
     }
@@ -1261,6 +1285,9 @@ export default class{
         this.allCPorts.map(p => {
             if(p.direction === 'output') p.getMPort().position.setX(this.nodeWidth);
         });
+
+        const cPseudoPort = this.getPseudoPort('output');
+        cPseudoPort.getMPort().position.setX(this.nodeWidth);
     }
 
     /**

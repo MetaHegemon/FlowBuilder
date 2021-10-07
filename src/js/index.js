@@ -5,7 +5,7 @@ import FBS from './lib/FlowBuilderStore';
 import Interactive from "./lib/interactive/Interactive";
 import flowData from './InputData';
 
-
+//
 FBS.dom.createWindow(document.documentElement.clientWidth, document.documentElement.clientHeight);
 document.body.append(FBS.dom.getWindow());
 FBS.sceneControl.setScene();

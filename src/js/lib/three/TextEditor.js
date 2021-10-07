@@ -1,3 +1,7 @@
+/*
+Класс управления редактированием заголовка ноды
+ */
+
 import ThemeControl from './../../themes/ThemeControl';
 import FBS from "../FlowBuilderStore";
 import * as THREE from 'three';
@@ -7,9 +11,9 @@ import C from './../Constants';
 export default class {
     constructor(){
         this.active = false;
-        this.textMesh = null;
+        this.textMesh = null;                  //ссылка на редактируемый 3д-объект
         this.handler = (e) => this.onKeyUp(e);
-        this.originTextStore = null;
+        this.originTextStore = null;           //буфер сохранения старого значения в заголовке
         this.lettersCode = [
             "KeyQ",
             "KeyW",
@@ -46,7 +50,7 @@ export default class {
             "Period",
             "Slash",
             "Backquote"
-        ];
+        ];              //список допустимых кодов-букв
         this.numbersCode = [
             "Digit0",
             "Digit1",
@@ -68,7 +72,7 @@ export default class {
             "Numpad7",
             "Numpad8",
             "Numpad9"
-        ];
+        ];              //список допустимых кодов-цифр
         this.symbolsCode = [
             "NumpadAdd",
             "NumpadSubtract",
@@ -77,22 +81,31 @@ export default class {
             "Minus",
             "Equal",
             "Space"
-        ];
-        this.allCode = [...this.lettersCode, ...this.numbersCode, ...this.symbolsCode];
-        this.caret = '|';
-        this.tween = null;
+        ];              //список допустимых кодов-символов
+        this.allCode = [...this.lettersCode, ...this.numbersCode, ...this.symbolsCode]; //полный список допустимых знаков
+        this.caret = '|';                      //символ каретки
+        this.tween = null;                     //ссылка на класс аниматора мигания каретки, для остановки по требованию
     }
 
+    /**
+     * Включение редактирования текста
+     * @param textMesh {Text}
+     */
     enable(textMesh) {
         this.active = true;
         this.textMesh = textMesh;
         this.originTextStore = this.textMesh.text;
         textMesh.text += this.caret;
+        //включение анимации каретки
         this.switchOnAnimate(this.textMesh);
 
         document.addEventListener('keyup', this.handler, false);
     }
 
+    /**
+     * Включение анимации каретки
+     * @param textMesh
+     */
     switchOnAnimate(textMesh){
         let range;
         const color = new THREE.Color().setStyle(textMesh.color);
@@ -100,6 +113,7 @@ export default class {
 
         const end = {r: color.r, g: color.g, b: color.b};
 
+        //каретка мигает от цвета фона сцены к цвету заголовка
         color.setStyle(ThemeControl.theme.scene.backgroundColor);
         const start = {r: color.r, g: color.g, b: color.b};
 
@@ -121,39 +135,62 @@ export default class {
             .start();
     }
 
+    /**
+     * Обработчик нажатия клавиши
+     * @param e
+     */
     onKeyUp(e){
         if(e.code === 'Backspace'){
+            //удаление последнего символа
             this.textMesh.text = this.textMesh.text.substr(0, this.textMesh.text.length - 2) + this.caret;
         } else if(e.code === 'Enter'){
+            //применение новой записи
             this.accept();
-
         } else if(e.code === 'Escape'){
+            //отмена редактирования с возвратом оригинального текста
             this.textMesh.text = this.originTextStore;
             this.disable();
         } else if (this.checkKeyCodeOnAllow(e.code)){
+            //ввод теста с проверкой допустимых символов
             this.textMesh.text = this.textMesh.text.substr(0, this.textMesh.text.length - 1) + e.key + this.caret;
         }
     }
 
+    /**
+     * Применение введённого текста
+     */
     accept(){
         if(this.textMesh.text === this.caret){
+            //возврат оригинального текста, если последним символом остаётся каретка
             this.returnOriginText();
         } else {
+            //применение введённого текста
             this.removeCaret();
             this.disable();
         }
     }
 
+    /**
+     * Проверка введённого значения на допустимость
+     * @param code - символ
+     * @returns {boolean}
+     */
     checkKeyCodeOnAllow(code){
         return this.allCode.some(c=>{
             return code === c;
         });
     }
 
+    /**
+     * Удаление каретки
+     */
     removeCaret(){
         this.textMesh.text = this.textMesh.text.substr(0, this.textMesh.text.length - 1);
     }
 
+    /**
+     * Завершение редактирования заголовка
+     */
     disable(){
         this.tween.stop();
         this.textMesh.colorRanges = null;
@@ -163,6 +200,9 @@ export default class {
         document.removeEventListener('keyup', this.handler, false);
     }
 
+    /**
+     * Возврат оригинального текста с анимацией ошибки
+     */
     returnOriginText(){
         this.tween.stop();
         this.textMesh.colorRanges = null;
