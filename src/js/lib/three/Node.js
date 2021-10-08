@@ -4,6 +4,7 @@ import PseudoPort from "./NodePseudoPort";
 import C from "./../Constants";
 import ThemeControl from '../../themes/ThemeControl';
 import FBS from "../FlowBuilderStore";
+import LineControl from "./LineControl";
 
 export default class{
     constructor(data, originZ){
@@ -965,7 +966,7 @@ export default class{
             .to( {x: 1}, C.animation.portHideTime )
             .easing( FBS.tween.Easing.Exponential.InOut )
             .onComplete(()=> {
-                FBS.lineControl.refreshLines([this.mesh]);
+                LineControl.refreshLines([this.mesh]);
             })
             .start();
     }

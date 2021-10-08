@@ -9,6 +9,7 @@ import { SelectionBox } from './SelectionBox';
 import  SelectionHelper  from './SelectHelper';
 import ThemeControl from "../../themes/ThemeControl";
 import NodeControl from "../three/NodeControl";
+import LineControl from '../three/LineControl';
 import FBS from './../FlowBuilderStore';
 import TextEditor from "./../three/TextEditor";
 import RightResizer from './RightResizer';
@@ -84,7 +85,7 @@ export default class{
         } else if(e.code === 'Backspace' || e.code === 'Delete'){
             //удаление выделенных элементов (линий)
             if(this.select.cLines.length > 0){
-                FBS.lineControl.remove(this.select.cLines);
+                LineControl.remove(this.select.cLines);
             }
         }
     }
@@ -162,7 +163,7 @@ export default class{
                                 this.selectedOnPointerDown = intersect.object;
                                 this.unselectAllLines();
                                 //включаем рисование линии
-                                FBS.lineControl.enable(intersect.object);
+                                LineControl.enable(intersect.object);
                             }
                         }
                     }
@@ -236,28 +237,28 @@ export default class{
             if(Resizer.active){
                 //изменяем ширину ноды
                 Resizer.move(this.pointerPos3d);
-                FBS.lineControl.refreshLines([Resizer.getMNode()]);
+                LineControl.refreshLines([Resizer.getMNode()]);
             } else if (Drag.active) {
                 //перетаскиваем ноду
                 Drag.dragObjects(this.pointerPos3d);
-                FBS.lineControl.refreshLines(Drag.getObjects());
+                LineControl.refreshLines(Drag.getObjects());
             }
-            else if (FBS.lineControl.active) //рисуем линию
+            else if (LineControl.active) //рисуем линию
             {
                 //получаем список пересечений
                 this.intersects = this.raycaster.intersectObjects(FBS.sceneControl.scene.children, true);
                 if (
                     this.intersects.length > 0 &&
                     this.checkOnIntersect(this.intersects, ['connectorMagnet']) &&
-                    FBS.lineControl.canBeConnected(this.intersects[0].object)
+                    LineControl.canBeConnected(this.intersects[0].object)
                 ) {
                     //примагничивание линии к порту назначения
                     const cPort = this.intersects[0].object.userData.portClass;
                     const pos = cPort.getConnectorPos();
-                    FBS.lineControl.drawLineFromPos(pos.x, pos.y);
+                    LineControl.drawLineFromPos(pos.x, pos.y);
                 } else {
                     //рисуем линию к курсору мыши
-                    FBS.lineControl.drawLineFromPos(this.pointerPos3d.x, this.pointerPos3d.y);
+                    LineControl.drawLineFromPos(this.pointerPos3d.x, this.pointerPos3d.y);
                 }
             } else {
                 //получаем список пересечений
@@ -286,7 +287,7 @@ export default class{
                         } else if (this.checkOnIntersect(this.intersects, ['line', 'watchPointPointer']))
                         {
                             const intersect = this.checkOnIntersect(this.intersects, ['line', 'watchPointPointer']);
-                            if(FBS.lineControl.canBeSelected(intersect.object)){
+                            if(LineControl.canBeSelected(intersect.object)){
                                 this.setCursor('pointer');
                             }
                         } else if (firstObject.name === 'collapseButton') {
@@ -337,7 +338,7 @@ export default class{
                             if(this.intersects[0]) {
                                 const firstObject = this.intersects[0].object;
                                 if (firstObject.name === 'connector') {
-                                    FBS.lineControl.enable(firstObject);
+                                    LineControl.enable(firstObject);
                                 }
                             }
                         }
@@ -382,17 +383,17 @@ export default class{
                 //выключение перемещения ноды
                 Drag.disable();
                 this.resetCursor();
-            } else if (FBS.lineControl.active) {
+            } else if (LineControl.active) {
                 //завершение рисования линия
                 this.intersects = this.raycaster.intersectObjects(FBS.sceneControl.scene.children, true);
                 if (
                     this.intersects.length > 0 &&
                     this.intersects[0].object.name === 'connector' &&
-                    FBS.lineControl.canBeConnected(this.intersects[0].object)
+                    LineControl.canBeConnected(this.intersects[0].object)
                 ) {
-                    FBS.lineControl.connect(this.intersects[0].object);
+                    LineControl.connect(this.intersects[0].object);
                 } else {
-                    FBS.lineControl.disable();
+                    LineControl.disable();
                 }
             } else {
                 if (this.intersects.length > 0) {
@@ -412,7 +413,7 @@ export default class{
                                 const cNode = intersect.object.userData.nodeClass;
                                 this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
                             } else if ((intersect = this.checkOnIntersect(this.intersects, ['line', 'watchPointPointer']))) {
-                                if(FBS.lineControl.canBeSelected(intersect.object)){
+                                if(LineControl.canBeSelected(intersect.object)){
                                     const cLine = this.intersects[0].object.userData.class;
                                     this.onLineClick(cLine);
                                 }
@@ -476,7 +477,7 @@ export default class{
 
         const cNode = cPseudoPort.getCNode();
         const mNode = cNode.getMNode();
-        FBS.lineControl.refreshLines([mNode]);
+        LineControl.refreshLines([mNode]);
     }
 
     /**

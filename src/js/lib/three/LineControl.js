@@ -1,11 +1,11 @@
 /**
  * Модуль управления линиями
  */
-import Line from '../three/Line';
+import Line from './Line';
 import ThemeControl from '../../themes/ThemeControl';
-import FBS from './../FlowBuilderStore';
+import FBS from '../FlowBuilderStore';
 
-export default class{
+class LineControl{
     constructor() {
         this.active = false;
         this.cLine = null;      //ссылка на текущий линию-класс
@@ -172,3 +172,7 @@ export default class{
         });
     }
 }
+
+const lineControl = new LineControl();
+
+export default lineControl;

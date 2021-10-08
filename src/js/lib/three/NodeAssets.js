@@ -51,7 +51,6 @@ export default class {
         this.collapseButton = this.createCollapseButton();
         this.menuButton = this.createMenuButton();
         this.playButton = this.createPlayButton();
-
     }
 
     createBigMount() {

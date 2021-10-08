@@ -5,7 +5,6 @@
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 import Dom from './webElements/Dom';
 import SceneControl from "./three/SceneControl";
-import LineControl from './interactive/LineControl';
 import NodeAssets from './three/NodeAssets';
 
 
@@ -15,5 +14,4 @@ export default {
     tween: TWEEN,
     dom:     new Dom(),
     sceneControl:   new SceneControl(),
-    lineControl:    new LineControl(),
 }

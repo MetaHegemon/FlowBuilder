@@ -1,4 +1,5 @@
 import NodeControl from './../lib/three/NodeControl';
+import LineControl from "../lib/three/LineControl";
 import C from './../lib/Constants';
 import light from './light';
 import dark from "./dark";
@@ -33,7 +34,7 @@ class ThemeControl {
         NodeControl.updateTheme();
 
         //update for line must be after nodes
-        FBS.lineControl.updateTheme();
+        LineControl.updateTheme();
     }
 }
 
