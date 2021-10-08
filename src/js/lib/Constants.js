@@ -15,7 +15,14 @@ export default {
         indicator: 0.3,
         frontMount: 0.01,
         header: 0.02,
-        port: 0.02,
+        port: {
+            self: 0.02,
+            magnet: 0,
+            connector: 0.1,
+            markMount: 0,
+            markLabel: 0.01,
+            label: 0
+        },
         footerLabel: 0.01,
         topForNode: 10,
         watchPoint: {

@@ -166,10 +166,11 @@ export default class{
     calcPositionsForInputPorts(){
         const positions = [];
         let currentYPos = this.getFirstPortPositionY();
-        for(let i = 0; i < this.cPortsInput.length; i += 1){
-            positions.push({x: 0, y: currentYPos, z: C.layers.port});
+        this.cPortsInput.map(p => {
+            const mPort = p.getMPort();
+            positions.push({x: 0, y: currentYPos, z: mPort.position.z});
             currentYPos -= C.nodeMesh.port.height;
-        }
+        });
         return positions;
     }
 
@@ -180,10 +181,11 @@ export default class{
     calcPositionsForInputPortsMin(){
         const positions = [];
         let currentYPos = this.getFirstPortPositionYMin();
-        for(let i = 0; i < this.cPortsInput.length; i += 1){
-            positions.push({x: 0, y: currentYPos, z: C.layers.port});
+        this.cPortsInput.map(p => {
+            const mPort = p.getMPort();
+            positions.push({x: 0, y: currentYPos, z: mPort.position.z});
             currentYPos -= C.nodeMesh.port.height;
-        }
+        });
         return positions;
     }
 
@@ -206,8 +208,10 @@ export default class{
     calcPositionsForOutputPorts(){
         let positions = [];
         let currentYPos = this.getLastPortPosition();
+
         for(let i = 0; i < this.cPortsOutput.length; i += 1){
-            positions[i] = {x: this.nodeWidth, y: currentYPos, z: C.layers.port};
+            const mPort = this.cPortsOutput[i].getMPort();
+            positions[i] = {x: this.nodeWidth, y: currentYPos, z: mPort.position.z};
             currentYPos += C.nodeMesh.port.height;
         }
         positions = positions.reverse();
@@ -222,7 +226,8 @@ export default class{
         let positions = [];
         let currentYPos = this.getLastPortPositionMin();
         for(let i = this.cPortsOutput.length - 1; i >= 0; i -= 1){
-            positions[i] = {x: this.nodeWidth, y: currentYPos, z: C.layers.port};
+            const mPort = this.cPortsOutput[i].getMPort();
+            positions[i] = {x: this.nodeWidth, y: currentYPos, z: mPort.position.z};
             currentYPos += C.nodeMesh.port.height;
         }
         positions = positions.reverse();

@@ -687,7 +687,7 @@ class NodeAssets{
         const w = C.nodeMesh.port.magnet.width;
         const h = C.nodeMesh.port.height;
 
-        const mesh = new THREE.Mesh(new THREE.BoxBufferGeometry(w, h), material);
+        const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(w, h), material);
         mesh.name = name;
 
         if (direction === 'output') {
@@ -696,7 +696,7 @@ class NodeAssets{
             mesh.position.setX(-w / 2);
         }
 
-        mesh.position.setZ(-1); //TODO USE LAYERS
+        mesh.position.setZ(C.layers.port.magnet);
 
         return mesh;
     }
@@ -726,6 +726,7 @@ class NodeAssets{
         } else {
             mesh.position.setX(-w);
         }
+        mesh.position.setZ(C.layers.port.connector);
 
         return mesh;
     }
@@ -742,7 +743,11 @@ class NodeAssets{
         mesh.letterSpacing = C.nodeMesh.port.label.letterSpacing;
 
         const posX = mark ? C.nodeMesh.port.label.leftMargin : C.nodeMesh.port.label.pseudoLeftMargin;
-        mesh.position.set(direction === 'input' ? posX : -posX, -C.nodeMesh.port.label.topMargin, 0);
+        mesh.position.set(
+            direction === 'input' ? posX : -posX,
+            -C.nodeMesh.port.label.topMargin,
+            C.layers.port.label
+        );
 
         return mesh;
     }
@@ -764,6 +769,7 @@ class NodeAssets{
             .quadraticCurveTo(0, -h / 2, 0, -h / 2 + r)
             .lineTo(0, h / 2 - r);
         const mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), material);
+        mesh.position.setZ(C.layers.port.markMount)
         mesh.name = 'mark';
 
         return mesh;
@@ -778,7 +784,11 @@ class NodeAssets{
         mesh.material = MaterialControl.getPortMarkLabelMaterial(type);
         mesh.anchorX = 'center';
         mesh.anchorY = 'middle';
-        mesh.position.set(C.nodeMesh.port.mark.width / 2 + C.nodeMesh.port.mark.label.leftMargin, C.nodeMesh.port.mark.label.topMargin, 0);
+        mesh.position.set(
+            C.nodeMesh.port.mark.width / 2 + C.nodeMesh.port.mark.label.leftMargin,
+            C.nodeMesh.port.mark.label.topMargin,
+            C.layers.port.markLabel
+        );
 
         return mesh;
     }
@@ -809,6 +819,11 @@ class NodeAssets{
         }
 
         group.add(this.createPortLabel(name, type, direction, mark));
+
+        group.position.setZ(C.layers.port.self);
+
+        const connector = group.getObjectByName('connector');
+        clog(connector.position.z);
 
         return group;
     }

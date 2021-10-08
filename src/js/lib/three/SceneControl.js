@@ -136,17 +136,24 @@ export default class {
         clog({scene: this.scene});
         this.renderResize();
         this.render();
+        //this.addDebugPlane();
     }
 
     addDebugPlane(){
         const debugMesh = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(1000,1000),
+            new THREE.PlaneBufferGeometry(100,100),
             new THREE.MeshBasicMaterial({color: 'red'})
         );
-        debugMesh.scale.set(0.5,0.5);
+        const debugMesh1 = new THREE.Mesh(
+            new THREE.PlaneBufferGeometry(50,50),
+            new THREE.MeshBasicMaterial({color: 'blue'})
+        );
+        debugMesh1.position.setZ(1);
+        //debugMesh.scale.set(0.5,0.5);
         //debugMesh.position.set(0,0,20);
         //debugMesh.rotateX(Math.PI/2);
         this.scene.add(debugMesh);
+        this.scene.add(debugMesh1);
     }
 
     /**
@@ -247,6 +254,8 @@ export default class {
      */
     removeFromScene(object){
         this.scene.remove(object);
+        if(object.geometry) object.geometry.dispose();
+        if(object.material) object.material.dispose();
     }
 
     /**

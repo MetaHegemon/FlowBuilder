@@ -267,6 +267,18 @@ export default class{
                 if (e.buttons === 0) { //подсветка или смена курсора при наведении на разные объекты сцены
                     if (this.intersects.length > 0) {
                         const firstObject = this.intersects[0].object;
+                        clog(this.intersects);
+                        let z1, z2;
+                        this.intersects.map(i=>{
+
+                            if(i.object.name === 'connector'){
+                                z1 = i.object.position.z;
+                            } else if(i.object.name === 'connectorMagnet'){
+                                z2 = i.object.position.z;
+                            }
+                        });
+                        clog(z1, z2);
+                        //clog(firstObject.name);
                         if (firstObject.name === 'portLabelText') {
                             const cPort = firstObject.userData.portClass;
                             cPort.hoverLabel();
