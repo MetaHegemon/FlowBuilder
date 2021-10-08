@@ -1,6 +1,7 @@
 window.clog = console.log.bind(console);
 
 import '../css/main.css';
+import NodeControl from "./lib/three/NodeControl";
 import FBS from './lib/FlowBuilderStore';
 import Interactive from "./lib/interactive/Interactive";
 import flowData from './InputData';
@@ -11,8 +12,8 @@ document.body.append(FBS.dom.getWindow());
 FBS.sceneControl.setScene();
 
 
-FBS.nodeControl.buildNodes(flowData.nodes);
-FBS.sceneControl.addObjectsToScene(FBS.nodeControl.getMNodes());
+NodeControl.buildNodes(flowData.nodes);
+FBS.sceneControl.addObjectsToScene(NodeControl.getMNodes());
 
 new Interactive();
 

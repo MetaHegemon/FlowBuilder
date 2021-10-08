@@ -3,7 +3,7 @@
  */
 
 import * as THREE from 'three';
-import FBS from './../FlowBuilderStore';
+import NodeControl from './../three/NodeControl';
 import C from "../Constants";
 
 export default class{
@@ -25,7 +25,7 @@ export default class{
         this.mNode = this.cNode.getMNode();
 
         //возврат всех нод на свои координаты по Z
-        FBS.nodeControl.moveNodesToOriginZ();
+        NodeControl.moveNodesToOriginZ();
         //поднятие изменяемой ноды на верхний уровень по Z
         this.cNode.moveToOverAllZ();
     }

@@ -1,3 +1,4 @@
+import NodeControl from './../lib/three/NodeControl';
 import C from './../lib/Constants';
 import light from './light';
 import dark from "./dark";
@@ -29,7 +30,7 @@ class ThemeControl {
     update(FBS){
         FBS.dom.updateTheme();
         FBS.sceneControl.updateTheme();
-        FBS.nodeControl.updateTheme();
+        NodeControl.updateTheme();
 
         //update for line must be after nodes
         FBS.lineControl.updateTheme();

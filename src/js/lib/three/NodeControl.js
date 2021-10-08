@@ -5,7 +5,7 @@
 import Node from '../three/Node';
 import C from './../Constants';
 
-export default class {
+class NodeControl {
     constructor() {
         this.mNodes = [];       //список всех 3д объектов нод
         this.cNodes = [];       //список всех классов-нод
@@ -64,3 +64,7 @@ export default class {
         }
     }
 }
+
+const nodeControl = new NodeControl();
+
+export default nodeControl;

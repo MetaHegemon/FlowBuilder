@@ -1,7 +1,7 @@
 /*
 Объект контроля перемещения нод
  */
-import FBS from './../FlowBuilderStore';
+import NodeControl from "../three/NodeControl";
 
 export default class{
     constructor() {
@@ -35,7 +35,7 @@ export default class{
      */
     enable(cNodes, pos){
         //возврат всех нод на свои координаты по Z
-        FBS.nodeControl.moveNodesToOriginZ();
+        NodeControl.moveNodesToOriginZ();
 
         this.active = true;
         cNodes.map(cN=>{
@@ -53,7 +53,7 @@ export default class{
     disable(){
         this.active = false;
         //возврат всех нод на свои координаты по Z, кроме той, за которую перемещали остальные она всегда первая
-        FBS.nodeControl.moveNodesToOriginZ([this.objects[0]]);
+        NodeControl.moveNodesToOriginZ([this.objects[0]]);
         this.objects = [];
         this.offsets = [];
     }

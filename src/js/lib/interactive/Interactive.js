@@ -8,6 +8,7 @@ import C from "./../Constants";
 import { SelectionBox } from './SelectionBox';
 import  SelectionHelper  from './SelectHelper';
 import ThemeControl from "../../themes/ThemeControl";
+import NodeControl from "../three/NodeControl";
 import FBS from './../FlowBuilderStore';
 import TextEditor from "./../three/TextEditor";
 import RightResizer from './RightResizer';
@@ -492,7 +493,7 @@ export default class{
      * @param isNeedCollapse
      */
     fullCollapseNode(isNeedCollapse){
-        const cNodes = FBS.nodeControl.getCNodes();
+        const cNodes = NodeControl.getCNodes();
         cNodes.map((node)=>{
             node.fullCollapseNode(isNeedCollapse);
         });
@@ -594,7 +595,7 @@ export default class{
             }
         } else {
             //все ноды возвращаются на свои координаты по Z
-            FBS.nodeControl.moveNodesToOriginZ([cNode]);
+            NodeControl.moveNodesToOriginZ([cNode]);
             //текущая нода поднимается над всеми остальными
             cNode.moveToOverAllZ();
             if(shiftKey || ctrlKey) {
