@@ -80,7 +80,7 @@ export default class{
             //смена темы сцены
             if(!e.repeat) {
                 ThemeControl.switch();
-                ThemeControl.update(FBS);
+                ThemeControl.update(FBS.dom, FBS.sceneControl, NodeControl, LineControl);
             }
         } else if(e.code === 'Backspace' || e.code === 'Delete'){
             //удаление выделенных элементов (линий)

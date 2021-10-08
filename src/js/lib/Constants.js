@@ -18,6 +18,11 @@ export default {
         port: 0.02,
         footerLabel: 0.01,
         topForNode: 10,
+        watchPoint: {
+            pointer: 0,
+            big: 0.01,
+            small: 0.02
+        }
     },
     //смещение на которое нужно сдвинуть поинтер после нажатия, что бы зафиксировать движение с зажатой клавишей
     deltaOnPointerInteractive: 3,

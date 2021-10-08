@@ -1,5 +1,8 @@
 /**
  * Модуль создания и выдачи 3д объектов или их компонентов
+ *
+ * Элементарные компоненты предсоздаются, а более крупные узлы собираются из элементарных по запросу
+ *
  */
 
 import * as THREE from 'three';
@@ -7,6 +10,9 @@ import ThemeControl from './../../themes/ThemeControl';
 import C from "../Constants";
 import {Text} from "troika-three-text";
 import MaterialControl from './MaterialControl';
+import {LineGeometry} from "three/examples/jsm/lines/LineGeometry";
+import {LineMaterial} from "three/examples/jsm/lines/LineMaterial";
+import {Line2} from "three/examples/jsm/lines/Line2";
 
 class NodeAssets{
     constructor() {
@@ -51,8 +57,15 @@ class NodeAssets{
         this.collapseButton = this.createCollapseButton();
         this.menuButton = this.createMenuButton();
         this.playButton = this.createPlayButton();
+
+        //LINE
+        this.line = this.createLine();
     }
 
+    /**
+     * Большая подложка. Используется в интерактивности ноды: для фиксации наведения поинтера на ноду
+     * @returns {Mesh}
+     */
     createBigMount() {
         const name = 'bigMount';
         const material = MaterialControl.getMaterial(name);
@@ -87,7 +100,7 @@ class NodeAssets{
 
         group.name = 'backMount';
 
-        //для интерактивных компонентов следует копировать материал(т.е. он не должен быть общим)
+        //для интерактивных компонентов следует клонировать материал(т.е. он не должен быть общим)
         const material = MaterialControl.getMaterial('backMount').clone();
         group.traverse(o => {
             if (o.isMesh) o.material = material;
@@ -796,6 +809,73 @@ class NodeAssets{
         }
 
         group.add(this.createPortLabel(name, type, direction, mark));
+
+        return group;
+    }
+
+    //LINE
+
+    createLine() {
+        const geometry = new LineGeometry();
+        geometry.setPositions([0, 0, 0, 0, 0, 0]);
+        const material = new LineMaterial({
+            color: ThemeControl.theme.line.colorOnActive,
+            linewidth: C.lines.lineWidth
+        });
+
+        const mesh = new Line2(geometry, material);
+        mesh.name = 'line';
+
+        return mesh;
+    }
+
+    /**
+     * Объект для расширения области наведения поинтером
+     */
+    createWatchPointPointerCircle(){
+        const name = 'watchPointPointer';
+        const material = MaterialControl.getMaterial(name);
+        const mesh = new THREE.Mesh(
+            new THREE.CircleBufferGeometry(C.lines.watchPoint.pointerRadius, 32),
+            material
+        );
+        mesh.name = name;
+        mesh.position.setZ(C.layers.watchPoint.pointer);
+
+        return mesh;
+    }
+
+    createWatchPointBigCircle(){
+        const name = 'watchPointBig';
+        const mesh = new THREE.Mesh(
+            new THREE.CircleBufferGeometry(C.lines.watchPoint.bigCircleRadius, 32),
+            MaterialControl.getMaterial('default').clone()
+        );
+        mesh.name = name;
+        mesh.position.setZ(C.layers.watchPoint.big);
+
+        return mesh;
+    }
+
+    createWatchPointSmallCircle(){
+        const name = 'watchPointSmall';
+        const mesh = new THREE.Mesh(
+            new THREE.CircleBufferGeometry(C.lines.watchPoint.smallCircleRadius, 32),
+            MaterialControl.getMaterial(name)
+        );
+        mesh.name = name;
+        mesh.position.setZ(C.layers.watchPoint.small);
+
+        return mesh;
+    }
+
+    getWatchPoint(){
+        const group = new THREE.Group();
+        group.name = 'watchPoint';
+
+        group.add(this.createWatchPointPointerCircle());
+        group.add(this.createWatchPointBigCircle());
+        group.add(this.createWatchPointSmallCircle());
 
         return group;
     }

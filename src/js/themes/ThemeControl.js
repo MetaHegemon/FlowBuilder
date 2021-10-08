@@ -1,5 +1,8 @@
-import NodeControl from './../lib/three/NodeControl';
-import LineControl from "../lib/three/LineControl";
+/**
+ * Модуль управления темами
+ *
+ */
+
 import C from './../lib/Constants';
 import light from './light';
 import dark from "./dark";
@@ -9,6 +12,11 @@ class ThemeControl {
         this.theme = this.getCurrentTheme(themeName);
     }
 
+    /**
+     * Выдаёт объект темы по имени
+     * @param themeName {String}
+     * @returns {Object}
+     */
     getCurrentTheme(themeName) {
         let result = light;
         if(themeName === 'light'){
@@ -20,6 +28,9 @@ class ThemeControl {
         return result;
     }
 
+    /**
+     * Переключение темы
+     */
     switch(){
         if(this.theme === light){
             this.theme = dark;
@@ -28,13 +39,20 @@ class ThemeControl {
         }
     }
 
-    update(FBS){
-        FBS.dom.updateTheme();
-        FBS.sceneControl.updateTheme();
-        NodeControl.updateTheme();
+    /**
+     * Обновление темы
+     * @param dom
+     * @param sceneControl
+     * @param nodeControl
+     * @param lineControl
+     */
+    update(dom, sceneControl, nodeControl, lineControl){
+        dom.updateTheme();
+        sceneControl.updateTheme();
+        nodeControl.updateTheme();
 
-        //update for line must be after nodes
-        LineControl.updateTheme();
+        //т.к. цвет линии по умолчанию - это цвет порта, ноды нужно обновить до линий
+        lineControl.updateTheme();
     }
 }
 

@@ -561,7 +561,6 @@ export default class{
                 const position = this.calcPositionsForOutputPorts();
                 cPseudoPortOutput.animateMoving({x: this.nodeWidth, y: position[position.length - 1].y});
             }
-            clog({pi: cPseudoPortInput, po: cPseudoPortOutput});
         }
 
         this.animateRefreshLines();

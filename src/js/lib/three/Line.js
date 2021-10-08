@@ -4,10 +4,9 @@
 
 import * as THREE from 'three';
 import {LineGeometry} from "three/examples/jsm/lines/LineGeometry";
-import {LineMaterial} from "three/examples/jsm/lines/LineMaterial";
-import {Line2} from "three/examples/jsm/lines/Line2";
 import C from './../Constants';
 import ThemeControl from '../../themes/ThemeControl';
+import NodeAssets from './NodeAssets';
 import FBS from "../FlowBuilderStore";
 
 export default class {
@@ -15,7 +14,7 @@ export default class {
         this.cPort1 = null;                 //ссылка на класс первого порта, первый порт всегда выходной порт
         this.cPort2 = null;                 //ссылка на класс второго порта - всегда входной
         this.selected = false;              //флаг выбора линии
-        this.updateLineBuffer =             //буфер для хранения переменных при обновлении линии, что бы экономить память
+        this.updateLineBuffer =             //буфер для хранения переменных при обновлении линии, для экономии памяти
         {
             sx: 0,
             sy: 0,
@@ -49,28 +48,34 @@ export default class {
                                             //через них один порт может узнать, что со вторым
         this.watchPoint = null;             //ссылка на 3д-объект вотчпоинта
 
-        this.geometry = new LineGeometry();
-        this.mesh = this.create();
-
+        this.mesh = this.createLine();
     }
 
     /**
      * Создание 3д-объекта линии
-     * @returns {Line2}
+     * @returns {Object}
      */
-    create(){   //TODO объект должен выдаваться в ассетсах
-        this.geometry.setPositions([0, 0, 0, 0, 0, 0]);
-        const material = new LineMaterial({
-            color: ThemeControl.theme.line.colorOnActive,
-            linewidth: C.lines.lineWidth
-        });
+    createLine(){
+        const mesh = NodeAssets.line.clone();
+        mesh.material = mesh.material.clone();
 
-        const mesh = new Line2(this.geometry, material);
-        mesh.name = 'line';
         //запись в 3д-объект ссылки на класс
         mesh.userData.class = this;
 
         return mesh;
+    }
+
+    /**
+     * Создание 3д-объекта вотчпоинта
+     */
+    createWatchPoint(){
+        const watchPoint = NodeAssets.getWatchPoint().clone();
+        watchPoint.traverse(o=> o.userData.class = this);
+        const bigCircle = watchPoint.getObjectByName('watchPointBig');
+        bigCircle.material.color.setStyle(this.mesh.material.color.getStyle());
+
+        clog(watchPoint);
+        return watchPoint;
     }
 
     /**
@@ -111,58 +116,22 @@ export default class {
         this.mesh.parent.add(this.watchPoint);
     }
 
-    /**
-     * Создание 3д-объекта вотчпоинта
-     */
-    createWatchPoint(){//TODO объект должен выдаваться в nodeAssets
-        const group = new THREE.Group();
-        group.name = 'watchPoint';
 
-        //объект для расширения области наведения поинтером
-        const pointer = new THREE.Mesh(
-            new THREE.CircleBufferGeometry(C.lines.watchPoint.pointerRadius, 32),
-            new THREE.MeshBasicMaterial({transparent: true, opacity: 0})
-        );
-        pointer.name = 'watchPointPointer';
-        group.add(pointer);
-
-        const bigCircle = new THREE.Mesh(
-            new THREE.CircleBufferGeometry(C.lines.watchPoint.bigCircleRadius, 32),
-            new THREE.MeshBasicMaterial()
-        );
-        bigCircle.name = 'watchPointBig';
-        bigCircle.material.color = this.mesh.material.color;
-        group.add(bigCircle);
-
-        const smallCircle = new THREE.Mesh(
-            new THREE.CircleBufferGeometry(C.lines.watchPoint.smallCircleRadius, 32),
-            new THREE.MeshBasicMaterial({color: ThemeControl.theme.scene.backgroundColor})
-        );
-        smallCircle.name = 'watchPointSmall';
-        group.add(smallCircle);
-
-        group.traverse(o=> o.userData.class = this);
-
-        return group;
-    }
 
     /**
-     * Получение позиции для вотчпоинта на линии
+     * Получение позиции для вотчпоинта на линии. Процент от начальной точки линии
      * @returns {{x: number, y: number, z: number}}
      */
     getPositionForWatchPoint(){
-        //TODO may be optimized
-        const pos = {x: 0, y: 0, z: 0};
-
         const progress = C.lines.segments/100 * C.lines.watchPoint.positionOnLine; //point on line
         const instanceStart = this.mesh.geometry.getAttribute('instanceStart').data;
         const points = instanceStart.array;
 
-        pos.x = points[progress * instanceStart.stride];
-        pos.y = points[progress * instanceStart.stride + 1];
-        pos.z = points[progress * instanceStart.stride + 2];
-
-        return pos;
+        return {
+            x: points[progress * instanceStart.stride],
+            y: points[progress * instanceStart.stride + 1],
+            z: points[progress * instanceStart.stride + 2]
+        };
     }
 
     /**
@@ -199,7 +168,7 @@ export default class {
 
     /**
      * Возвращает 3д-объект для линии
-     * @returns {Line2}
+     * @returns {Object}
      */
     getMLine(){
         return this.mesh;
@@ -225,8 +194,6 @@ export default class {
         this.pos2.y = y;
     }
 
-
-    //TODO удалить все объявления переменных
     /**
      * Построение кривой линии
      */
@@ -266,7 +233,6 @@ export default class {
             _.p.push(_.x6, _.y6, 0);
         }
         _.p.push(_.ex, _.ey, 0);
-
 
         const geometry = new LineGeometry();
         geometry.setPositions(_.p);

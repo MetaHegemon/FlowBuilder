@@ -9,7 +9,15 @@ class MaterialControl{
     constructor() {
         this.materials = [
             {
-                names: ['bigMount', 'rightResizer', 'connectorMagnet'],
+                names: ['default'],
+                material: new THREE.MeshBasicMaterial()
+            },
+            {
+                names: ['watchPointSmall'],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.scene.backgroundColor})
+            },
+            {
+                names: ['bigMount', 'rightResizer', 'connectorMagnet', 'watchPointPointer'],
                 material: new THREE.MeshBasicMaterial({transparent: true, opacity: 0})
             },
             {
