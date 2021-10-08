@@ -1,3 +1,7 @@
+/**
+ * Модуль линии
+ */
+
 import * as THREE from 'three';
 import {LineGeometry} from "three/examples/jsm/lines/LineGeometry";
 import {LineMaterial} from "three/examples/jsm/lines/LineMaterial";
@@ -8,24 +12,53 @@ import FBS from "../FlowBuilderStore";
 
 export default class {
     constructor(){
-        this.cPort1 = null;
-        this.cPort2 = null;
-        this.selected = false;
+        this.cPort1 = null;                 //ссылка на класс первого порта, первый порт всегда выходной порт
+        this.cPort2 = null;                 //ссылка на класс второго порта - всегда входной
+        this.selected = false;              //флаг выбора линии
+        this.updateLineBuffer =             //буфер для хранения переменных при обновлении линии, что бы экономить память
+        {
+            sx: 0,
+            sy: 0,
+            ex: 0,
+            ey: 0,
+            p: [],
+            dx: 0,
+            a: [],
+            b: [],
+            steps: C.lines.segments,
+            t: 0,
+            x1: 0,
+            y1: 0,
+            x2: 0,
+            y2: 0,
+            x3: 0,
+            y3: 0,
+            x4: 0,
+            y4: 0,
+            x5: 0,
+            y5: 0,
+            x6: 0,
+            y6: 0
+        };
 
         this.pos1 = new THREE.Vector2();
         this.pos2 = new THREE.Vector2();
 
-        this.isPort1Collapsed = false;
-        this.isPort2Collapsed = false;
-
-        this.watchPoint = null;
+        this.isPort1Collapsed = false;      //флаг состояния порта1
+        this.isPort2Collapsed = false;      //флаг состояния порта2
+                                            //через них один порт может узнать, что со вторым
+        this.watchPoint = null;             //ссылка на 3д-объект вотчпоинта
 
         this.geometry = new LineGeometry();
         this.mesh = this.create();
 
     }
 
-    create(){
+    /**
+     * Создание 3д-объекта линии
+     * @returns {Line2}
+     */
+    create(){   //TODO объект должен выдаваться в ассетсах
         this.geometry.setPositions([0, 0, 0, 0, 0, 0]);
         const material = new LineMaterial({
             color: ThemeControl.theme.line.colorOnActive,
@@ -34,15 +67,20 @@ export default class {
 
         const mesh = new Line2(this.geometry, material);
         mesh.name = 'line';
+        //запись в 3д-объект ссылки на класс
         mesh.userData.class = this;
 
         return mesh;
     }
 
+    /**
+     * Соединение линии со вторым портом
+     * @param cPort2
+     */
     connect(cPort2){
         let pos1, pos2;
 
-        //set output connector as first
+        //устанавливаем выходной порт как первый
         if(this.cPort1.direction === 'output'){
             this.setCPort1(this.cPort1);
             this.setCPort2(cPort2);
@@ -63,23 +101,29 @@ export default class {
         this.setPos2(pos2.x, pos2.y);
         this.updateLine();
 
+        //линия добавляется в списки линий в портах
         this.cPort1.cLines.push(this);
         this.cPort2.cLines.push(this);
 
-        this.createWatchPoint();
+        //создание вотчпоинта
+        this.watchPoint = this.createWatchPoint();
+        this.updateWatchPointPosition()
+        this.mesh.parent.add(this.watchPoint);
     }
 
-    createWatchPoint(){
+    /**
+     * Создание 3д-объекта вотчпоинта
+     */
+    createWatchPoint(){//TODO объект должен выдаваться в nodeAssets
         const group = new THREE.Group();
         group.name = 'watchPoint';
 
+        //объект для расширения области наведения поинтером
         const pointer = new THREE.Mesh(
             new THREE.CircleBufferGeometry(C.lines.watchPoint.pointerRadius, 32),
             new THREE.MeshBasicMaterial({transparent: true, opacity: 0})
         );
         pointer.name = 'watchPointPointer';
-        pointer.userData.class = this;
-
         group.add(pointer);
 
         const bigCircle = new THREE.Mesh(
@@ -88,8 +132,6 @@ export default class {
         );
         bigCircle.name = 'watchPointBig';
         bigCircle.material.color = this.mesh.material.color;
-        bigCircle.userData.class = this;
-
         group.add(bigCircle);
 
         const smallCircle = new THREE.Mesh(
@@ -97,19 +139,17 @@ export default class {
             new THREE.MeshBasicMaterial({color: ThemeControl.theme.scene.backgroundColor})
         );
         smallCircle.name = 'watchPointSmall';
-        smallCircle.userData.class = this;
-
         group.add(smallCircle);
 
-        group.userData.class = this;
+        group.traverse(o=> o.userData.class = this);
 
-        this.watchPoint = group;
-
-        this.updateWatchPointPosition()
-
-        this.mesh.parent.add(this.watchPoint);
+        return group;
     }
 
+    /**
+     * Получение позиции для вотчпоинта на линии
+     * @returns {{x: number, y: number, z: number}}
+     */
     getPositionForWatchPoint(){
         //TODO may be optimized
         const pos = {x: 0, y: 0, z: 0};
@@ -125,83 +165,121 @@ export default class {
         return pos;
     }
 
+    /**
+     * Установка первого порта для линии
+     * @param cPort - класс порта
+     */
     setCPort1(cPort){
         this.cPort1 = cPort;
     }
 
+    /**
+     *  Установка второго порта для линии
+     * @param cPort - класс порта
+     */
     setCPort2(cPort){
         this.cPort2 = cPort;
     }
 
+    /**
+     * Возвращает класс первого порта
+     * @returns {null|*}
+     */
     getCPort1(){
         return this.cPort1;
     }
 
+    /**
+     * Возвращает класс второго порта
+     * @returns {null|*}
+     */
     getCPort2(){
         return this.cPort2;
     }
 
+    /**
+     * Возвращает 3д-объект для линии
+     * @returns {Line2}
+     */
     getMLine(){
         return this.mesh;
     }
 
+    /**
+     * Установка первой точки линии
+     * @param x
+     * @param y
+     */
     setPos1(x, y){
         this.pos1.x = x;
         this.pos1.y = y;
     }
 
+    /**
+     * Установка второй линии точки
+     * @param x
+     * @param y
+     */
     setPos2(x, y){
         this.pos2.x = x;
         this.pos2.y = y;
     }
 
-    // выстраивает кривую линию
+
     //TODO удалить все объявления переменных
+    /**
+     * Построение кривой линии
+     */
     updateLine() {
-        const sx = this.pos1.x;
-        const sy = this.pos1.y;
-        const ex = this.pos2.x;
-        const ey = this.pos2.y;
+        const _ = this.updateLineBuffer;
+        _.sx = this.pos1.x;
+        _.sy = this.pos1.y;
+        _.ex = this.pos2.x;
+        _.ey = this.pos2.y;
 
-        let p = [];
+        _.p = [];
 
-        let dx = Math.max(Math.abs(ex - sx), 0.1);
+        _.dx = Math.max(Math.abs(_.ex - _.sx), 0.1);
 
-        let a = [sx + dx * 0.5, sy];
-        let b = [ex - dx * 0.5, ey];
+        _.a = [_.sx + _.dx * 0.5, _.sy];
+        _.b = [_.ex - _.dx * 0.5, _.ey];
 
-        let steps = C.lines.segments;
+        _.p.push(_.sx, _.sy, 0);
 
-        p.push(sx, sy, 0);
-        for (let i = 1; i < steps; i++) {
-            let t = i / steps;
-            let x1 = sx + (a[0] - sx) * t;
-            let y1 = sy + (a[1] - sy) * t;
-            let x2 = a[0] + (b[0] - a[0]) * t;
-            let y2 = a[1] + (b[1] - a[1]) * t;
-            let x3 = b[0] + (ex - b[0]) * t;
-            let y3 = b[1] + (ey - b[1]) * t;
+        for (let i = 1; i < _.steps; i++) {
+            _.t = i / _.steps;
+            _.x1 = _.sx + (_.a[0] - _.sx) * _.t;
+            _.y1 = _.sy + (_.a[1] - _.sy) * _.t;
+            _.x2 = _.a[0] + (_.b[0] - _.a[0]) * _.t;
+            _.y2 = _.a[1] + (_.b[1] - _.a[1]) * _.t;
+            _.x3 = _.b[0] + (_.ex - _.b[0]) * _.t;
+            _.y3 = _.b[1] + (_.ey - _.b[1]) * _.t;
 
-            let x4 = x1 + (x2 - x1) * t;
-            let y4 = y1 + (y2 - y1) * t;
-            let x5 = x2 + (x3 - x2) * t;
-            let y5 = y2 + (y3 - y2) * t;
+            _.x4 = _.x1 + (_.x2 - _.x1) * _.t;
+            _.y4 = _.y1 + (_.y2 - _.y1) * _.t;
+            _.x5 = _.x2 + (_.x3 - _.x2) * _.t;
+            _.y5 = _.y2 + (_.y3 - _.y2) * _.t;
 
-            let x6 = x4 + (x5 - x4) * t;
-            let y6 = y4 + (y5 - y4) * t;
+            _.x6 = _.x4 + (_.x5 - _.x4) * _.t;
+            _.y6 = _.y4 + (_.y5 - _.y4) * _.t;
 
-            p.push(x6, y6, 0);
+            _.p.push(_.x6, _.y6, 0);
         }
-        p.push(ex, ey, 0);
+        _.p.push(_.ex, _.ey, 0);
+
 
         const geometry = new LineGeometry();
-        geometry.setPositions(p);
+        geometry.setPositions(_.p);
 
         this.mesh.geometry = geometry;
 
         this.updateWatchPointPosition();
     }
 
+    /**
+     * Обновление позиции вотчпоинта
+     * @returns {null}
+     */
     updateWatchPointPosition(){
         if(!this.watchPoint) return null;
 
@@ -209,48 +287,60 @@ export default class {
         this.watchPoint.position.set(pos.x, pos.y, pos.z);
     }
 
+    /**
+     * При колапсировании первого порта с линии снимается выделение
+     */
     collapsedPort1(){
-        if(this.selected){
-            this.unselect();
-        }
+        if(this.selected) this.unselect();
+
         this.isPort1Collapsed = true;
         this.setColor(ThemeControl.theme.node.portTypes.pseudo.connectorColor);
-
     }
 
+    /**
+     * При колапсировании первого порта с линии снимается выделение
+     */
     collapsedPort2(){
-        if(this.selected){
-            this.unselect();
-        }
+        if(this.selected) this.unselect();
+
         this.isPort2Collapsed = true;
         this.setColor(ThemeControl.theme.node.portTypes.pseudo.connectorColor);
     }
 
+    /**
+     * Разблокирование линии, если расколлапсированы оба порта
+     */
     unCollapsedPort1(){
         this.isPort1Collapsed = false;
-        if(!this.isPort2Collapsed){
-            this.resetColor();
-            //this.cPort1.resetConnectorColor();
-        }
+        if(!this.isPort2Collapsed) this.resetColor();
     }
 
+    /**
+     * Разблокирование линии, если расколлапсированы оба порта
+     */
     unCollapsedPort2(){
         this.isPort2Collapsed = false;
-        if(!this.isPort1Collapsed){
-            this.resetColor();
-            //this.cPort2.resetConnectorColor();
-        }
-
+        if(!this.isPort1Collapsed) this.resetColor();
     }
 
+    /**
+     * Установка цвета линии
+     * @param colorStyle {String}
+     */
     setColor(colorStyle){
         this.mesh.material.color.setStyle(colorStyle);
     }
 
+    /**
+     * Сброс цвета линии на цвет первого порта
+     */
     resetColor(){
         this.mesh.material.color.setStyle(this.cPort1.getColor());
     }
 
+    /**
+     * Выделение линии и присоединённых коннекторов
+     */
     select(){
         if(!this.selected) {
             this.selected = true;
@@ -260,6 +350,9 @@ export default class {
         }
     }
 
+    /**
+     * Снятие выделения линии и присоединённых коннекторов
+     */
     unselect(){
         if(this.selected) {
             this.selected = false;
@@ -269,21 +362,32 @@ export default class {
         }
     }
 
+    /**
+     * Удаление линии со сцены
+     */
     remove(){
         FBS.sceneControl.removeFromScene(this.mesh);
         if(this.watchPoint) this.removeWatchPoint();
+        //снятие выделения с коннекторов
         if(this.cPort1) this.cPort1.unselectConnector();
-        if(this.cPort1) this.cPort1.removeCLine(this);
         if(this.cPort2) this.cPort2.unselectConnector();
+        //удаление линии из списка линий в портах
+        if(this.cPort1) this.cPort1.removeCLine(this);
         if(this.cPort2) this.cPort2.removeCLine(this);
         //TODO need dispose
     }
 
+    /**
+     * Удаление вотчпоинта со сцены
+     */
     removeWatchPoint(){
         FBS.sceneControl.removeFromScene(this.watchPoint);
         this.watchPoint = null;
     }
 
+    /**
+     * Обновление темы
+     */
     updateTheme(){
         if(this.selected){
             this.setColor(ThemeControl.theme.line.selectedColor);

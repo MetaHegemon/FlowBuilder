@@ -1,9 +1,14 @@
+/**
+ * Модуль настройки и управления сценой
+ */
+
 import * as THREE from 'three';
 import C from './../Constants';
 import ThemeControl from './../../themes/ThemeControl';
 import FBS from "../FlowBuilderStore";
 import Stats from 'stats.js';
 
+//ФПС-метр
 const stats = new Stats();
 stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild( stats.dom );
@@ -15,10 +20,10 @@ export default class {
         this.camera= null;
         this.scene = null;
         //
-        this.resizeTimer = null;
+        this.resizeTimer = null;                    //таймер обновления вьюпорта, при изменении размера окна
 
         //zoom
-        this.zoom = {
+        this.zoom = {                               //объект для расчёта зума камеры
             raycaster: new THREE.Raycaster(),
             pointPos3d: new THREE.Vector3(),
             pointPos2d: new THREE.Vector2(),
@@ -32,7 +37,7 @@ export default class {
             deltaY: null
         }
 
-        this.zoomEvent = {
+        this.zoomEvent = {                          //объект для отправки события пересечения границы сворачивания нод
             inEvent: new Event('needFullUnCollapse'),
             outEvent: new Event('needFullCollapse'),
             inDispatched: this.frustumSize < C.three.zoom.fullCollapseBorder,
@@ -40,6 +45,9 @@ export default class {
         };
     }
 
+    /**
+     * Первоначальная настройка сцены
+     */
     setScene(){
         this.canvas = FBS.dom.getCanvas();
         this.renderer = new THREE.WebGLRenderer({
@@ -65,11 +73,10 @@ export default class {
         this.camera.position.z = 100;
         this.camera.lookAt(0,0,0);
 
-
-
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(ThemeControl.theme.scene.backgroundColor);
 
+        //Отслеживание изменения размера окна
         new ResizeObserver(()=>{
             const _this = this;
             clearTimeout(this.resizeTimer);
@@ -82,6 +89,10 @@ export default class {
         this.canvas.addEventListener('wheel', (e)=> this.onWheel(e));
     }
 
+    /**
+     * Обработчик события прокрытки колеса мыши
+     * @param e
+     */
     onWheel(e) {
         this.zoom.pointPos2d.x = (e.clientX / this.canvas.clientWidth) * 2 - 1;
         this.zoom.pointPos2d.y = -(e.clientY / this.canvas.clientHeight) * 2 + 1;
@@ -118,10 +129,13 @@ export default class {
         this.zoom.deltaY = e.deltaY;
     }
 
+    /**
+     * Запуск рендера сцены
+     */
     run (){
+        clog({scene: this.scene});
         this.renderResize();
         this.render();
-        clog({scene: this.scene});
     }
 
     addDebugPlane(){
@@ -135,6 +149,9 @@ export default class {
         this.scene.add(debugMesh);
     }
 
+    /**
+     * Перерасчёт настроек рендера и камеры, при изменении размера окна
+     */
     renderResize() {
         this.canvas.width = this.canvas.parentNode.clientWidth;
         this.canvas.height = this.canvas.parentNode.clientHeight;
@@ -150,18 +167,30 @@ export default class {
         this.camera.updateProjectionMatrix();
     }
 
+    /**
+     * Циклическая функция рендера
+     */
     render(){
         stats.begin();
 
+        //расчёт плавного зума
         this.smoothZoom();
-        this.listenZoom()
+        //отслеживание значения зума, для отправки события сворачивания всех нод
+        this.listenZoom();
+
         this.renderer.render( this.scene, this.camera );
+
+        //tween проверяет есть ли для него задание для анимации
         FBS.tween.update();
 
         stats.end();
         requestAnimationFrame( ()=> this.render() );
     }
 
+    /**
+     * Расчёт плавного зума
+     * @returns {null}
+     */
     smoothZoom(){
         if(
             (this.zoom.deltaY < 0 && this.frustumSize <= C.three.zoom.max) ||
@@ -189,6 +218,9 @@ export default class {
         }
     }
 
+    /**
+     * Отслеживание значения зума, для отправки события сворачивания всех нод
+     */
     listenZoom(){
         if(this.frustumSize > C.three.zoom.fullCollapseBorder && !this.zoomEvent.outDispatched){
             this.canvas.dispatchEvent(this.zoomEvent.outEvent);
@@ -201,32 +233,57 @@ export default class {
         }
     }
 
+    /**
+     * Добавляет объекты на сцену
+     * @param objects
+     */
     addObjectsToScene (objects){
-        for(let i = 0; i < objects.length; i += 1){
-            this.scene.add(objects[i]);
-        }
+        objects.map(o => {this.scene.add(o)});
     }
 
+    /**
+     * Удаляет объект со сцены
+     * @param object
+     */
     removeFromScene(object){
         this.scene.remove(object);
     }
 
+    /**
+     * Возвращает камеру
+     * @returns {null|THREE.OrthographicCamera|*}
+     */
     getCamera(){
         return this.camera;
     }
 
+    /**
+     * Возвращает сцену
+     * @returns {null|THREE.Scene|*}
+     */
     getScene(){
         return this.scene;
     }
 
+    /**
+     * Возвращает рендерер
+     * @returns {null|THREE.WebGLRenderer|*}
+     */
     getRenderer(){
         return this.renderer;
     }
 
+    /**
+     * Возвращает канвас
+     * @returns {*}
+     */
     getCanvas(){
         return this.canvas;
     }
 
+    /**
+     * Обновление темы
+     */
     updateTheme(){
         this.scene.background.setStyle(ThemeControl.theme.scene.backgroundColor);
     }

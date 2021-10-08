@@ -1,3 +1,6 @@
+/**
+ * Модуль управления линиями
+ */
 import Line from '../three/Line';
 import ThemeControl from '../../themes/ThemeControl';
 import FBS from './../FlowBuilderStore';
@@ -5,20 +8,26 @@ import FBS from './../FlowBuilderStore';
 export default class{
     constructor() {
         this.active = false;
-        this.cLine = null;
-        this.allCLines = [];
+        this.cLine = null;      //ссылка на текущий линию-класс
+        this.allCLines = [];    //контейнер для хранения всех линий-классов
     }
 
+    /**
+     * Включение рисования линии
+     * @param mConnector - 3д-объект коннектора
+     */
     enable(mConnector) {
         this.active = true;
         const cPort1 = mConnector.userData.portClass;
         const lines = cPort1.cLines;
         if(cPort1.direction === 'input' && lines.length > 0){
+            //отсоединение линии от входного порта
             this.cLine = cPort1.cLines[0];
             this.cLine.removeWatchPoint();
             this.cLine.setCPort2(null);
             cPort1.cLines = [];
         } else {
+            //создание новой линии от порта
             this.cLine = new Line();
             this.cLine.setCPort1(cPort1);
         }
@@ -29,11 +38,18 @@ export default class{
         FBS.sceneControl.addObjectsToScene([mesh]);
     }
 
+    /**
+     * Завершение рисования линии
+     */
     disable(){
         this.active = false;
         this.remove([this.cLine]);
     }
 
+    /**
+     * Удаление класса-линии из общего списка всех линий
+     * @param cLine - класс линии
+     */
     removeFromCLinesList(cLine){
         for(let i = 0; i < this.allCLines.length; i += 1){
             if(this.allCLines[i] === cLine){
@@ -43,6 +59,11 @@ export default class{
         }
     }
 
+    /**
+     * Обновление второй координаты линии
+     * @param ex {number}
+     * @param ey {number}
+     */
     drawLineFromPos(ex, ey){
         const cPort1 = this.cLine.getCPort1();
         const pos = cPort1.getConnectorPos();
@@ -58,7 +79,10 @@ export default class{
         }
     }
 
-    // обновляет линии
+    /**
+     * Обновление линий для списка нод
+     * @param mNodes {[]}
+     */
     refreshLines(mNodes) {
         mNodes.map(mNode=> {
             const cNode = mNode.userData.nodeClass;
@@ -80,6 +104,11 @@ export default class{
         });
     }
 
+    /**
+     * Проверка может ли линия быть присоеденена к текущему коннектору
+     * @param mConnector2 - 3д-объект коннектора
+     * @returns {boolean}
+     */
     canBeConnected(mConnector2){
         let result = false;
         const cPort1 = this.cLine.getCPort1();
@@ -89,11 +118,11 @@ export default class{
         const cNode2 = cPort2.getCNode();
 
         if(
-            cNode1 !== cNode2 &&
-            cPort1.direction !== cPort2.direction &&
-            cPort2.connectorActive &&
-            cPort2.type !== 'pseudo' &&
-            !(cPort2.direction === 'input' && cPort2.cLines.length > 0)
+            cNode1 !== cNode2 &&                                        //не та же нода
+            cPort1.direction !== cPort2.direction &&                    //не то же направление
+            cPort2.connectorActive &&                                   //коннектор доступен для взаимодействия
+            cPort2.type !== 'pseudo' &&                                 //не псевдоконнектор
+            !(cPort2.direction === 'input' && cPort2.cLines.length > 0) //не занятый входной порт
         ){
             result = true;
         }
@@ -101,6 +130,11 @@ export default class{
         return result;
     }
 
+    /**
+     * Возвращает возможность выбора линии
+     * @param mLine
+     * @returns {boolean}
+     */
     canBeSelected(mLine){
         let result = true;
         const cLine = mLine.userData.class;
@@ -110,18 +144,27 @@ export default class{
         return result;
     }
 
+    /**
+     * Присоединение линии
+     * @param mConnector2 - 3д-объект коннектора
+     */
     connect(mConnector2){
         this.active = false;
         this.cLine.connect(mConnector2.userData.portClass);
         this.allCLines.push(this.cLine);
     }
 
+    /**
+     * Обновление темы линии
+     */
     updateTheme(){
-        this.allCLines.map(cLine=>{
-            cLine.updateTheme();
-        });
+        this.allCLines.map(l=> l.updateTheme());
     }
 
+    /**
+     * Удаление линии
+     * @param cLines {[]}
+     */
     remove(cLines){
         cLines.map(cL => {
             cL.remove();

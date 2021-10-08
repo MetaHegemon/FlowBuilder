@@ -1,13 +1,21 @@
+/**
+ * Модуль для работы с DOM и html-элементами
+ */
 import '../../../css/main_window.css';
 import ThemeControl from './../../themes/ThemeControl';
 
 
 export default class {
     constructor(){
-        this.window = null;
-        this.canvas = null;
+        this.window = null;     //ссылка на html контейнер для канваса
+        this.canvas = null;     //ссылка на канвас для рендеринга
     }
 
+    /**
+     * Создание контейнера для рендера threejs
+     * @param width {number}
+     * @param height {number}
+     */
     createWindow (width, height){
         this.window = document.createElement('div', );
         this.window.classList.add('main-window');
@@ -17,6 +25,11 @@ export default class {
         this.window.append(this.canvas);
     }
 
+    /**
+     * Создание канваса для рендера
+     * @param width {number}
+     * @param height {number}
+     */
     createCanvas (width, height){
         this.canvas = document.createElement('canvas');
         this.canvas.width = width;

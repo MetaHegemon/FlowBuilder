@@ -1,3 +1,7 @@
+/**
+ * Модуль предсоздаёт и выдаёт материалы для всех объектов сцены
+ */
+
 import * as THREE from "three";
 import ThemeControl from "../../themes/ThemeControl";
 
@@ -55,6 +59,11 @@ class MaterialControl{
 
     }
 
+    /**
+     * Выдаёт материал по имени
+     * @param name
+     * @returns {null}
+     */
     getMaterial(name){
         let result = null;
         cycle: for(let i = 0; i < this.materials.length; i += 1){
@@ -68,18 +77,38 @@ class MaterialControl{
         return result;
     }
 
+    /**
+     * Выдаёт материал для коннекторов портов
+     * @param type
+     * @returns {MeshBasicMaterial}
+     */
     getPortConnectorMaterial(type){
         return new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.portTypes[type].connectorColor});
     }
 
+    /**
+     * Выдаёт материал для подписей портов
+     * @param type
+     * @returns {MeshBasicMaterial}
+     */
     getPortLabelMaterial(type){
         return new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.portTypes[type].labelColor});
     }
 
+    /**
+     * Выдаёт материал для метки порта
+     * @param type
+     * @returns {MeshBasicMaterial}
+     */
     getPortMarkMountMaterial(type){
         return new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.portTypes[type].markColor});
     }
 
+    /**
+     * Выдаёт материал для подписи метки порта
+     * @param type
+     * @returns {MeshBasicMaterial}
+     */
     getPortMarkLabelMaterial(type){
         return new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.portTypes[type].markFontColor});
     }

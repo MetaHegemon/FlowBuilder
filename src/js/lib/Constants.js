@@ -1,15 +1,15 @@
 export default {
     defaultTheme: 'light',
     animation:{
-        nodeCollapseTime: 150, //milliseconds
+        nodeCollapseTime: 150,              //milliseconds
         portHideTime: 150,
         collapseButtonRotateTime: 150,
         footerLabelHideTime: 150,
-        caretBlinkingTime: 300,
-        failEditingTextTime: 300,
+        caretBlinkingTime: 300,             //время мигания каретки
+        failEditingTextTime: 300,           //время мигания красным при неудачном вводе текста
     },
-    layers: {
-        nodeStep: 0.1,
+    layers: {                               //слои(координаты по Z) для элементов ноды
+        nodeStep: 0.1,                      //шаг между нодами
         backMount: 0,
         title: 0,
         indicator: 0.3,
@@ -19,6 +19,7 @@ export default {
         footerLabel: 0.01,
         topForNode: 10,
     },
+    //смещение на которое нужно сдвинуть поинтер после нажатия, что бы зафиксировать движение с зажатой клавишей
     deltaOnPointerInteractive: 3,
     fontPaths: {
         awSolid: './fonts/fa-solid-900.ttf',
@@ -29,19 +30,19 @@ export default {
     },
     lines: {
         lineWidth: 0.002,
-        segments: 40,
+        segments: 40,                   //количество сегментов линии
         watchPoint: {
-            positionOnLine: 80, //percent on line
-            pointerRadius: 8,
-            bigCircleRadius: 6,
-            smallCircleRadius: 3
+            positionOnLine: 80,         //расстояние в % от начала линии, на котором строится вотчпоинт
+            pointerRadius: 8,           //радиус прозрачной части вотчпоинта, которая нужна для наведения поинтером
+            bigCircleRadius: 6,         //радиус большого круга
+            smallCircleRadius: 3        //радиус маленького круга
         }
     },
     miniNodeMesh: {
         height: 59,
         width: 59,
         roundCornerRadius: 5,
-        footerHeight: 3, //without radius
+        footerHeight: 3,                //высота подвала без радиусов скругления
         borderSize: 1,
         indicatorMountWidth: 20,
         indicatorMountHeight: 20,
@@ -51,7 +52,7 @@ export default {
     },
     nodeMesh: {
         constraints: {
-            maxVisiblePorts: 4,
+            maxVisiblePorts: 4,         //максимальное поличество видимых портов, включая псевдопорт
         },
         title: {
             fontSize: 21,
@@ -134,20 +135,21 @@ export default {
             }
         },
         rightResizer: {
-            width: 4
+            width: 4                            //ширина ресайзера
         }
     },
     three: {
         zoom: {
             /**
              * frustum 700 = 242% figma
+             * 100% figma = 289.26 frustum
              */
-            default: 1000,                      //start zoom value(frustum)
-            min: 3000,                          //frustum size how near camera can zoom
-            max: 500,                           //frustum size how far camera can zoom
-            damping: 0.8,                       //bigger than shorter inertia
-            speed: 8,
-            fullCollapseBorder: 1800,    //frustum size, for all nodes collapsed
+            default: 1000,                      //зум по умолчанию
+            min: 3000,                          //максимальное отдаление
+            max: 500,                           //максимальное приближение
+            damping: 0.8,                       //коэффициент инерции
+            speed: 8,                           //скорость зума
+            fullCollapseBorder: 1800,           //граница зума за которой ноды схлопываются
         }
     }
 };

@@ -575,13 +575,13 @@ export default class{
     changePseudoPortName(cPort) {
         if (cPort.direction === 'input') {
             if (this.shortCollapse.inputPortsCollapsed) {
-                cPort.setCollapsedText(cPort.hidedCPorts.length);
+                cPort.setCollapsedText();
             } else {
                 cPort.setUncollapsedText();
             }
         } else if (cPort.direction === 'output') {
             if (this.shortCollapse.outputPortsCollapsed) {
-                cPort.setCollapsedText(cPort.hidedCPorts.length);
+                cPort.setCollapsedText();
             } else {
                 cPort.setUncollapsedText();
             }
@@ -1287,7 +1287,9 @@ export default class{
         });
 
         const cPseudoPort = this.getPseudoPort('output');
-        cPseudoPort.getMPort().position.setX(this.nodeWidth);
+        if(cPseudoPort) {
+            cPseudoPort.getMPort().position.setX(this.nodeWidth);
+        }
     }
 
     /**

@@ -25,7 +25,7 @@ export default class{
         this.mNode = this.cNode.getMNode();
 
         //возврат всех нод на свои координаты по Z
-        FBS.nodeControl.moveAllNodesToOriginZ();
+        FBS.nodeControl.moveNodesToOriginZ();
         //поднятие изменяемой ноды на верхний уровень по Z
         this.cNode.moveToOverAllZ();
     }

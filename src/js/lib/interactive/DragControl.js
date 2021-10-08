@@ -35,7 +35,7 @@ export default class{
      */
     enable(cNodes, pos){
         //возврат всех нод на свои координаты по Z
-        FBS.nodeControl.moveAllNodesToOriginZ();
+        FBS.nodeControl.moveNodesToOriginZ();
 
         this.active = true;
         cNodes.map(cN=>{

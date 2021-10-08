@@ -1,49 +1,66 @@
+/**
+ * Модуль управления нодами
+ */
+
 import Node from '../three/Node';
 import C from './../Constants';
 
 export default class {
     constructor() {
-        this.mNodes = [];
-        this.cNodes = [];
+        this.mNodes = [];       //список всех 3д объектов нод
+        this.cNodes = [];       //список всех классов-нод
     }
 
-    buildNodes (data){
-        for(let i = 0; i < data.length; i += 1){
+    /**
+     * Создание экземпляра класса ноды
+     * @param data - входные данные о нодах
+     */
+    buildNodes(data) {
+        for (let i = 0; i < data.length; i += 1) {
             const cNode = new Node(data[i], i * C.layers.nodeStep);
             this.mNodes.push(cNode.getMNode());
             this.cNodes.push(cNode);
         }
     }
 
-    getMNodes (){
+    /**
+     * Возвращает список всех 3д-объектов нод
+     * @returns {[]}
+     */
+    getMNodes() {
         return this.mNodes;
     }
 
-    getCNodes(){
+    /**
+     * Возвращает список всех нод
+     * @returns {[]}
+     */
+    getCNodes() {
         return this.cNodes;
     }
 
-    updateTheme(){
-        this.cNodes.map(cNode=>{
-            cNode.updateTheme();
-        });
+    /**
+     *  Обновление темы
+     */
+    updateTheme() {
+        this.cNodes.map(n => n.updateTheme());
     }
 
-    moveNodesToOriginZ(exceptMNodes){
-        for(let i = 0; i < this.cNodes.length; i += 1){
-            const mNode = this.cNodes[i].getMNode();
-            let isExcept = exceptMNodes.some(n=>{
-                return n === mNode;
+    /**
+     * Перемещение всех нод на свою координату по Z, за исключением ноды
+     * @param exceptMNodes - 3д-объект ноды
+     */
+    moveNodesToOriginZ(exceptMNodes) {
+        if (exceptMNodes) {
+            this.cNodes.map(cN => {
+                const mNode = cN.getMNode();
+                const isExcept = exceptMNodes.some(n => {
+                    return n === mNode;
+                });
+                if (!isExcept) cN.moveToOriginZ();
             });
-            if(!isExcept){
-                this.cNodes[i].moveToOriginZ();
-            }
+        } else {
+            this.cNodes.map(n => n.moveToOriginZ());
         }
-    }
-
-    moveAllNodesToOriginZ(){
-        this.cNodes.map(n=>{
-            n.moveToOriginZ();
-        });
     }
 }

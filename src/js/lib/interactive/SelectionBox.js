@@ -63,6 +63,11 @@ class SelectionBox {
         return this.collection;
     }
 
+    /**
+     * Поиск объектов по касанию внутри обзорного окна
+     * @param frustum {Frustum}
+     * @param object
+     */
     searchChildInFrustumOnTouch( frustum, object ) {
         if ( object.isMesh || object.isLine || object.isPoints ) {
             if (object.geometry.boundingBox === null) object.geometry.computeBoundingBox();
@@ -101,6 +106,11 @@ class SelectionBox {
         return this.collection;
     }
 
+    /**
+     * Поиск объектов захваченных окном обзора
+     * @param frustum
+     * @param object
+     */
     searchChildInFrustumOnCapture( frustum, object ) {
 
         if ( object.isMesh || object.isLine || object.isPoints ) {

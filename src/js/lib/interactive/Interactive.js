@@ -53,10 +53,11 @@ export default class{
         FBS.dom.canvas.addEventListener('pointermove', (e)=>this.onPointerMove(e));
         FBS.dom.canvas.addEventListener('pointerdown', (e)=>this.onPointerDown(e));
         FBS.dom.canvas.addEventListener('pointerup', (e)=>this.onPointerUp(e));
-        FBS.dom.canvas?.addEventListener('dblclick', (e)=>this.onDblclick(e));
+        FBS.dom.canvas.addEventListener('dblclick', (e)=>this.onDblclick(e));
         document.addEventListener('keydown', (e) => this.onKeyDown(e), false);
         document.addEventListener('keyup', (e) => this.onKeyUp(e));
         FBS.dom.canvas.addEventListener('contextmenu', (e) => this.onContextMenu(e));
+        //события вещающие при переходе зума камеры за или под определённый порог
         FBS.dom.canvas.addEventListener('needFullCollapse', () => this.fullCollapseNode(true));
         FBS.dom.canvas.addEventListener('needFullUnCollapse', () => this.fullCollapseNode(false));
     }
