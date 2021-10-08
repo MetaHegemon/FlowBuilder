@@ -8,7 +8,7 @@ import C from "../Constants";
 import {Text} from "troika-three-text";
 import MaterialControl from './MaterialControl';
 
-export default class {
+class NodeAssets{
     constructor() {
         //elements
         this.bigMount = this.createBigMount();
@@ -800,3 +800,7 @@ export default class {
         return group;
     }
 }
+
+const nodeAssets = new NodeAssets();
+
+export default nodeAssets;

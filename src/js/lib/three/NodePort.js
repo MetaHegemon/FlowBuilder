@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import ThemeControl from './../../themes/ThemeControl';
+import NodeAssets from './NodeAssets';
 import FBS from "../FlowBuilderStore";
 import C from "../Constants";
 
@@ -19,7 +20,7 @@ export default class {
      * @returns {THREE.Group}
      */
     create(){
-        const port = FBS.nodeAssets.getPort(this.data.name, this.data.type, this.direction, this.data.mark).clone();
+        const port = NodeAssets.getPort(this.data.name, this.data.type, this.direction, this.data.mark).clone();
 
         //добавление всем дочерним объектам ссылки на этот класс
         port.traverse(object =>object.userData.portClass = this);

@@ -3,6 +3,7 @@ import Port from './NodePort';
 import PseudoPort from "./NodePseudoPort";
 import C from "./../Constants";
 import ThemeControl from '../../themes/ThemeControl';
+import NodeAssets from '../three/NodeAssets';
 import FBS from "../FlowBuilderStore";
 import LineControl from "./LineControl";
 
@@ -60,26 +61,26 @@ export default class{
         nodeObject.name = 'node';
 
         //заголовок
-        const title = FBS.nodeAssets.title.clone();
+        const title = NodeAssets.title.clone();
         title.text = this.data.name;
         nodeObject.add(title);
 
         //индикатор
-        const indicator = FBS.nodeAssets.indicator.clone();
+        const indicator = NodeAssets.indicator.clone();
         indicator.text = this.data.indicator;
         nodeObject.add(indicator);
 
         //обычная подложка
-        const regularShield = FBS.nodeAssets.getRegularShield({
+        const regularShield = NodeAssets.getRegularShield({
             withCollapseButton: this.data.inputs.length > 1 || this.data.outputs.length > 1
         }).clone();
         nodeObject.add(regularShield);
 
         //мини-подложка
-        nodeObject.add(FBS.nodeAssets.getMiniShield().clone());
+        nodeObject.add(NodeAssets.getMiniShield().clone());
 
         //большая подложка. используется для интерактивности ноды(выделение, перемещение и т.д.)
-        nodeObject.add(FBS.nodeAssets.bigMount.clone());
+        nodeObject.add(NodeAssets.bigMount.clone());
 
         //входные порты
         const inputPorts = this.createInputPorts(this.data.inputs);
@@ -410,7 +411,7 @@ export default class{
             if (!cPseudoPortInput && this.cPortsInput.length > 0) {
                 cPseudoPortInput = new PseudoPort('input', this);
                 //надпись нужно удалить сразу, что бы было красиво
-                cPseudoPortInput.removeLabelText();
+                cPseudoPortInput.hideLabel();
                 const position = this.calcPositionsForInputPorts();
                 cPseudoPortInput.moving(position[0]);
                 cPseudoPortInput.addToNode(this.mesh);
