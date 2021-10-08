@@ -526,8 +526,8 @@ class NodeAssets{
         mesh.fontSize = C.nodeMesh.indicator.fontSize;
         mesh.color = ThemeControl.theme.node.indicator.fontColor;
         mesh.material = MaterialControl.getMaterial(mesh.name);
-        mesh.anchorX = 'right';
-        mesh.anchorY = 'bottom';
+        mesh.anchorX = 'center';
+        mesh.anchorY = 'middle';
         mesh.position.setZ(C.layers.indicator);
 
         return mesh;
@@ -821,9 +821,6 @@ class NodeAssets{
         group.add(this.createPortLabel(name, type, direction, mark));
 
         group.position.setZ(C.layers.port.self);
-
-        const connector = group.getObjectByName('connector');
-        clog(connector.position.z);
 
         return group;
     }

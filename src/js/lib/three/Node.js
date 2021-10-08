@@ -447,7 +447,7 @@ export default class{
                 cPseudoPortOutput.animateMoving({y: this.getFirstPortPositionY()});
             }
 
-            //анимация скрытия входных портов//TODO replace pseudo
+            //анимация скрытия входных портов
             this.cPortsInput.map(p=>p.type !== 'pseudo' ? p.animateHide() : void null);
 
             //переключение всех входных линий на псевдо-порт
@@ -457,7 +457,7 @@ export default class{
             //для всех линий отмечается, что входной порт сколлапсирован
             allInputLines.map(cLine => cLine.collapsedPort2());
 
-            //анимация скрытия выходных портов //TODO replace pseudo
+            //анимация скрытия выходных портов
             this.cPortsOutput.map(p=>p.type !== 'pseudo' ? p.animateHide() : void null);
 
             //переключение всех выходных линий на псевдо-порт
@@ -495,7 +495,7 @@ export default class{
                 cPseudoPortInput.setCLines(this.middleCollapse.storeCLinesInput);
             } else {
                 //входного псевдо-порта не существовало, текущий порт удаляется
-                if(cPseudoPortInput) this.mesh.remove(cPseudoPortInput.getMPort());
+                if(cPseudoPortInput)  this.mesh.remove(cPseudoPortInput.getMPort());
             }
 
             const cPseudoPortOutput = this.getPseudoPort('output');
@@ -698,7 +698,7 @@ export default class{
 
                 //анимация скрытия выходных портов
                 this.cPortsOutput.map(p=>{
-                    if(p.type !== 'pseudo') {//TODO replace pseudo
+                    if(p.type !== 'pseudo') {
                         operationCount += 1;
                         p.animateHide(() => wait());
                     }
@@ -867,8 +867,6 @@ export default class{
         indicator.position.set(C.miniNodeMesh.width/2, -C.miniNodeMesh.height/2, indicator.position.z);
         indicator.fontSize = C.miniNodeMesh.indicatorFontSize;
         indicator.color = ThemeControl.theme.node.indicator.miniFontColor;
-        indicator.anchorX = 'center'; //TODO Изначально выставить правильно
-        indicator.anchorY = 'middle';
 
         //изменение размера шрифта для заголовка
         const title = this.mesh.getObjectByName('title');
@@ -904,11 +902,13 @@ export default class{
 
         //смещение индикатора в правый верхний угол
         const indicator = this.mesh.getObjectByName('indicator');
-        indicator.position.set(this.nodeWidth - C.nodeMesh.indicator.rightMargin, 0,  indicator.position.z);
+        indicator.position.set(
+            this.nodeWidth - C.nodeMesh.indicator.rightMargin,
+            C.nodeMesh.indicator.bottomMargin,
+            indicator.position.z
+        );
         indicator.fontSize = C.nodeMesh.indicator.fontSize;
         indicator.color = ThemeControl.theme.node.indicator.fontColor;
-        indicator.anchorX = 'right';
-        indicator.anchorY = 'bottom';
 
         //изменение размера шрифта для заголовка
         const title = this.mesh.getObjectByName('title');
@@ -1279,9 +1279,13 @@ export default class{
     /**
      * Перемещение индикатора при изменении ширины ноды
      */
-    moveIndicator(){
+    moveIndicator() {
         const indicator = this.mesh.getObjectByName('indicator');
-        indicator.position.setX(this.nodeWidth - C.nodeMesh.indicator.rightMargin);
+        indicator.position.set(
+            this.nodeWidth - C.nodeMesh.indicator.rightMargin,
+            C.nodeMesh.indicator.bottomMargin,
+            indicator.position.z
+        );
     }
 
     /**

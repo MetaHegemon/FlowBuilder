@@ -189,7 +189,7 @@ export default class {
             .easing( FBS.tween.Easing.Exponential.InOut )
             .onComplete(()=>{
                 callback ? callback() : void null;
-                FBS.sceneControl.removeFromScene(this.mesh);
+                this.mesh.removeFromParent();
             })
             .start();
     }

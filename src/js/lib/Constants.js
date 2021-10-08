@@ -73,8 +73,8 @@ export default {
         },
         indicator: {
             fontSize: 21,
-            rightMargin: 0,
-            bottomMargin: 2
+            rightMargin: 7,
+            bottomMargin: 14
         },
         header: {
             height: 62,
