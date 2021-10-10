@@ -1,10 +1,31 @@
 export default {
     scene: {
-        backgroundColor: '#f0f2f5'
+        backgroundColor: '#ffffff'
     },
     line: {
         colorOnActive: '#b6b6b6',
-        selectedColor: '#2491F6'
+        selectedColor: '#2491F6',
+        hoverColor: '#2491F6'
+    },
+    watchPoint: {
+        back: {
+            backgroundColor: '#D2D2D2'
+        },
+        topControlPanel: {
+            backgroundColor: '#F3F3F3'
+        },
+        bottomControlPanel: {
+            backgroundColor: '#EEEFF2'
+        },
+        cornerResize: {
+            fontColor: '#5F5F5F'
+        },
+        copyButton: {
+            fontColor: '#000000'
+        },
+        exportButton: {
+            fontSize: '#000000'
+        }
     },
     node: {
         title: {
@@ -40,10 +61,6 @@ export default {
                 hoverColor: '#2491F6',
             }
         },
-        line: {
-            color: '#CACACA',
-            selectedColor: '#2491F6'
-        },
         portTypes: {
             float: {
                 connectorColor: '#338A51',
@@ -71,8 +88,9 @@ export default {
             }
         }
     },
+
     fontPaths: {
-        mainNormal: './fonts/Inter-Regular.ttf',
-        mainMedium: './fonts/Inter-Medium.ttf',
+        mainNormal: './fonts/Raleway-Regular.ttf',
+        mainMedium: './fonts/Raleway-Medium.ttf',
     }
 };

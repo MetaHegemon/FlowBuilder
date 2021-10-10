@@ -234,12 +234,16 @@ export default class {
     /**
      * Анимированное перемещение порта
      * @param to
-     * @param callback
+     * @param onUpdate {function}
+     * @param callback {function}
      */
-    animateMoving(to, callback){
+    animateMoving(to, onUpdate, callback){
         new FBS.tween.Tween( this.mesh.position)
             .to( to, C.animation.portHideTime )
             .easing( FBS.tween.Easing.Exponential.InOut )
+            .onUpdate(()=>{
+                onUpdate ? onUpdate() : void null;
+            })
             .onComplete(()=>{
                 callback ? callback() : void null;
             })

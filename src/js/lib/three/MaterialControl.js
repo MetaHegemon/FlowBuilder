@@ -1,7 +1,7 @@
 /**
  * Модуль предсоздаёт и выдаёт материалы для всех объектов сцены
  */
-
+//TODO, написать выдачу материала по цвету, брать цвет из темы, если материал с таким цветом уже есть, то выдавать существующий
 import * as THREE from "three";
 import ThemeControl from "../../themes/ThemeControl";
 
@@ -13,25 +13,27 @@ class MaterialControl{
                 material: new THREE.MeshBasicMaterial()
             },
             {
-                names: ['watchPointSmall'],
+                names: ['lineMarkSmall'],
                 material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.scene.backgroundColor})
             },
             {
-                names: ['bigMount', 'rightResizer', 'connectorMagnet', 'watchPointPointer'],
+                names: ['transparent', 'rightResizer', 'connectorMagnet', 'lineMarkPointer'],
                 material: new THREE.MeshBasicMaterial({transparent: true, opacity: 0})
             },
             {
-                names: ['backMount', 'backCornerTopLeft', 'backBodyTop', 'backCornerTopRight', 'backBody',
-                    'backCornerBottomLeft', 'backBodyBottom', 'backCornerBottomRight', 'miniBackMount'],
+                names: [
+                    'backMount', 'backCornerTopLeft', 'backBodyTop', 'backCornerTopRight', 'backBody',
+                    'backCornerBottomLeft', 'backBodyBottom', 'backCornerBottomRight', 'miniBackMount',
+                ],
                 material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.mount.back.color})
             },
             {
                 names: ['frontTop', 'frontCornerTopLeft', 'frontBodyTop', 'frontCornerTopRight', 'frontHeader',
-                'miniFrontTop', ],
+                'miniFrontTop'],
                 material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.mount.front.headColor})
             },
             {
-                names: ['frontBody', 'miniFrontBody'],
+                names: ['frontBody', 'miniFrontBody', 'watchPointFrontBody'],
                 material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.mount.front.bodyColor})
             },
             {
@@ -48,8 +50,20 @@ class MaterialControl{
                 material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.mount.front.headColor})
             },
             {
-                names: ['collapseButton','playButton', 'menuButton', 'miniMenuButton', ],
+                names: ['collapseButton','playButton', 'menuButton', 'miniMenuButton', 'iconCross'],
                 material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.header.fontColor})
+            },
+            {
+                names: ['iconCornerResize'],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.watchPoint.cornerResize.fontColor})
+            },
+            {
+                names: ['copyButton', 'exportButton'],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.watchPoint.copyButton.fontColor})
+            },
+            {
+                names: ['exportButton'],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.watchPoint.exportButton.fontColor})
             },
             {
                 names: ['footerLabel'],
@@ -63,6 +77,31 @@ class MaterialControl{
                 names: ['indicator'],
                 material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.indicator.fontColor})
             },
+
+            //WATCH POINT
+            {   //back
+                names: [
+                    'watchPointBackMount', 'watchPointBackCornerTopLeft', 'watchPointBackCornerTopRight',
+                    'watchPointBackCornerBottomLeft', 'watchPointBackCornerBottomRight', 'watchPointBackBodyTop',
+                    'watchPointBackBodyBottom', 'watchPointBackBody'
+                ],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.watchPoint.back.backgroundColor})
+            },
+            {   //front top
+                names: [
+                    'watchPointFrontCornerTopLeft', 'watchPointFrontCornerTopRight',
+                    'watchPointFrontBodyTop', 'watchPointFrontHeader'
+                ],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.watchPoint.topControlPanel.backgroundColor})
+            },
+            {   //front bottom
+                names: [
+                    'watchPointFrontCornerBottomLeft', 'watchPointFrontCornerBottomRight',
+                    'watchPointFrontBodyBottom', 'watchPointFrontFooter'
+                ],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.watchPoint.bottomControlPanel.backgroundColor})
+            },
+
         ];
 
     }

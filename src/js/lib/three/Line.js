@@ -8,6 +8,7 @@ import C from './../Constants';
 import ThemeControl from '../../themes/ThemeControl';
 import NodeAssets from './NodeAssets';
 import FBS from "../FlowBuilderStore";
+import WatchPoint from "./WatchPoint";
 
 export default class {
     constructor(){
@@ -46,7 +47,9 @@ export default class {
         this.isPort1Collapsed = false;      //флаг состояния порта1
         this.isPort2Collapsed = false;      //флаг состояния порта2
                                             //через них один порт может узнать, что со вторым
-        this.watchPoint = null;             //ссылка на 3д-объект вотчпоинта
+        this.lineMark = null;               //ссылка на 3д-объект метки
+
+        this.watchPoint = null;             //ссылка на класс-вотчпоинт этой линии
 
         this.mesh = this.createLine();
     }
@@ -63,19 +66,6 @@ export default class {
         mesh.userData.class = this;
 
         return mesh;
-    }
-
-    /**
-     * Создание 3д-объекта вотчпоинта
-     */
-    createWatchPoint(){
-        const watchPoint = NodeAssets.getWatchPoint().clone();
-        watchPoint.traverse(o=> o.userData.class = this);
-        const bigCircle = watchPoint.getObjectByName('watchPointBig');
-        bigCircle.material.color.setStyle(this.mesh.material.color.getStyle());
-
-        clog(watchPoint);
-        return watchPoint;
     }
 
     /**
@@ -111,27 +101,9 @@ export default class {
         this.cPort2.cLines.push(this);
 
         //создание вотчпоинта
-        this.watchPoint = this.createWatchPoint();
-        this.updateWatchPointPosition()
-        this.mesh.parent.add(this.watchPoint);
-    }
-
-
-
-    /**
-     * Получение позиции для вотчпоинта на линии. Процент от начальной точки линии
-     * @returns {{x: number, y: number, z: number}}
-     */
-    getPositionForWatchPoint(){
-        const progress = C.lines.segments/100 * C.lines.watchPoint.positionOnLine; //point on line
-        const instanceStart = this.mesh.geometry.getAttribute('instanceStart').data;
-        const points = instanceStart.array;
-
-        return {
-            x: points[progress * instanceStart.stride],
-            y: points[progress * instanceStart.stride + 1],
-            z: points[progress * instanceStart.stride + 2]
-        };
+        this.lineMark = this.createLineMark();
+        this.updateLineMarkPosition()
+        this.mesh.parent.add(this.lineMark);
     }
 
     /**
@@ -239,18 +211,7 @@ export default class {
 
         this.mesh.geometry = geometry;
 
-        this.updateWatchPointPosition();
-    }
-
-    /**
-     * Обновление позиции вотчпоинта
-     * @returns {null}
-     */
-    updateWatchPointPosition(){
-        if(!this.watchPoint) return null;
-
-        const pos = this.getPositionForWatchPoint();
-        this.watchPoint.position.set(pos.x, pos.y, pos.z);
+        this.updateLineMarkPosition();
     }
 
     /**
@@ -333,7 +294,7 @@ export default class {
      */
     remove(){
         FBS.sceneControl.removeFromScene(this.mesh);
-        if(this.watchPoint) this.removeWatchPoint();
+        if(this.lineMark) this.removeLineMark();
         //снятие выделения с коннекторов
         if(this.cPort1) this.cPort1.unselectConnector();
         if(this.cPort2) this.cPort2.unselectConnector();
@@ -342,12 +303,76 @@ export default class {
         if(this.cPort2) this.cPort2.removeCLine(this);
     }
 
+
+
+    //LINE MARK
+
+    /**
+     * Создание 3д-объекта метки
+     */
+    createLineMark(){
+        const lineMark = NodeAssets.getLineMark().clone();
+        lineMark.traverse(o=> o.userData.class = this);
+        const bigMark = lineMark.getObjectByName('lineMarkBig');
+        bigMark.material.color.setStyle(this.mesh.material.color.getStyle());
+
+        return lineMark;
+    }
+
+    /**
+     * Получение позиции для вотчпоинта на линии. Процент от начальной точки линии
+     * @returns {{x: number, y: number, z: number}}
+     */
+    getPositionForLineMark(){
+        const progress = C.lines.segments/100 * C.lines.mark.positionOnLine; //point on line
+        const instanceStart = this.mesh.geometry.getAttribute('instanceStart').data;
+        const points = instanceStart.array;
+
+        return {
+            x: points[progress * instanceStart.stride],
+            y: points[progress * instanceStart.stride + 1],
+            z: points[progress * instanceStart.stride + 2]
+        };
+    }
+
+    hoverLineMark(){
+        const bigMark = this.lineMark.getObjectByName('lineMarkBig');
+        bigMark.material.color.setStyle(ThemeControl.theme.line.hoverColor);
+    }
+
+    unhoverLineMark(){
+        const bigMark = this.lineMark.getObjectByName('lineMarkBig');
+        bigMark.material.color.setStyle(this.mesh.material.color.getStyle());
+    }
+
+    /**
+     * Обновление позиции вотчпоинта
+     * @returns {null}
+     */
+    updateLineMarkPosition(){
+        if(!this.lineMark) return null;
+
+        const pos = this.getPositionForLineMark();
+        this.lineMark.position.set(pos.x, pos.y, pos.z);
+    }
+
     /**
      * Удаление вотчпоинта со сцены
      */
-    removeWatchPoint(){
-        FBS.sceneControl.removeFromScene(this.watchPoint);
-        this.watchPoint = null;
+    removeLineMark(){
+        FBS.sceneControl.removeFromScene(this.lineMark);
+        this.lineMark = null;
+    }
+
+    //WATCH POINT
+
+    showWatchPoint(){
+        if(!this.watchPoint){
+            this.watchPoint = new WatchPoint();
+        }
+
+        this.watchPoint.show(this.lineMark.position);
+
     }
 
     /**
@@ -358,16 +383,33 @@ export default class {
             this.setColor(ThemeControl.theme.line.selectedColor);
             this.cPort1.selectConnector();
             this.cPort2.selectConnector();
+
+            if(this.lineMark) {
+                const markBig = this.lineMark.getObjectByName('lineMarkBig');
+                markBig.material.color.setStyle(ThemeControl.theme.line.selectedColor);
+            }
+
         } else {
             if(this.isPort1Collapsed || this.isPort2Collapsed){
                 this.setColor(ThemeControl.theme.node.portTypes.pseudo.connectorColor);
+                if(this.lineMark) {
+                    const markBig = this.lineMark.getObjectByName('lineMarkBig');
+                    markBig.material.color.setStyle(ThemeControl.theme.node.portTypes.pseudo.connectorColor);
+                }
             } else {
                 this.setColor(this.cPort1.getColor());
+                if(this.lineMark) {
+                    const markBig = this.lineMark.getObjectByName('lineMarkBig');
+                    markBig.material.color.setStyle(this.cPort1.getColor());
+                }
             }
+
         }
-        if(this.watchPoint) {
-            const watchPointSmall = this.watchPoint.getObjectByName('watchPointSmall');
-            watchPointSmall.material.color.setStyle(ThemeControl.theme.scene.backgroundColor);
+
+        if(this.lineMark) {
+            const markSmall = this.lineMark.getObjectByName('lineMarkSmall');
+            markSmall.material.color.setStyle(ThemeControl.theme.scene.backgroundColor);
         }
+
     }
 }

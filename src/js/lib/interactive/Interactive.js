@@ -147,10 +147,10 @@ export default class{
                         //сохраняем 3д-объект ресайзера, на которое произведено нажатие, для изменения её ширины
                         this.selectedOnPointerDown = intersect.object;
                     }
-                    else if ((intersect = this.checkOnIntersect(this.intersects, ['bigMount'])))
+                    else if (NodeControl.isItNodeComponent(this.intersects[0].object.name))
                     {
-                        //сохраняем 3д-объект подложки, на которое произведено нажатие, для её перемещения
-                        this.selectedOnPointerDown = intersect.object.userData.nodeClass.getMNode();
+                        //сохраняем 3д-объект ноды, на которое произведено нажатие, для её перемещения
+                        this.selectedOnPointerDown = this.intersects[0].object.userData.nodeClass.getMNode();
                     }
                     else if ((intersect = this.checkOnIntersect(this.intersects, ['connector'])))
                     {
@@ -218,7 +218,7 @@ export default class{
             //сохраняем список всех выделенных нод
             allSelected.map(o=>{
                 if (o.name === 'bigMount') {
-                    const cNode = allSelected[i].userData.nodeClass;
+                    const cNode = o.userData.nodeClass;
                     this.addCNodeToSelected(cNode);
                 }
             });
@@ -284,10 +284,17 @@ export default class{
                                     this.setCursor('pointer');
                                 }
                             }
-                        } else if (this.checkOnIntersect(this.intersects, ['line', 'watchPointPointer']))
+                        } else if (firstObject.name === 'line')
                         {
-                            const intersect = this.checkOnIntersect(this.intersects, ['line', 'watchPointPointer']);
-                            if(LineControl.canBeSelected(intersect.object)){
+                            if(LineControl.canBeSelected(firstObject)) {
+                                this.setCursor('pointer');
+                            }
+                        } else if (firstObject.name === 'lineMarkPointer')
+                        {
+                            if(LineControl.canBeSelected(firstObject)){
+                                const cLine = firstObject.userData.class;
+                                cLine.hoverLineMark();
+                                this.hovered.push(firstObject);
                                 this.setCursor('pointer');
                             }
                         } else if (firstObject.name === 'collapseButton') {
@@ -407,17 +414,19 @@ export default class{
                             this.onMenuButtonClick(this.intersects[0].object);
                         } else if(this.intersects[0].object.name === 'portLabelText'){
                             this.onPortLabelClick(this.intersects[0].object);
-                        } else {
-                            let intersect;
-                            if ((intersect = this.checkOnIntersect(this.intersects, ['bigMount']))) {
-                                const cNode = intersect.object.userData.nodeClass;
-                                this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
-                            } else if ((intersect = this.checkOnIntersect(this.intersects, ['line', 'watchPointPointer']))) {
-                                if(LineControl.canBeSelected(intersect.object)){
-                                    const cLine = this.intersects[0].object.userData.class;
-                                    this.onLineClick(cLine);
-                                }
+                        } else if(this.intersects[0].object.name === 'lineMarkPointer'){
+                            if(LineControl.canBeSelected(this.intersects[0].object)){
+                                const cLine = this.intersects[0].object.userData.class;
+                                this.onWatchPointClick(cLine);
                             }
+                        } else if(this.intersects[0].object.name === 'line'){
+                            if(LineControl.canBeSelected(this.intersects[0].object)){
+                                const cLine = this.intersects[0].object.userData.class;
+                                this.onLineClick(cLine);
+                            }
+                        } else if(NodeControl.isItNodeComponent(this.intersects[0].object.name)){
+                            const cNode = this.intersects[0].object.userData.nodeClass;
+                            this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
                         }
                     }
                 } else {
@@ -437,9 +446,9 @@ export default class{
             if((intersect = this.checkOnIntersect(this.intersects, ['title'])) && !this.textEditor.active){
                 //включение редактирование заголовка
                 this.textEditor.enable(intersect.object);
-            } else if((intersect = this.checkOnIntersect(this.intersects, ['bigMount']))){
+            } else if(NodeControl.isItNodeComponent(this.intersects[0].object.name)){
                 //разворачивание полностью свёрнутой ноды
-                const cNode = intersect.object.userData.nodeClass;
+                const cNode = this.intersects[0].object.userData.nodeClass;
                 if(cNode.fullCollapse.isCollapsed){
                     cNode.fullCollapseNode(false);
                 }
@@ -457,27 +466,7 @@ export default class{
             //Сворачивание разворачивание портов в ноде
             const cNode = cPort.getCNode();
             cNode.shortCollapsePorts(cPort);
-            this.switchLinesOnPseudoPorts(cPort);
         }
-    }
-
-    /**
-     * Переключение линий с/на псевдопорт
-     * @param cPseudoPort - класс псевдопорта
-     */
-    switchLinesOnPseudoPorts(cPseudoPort){
-        //Если порты скрыты, то псевдопорту присваиваются все линии,
-        //Если порты показаны, то псевдопорту присваиваются все скрытые линии скрытых портов, т.е. пустой массив
-        const hidedCPorts = cPseudoPort.getHidedCPorts();
-        const allCLines = [];
-        for(let i = 0; i < hidedCPorts.length; i += 1){
-            allCLines.push(...hidedCPorts[i].getCLines());
-        }
-        cPseudoPort.setCLines(allCLines);
-
-        const cNode = cPseudoPort.getCNode();
-        const mNode = cNode.getMNode();
-        LineControl.refreshLines([mNode]);
     }
 
     /**
@@ -529,6 +518,9 @@ export default class{
             } else if(this.hovered[i].name === 'footerLabel'){
                 const cNode = this.hovered[i].userData.nodeClass;
                 cNode.unhoverFooterLabel();
+            } else if(this.hovered[i].name === 'lineMarkPointer'){
+                const cLine = this.hovered[i].userData.class;
+                cLine.unhoverLineMark();
             }
             this.hovered.splice(i, 1);
             i -= 1;
@@ -639,6 +631,7 @@ export default class{
      * @param cLine - класс линии
      */
     onLineClick(cLine){
+        clog('onLineClick');
         let isSelected = false;
         for(let i = 0; i < this.select.cLines.length; i += 1){
             if(this.select.cLines[i] === cLine){
@@ -654,6 +647,15 @@ export default class{
             cLine.select();
 
         }
+    }
+
+    /**
+     *
+     * @param cLine {Line}
+     */
+    onWatchPointClick(cLine){
+        clog('onWatchPointClick');
+        cLine.showWatchPoint();
     }
 
     /**

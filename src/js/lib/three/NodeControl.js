@@ -9,6 +9,19 @@ class NodeControl {
     constructor() {
         this.mNodes = [];       //список всех 3д объектов нод
         this.cNodes = [];       //список всех классов-нод
+        this.nodeInteractiveComponentNames = [
+            'backCornerTopLeft', 'backBodyTop', 'backCornerTopRight', 'backBody',
+            'backCornerBottomLeft', 'backBodyBottom', 'backCornerBottomRight', 'miniBackMount',
+
+            'frontTop', 'frontCornerTopLeft', 'frontBodyTop', 'frontCornerTopRight', 'frontHeader',
+            'miniFrontTop', 'frontBody',
+
+            'miniFrontBody', 'frontBottom', 'frontFooter', 'frontCornerBottomLeft', 'frontCornerBottomRight',
+            'frontBodyBottom', 'miniFrontBottom',
+
+            'miniBackMount',
+            'miniIndicatorMount',
+        ];
     }
 
     /**
@@ -62,6 +75,15 @@ class NodeControl {
         } else {
             this.cNodes.map(n => n.moveToOriginZ());
         }
+    }
+
+    isItNodeComponent(name){
+        for(let i = 0; i < this.nodeInteractiveComponentNames.length; i += 1){
+            if(this.nodeInteractiveComponentNames[i] === name){
+                return true;
+            }
+        }
+        return false;
     }
 }
 

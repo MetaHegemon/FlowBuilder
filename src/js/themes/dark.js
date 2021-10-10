@@ -4,7 +4,28 @@ export default {
     },
     line: {
         colorOnActive: '#b6b6b6',
-        selectedColor: '#da0000'
+        selectedColor: '#da0000',
+        selectedMarkColor: '#da0000'
+    },
+    watchPoint: {
+        back: {
+            backgroundColor: '#D2D2D2'
+        },
+        topControlPanel: {
+            backgroundColor: '#EEEFF2'
+        },
+        bottomControlPanel: {
+            backgroundColor: '#EEEFF2'
+        },
+        cornerResize: {
+            fontColor: '#5F5F5F'
+        },
+        copyButton: {
+            fontColor: '#000000'
+        },
+        exportButton: {
+            fontSize: '#000000'
+        }
     },
     node: {
         title: {
@@ -68,7 +89,7 @@ export default {
         }
     },
     fontPaths: {
-        mainNormal: './fonts/Raleway-Regular.ttf',
-        mainMedium: './fonts/Raleway-Medium.ttf',
+        mainNormal: './fonts/Inter-Regular.ttf',
+        mainMedium: './fonts/Inter-Medium.ttf',
     }
 };

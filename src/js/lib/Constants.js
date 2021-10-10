@@ -25,29 +25,70 @@ export default {
         },
         footerLabel: 0.01,
         topForNode: 10,
+        lineMark: {
+            pointer: 0.02,
+            big: 0,
+            small: 0.01
+        },
         watchPoint: {
-            pointer: 0,
-            big: 0.01,
-            small: 0.02
+            self: 12,
+            back: 0,
+            front: 0.01,
+            controlPanelTop: 0.01,
+            controlPanelBottom: 0.01,
+            copyButton: 0,
+            exportButton: 0,
+            iconCross: 0,
+            iconCornerResize: 0
         }
     },
     //смещение на которое нужно сдвинуть поинтер после нажатия, что бы зафиксировать движение с зажатой клавишей
     deltaOnPointerInteractive: 3,
     fontPaths: {
         awSolid: './fonts/fa-solid-900.ttf',
-        awLight: './fa-light-300.ttf',
-        awRegular: './fa-regular-400.ttf',
-        awBrands: './fa-brands-400.ttf',
-        awDuotone: './fa-duotone-900.ttf'
+        awLight: './fonts/fa-light-300.ttf',
+        awRegular: './fonts/fa-regular-400.ttf',
+        awBrands: './fonts/fa-brands-400.ttf',
+        awDuotone: './fonts/fa-duotone-900.ttf'
     },
     lines: {
         lineWidth: 0.002,
         segments: 40,                   //количество сегментов линии
-        watchPoint: {
+        mark: {
             positionOnLine: 80,         //расстояние в % от начала линии, на котором строится вотчпоинт
-            pointerRadius: 8,           //радиус прозрачной части вотчпоинта, которая нужна для наведения поинтером
-            bigCircleRadius: 6,         //радиус большого круга
-            smallCircleRadius: 3        //радиус маленького круга
+            pointerRadius: 9,           //радиус прозрачной части вотчпоинта, которая нужна для наведения поинтером
+            bigCircleRadius: 6.6,         //радиус большого круга
+            smallCircleRadius: 5.1        //радиус маленького круга
+        }
+    },
+    watchPoint: {
+        defaultWidth: 415,
+        defaultHeight: 540,
+        backRadius: 3,
+        borderSize: 1,
+        topControlPanelHeight: 30,
+        bottomControlPanelHeight: 40,
+        closeButton: {
+            marginRight: 20,
+            marginTop: 16,
+            fontSize: 24
+        },
+        cornerResize: {
+            fontSize: 10,
+            width: 23,
+            height: 23,
+            marginRight: 11.5,
+            marginBottom: 11.5,
+        },
+        copyButton: {
+            fontSize: 18,
+            leftMargin: 36,
+            topMargin: 19
+        },
+        exportButton: {
+            fontSize: 18,
+            leftMargin: 104,
+            topMargin: 19
         }
     },
     miniNodeMesh: {
@@ -158,7 +199,7 @@ export default {
              */
             default: 1000,                      //зум по умолчанию
             min: 3000,                          //максимальное отдаление
-            max: 500,                           //максимальное приближение
+            max: 100,                           //максимальное приближение
             damping: 0.8,                       //коэффициент инерции
             speed: 8,                           //скорость зума
             fullCollapseBorder: 1800,           //граница зума за которой ноды схлопываются

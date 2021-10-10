@@ -23,7 +23,7 @@ class LineControl{
         if(cPort1.direction === 'input' && lines.length > 0){
             //отсоединение линии от входного порта
             this.cLine = cPort1.cLines[0];
-            this.cLine.removeWatchPoint();
+            this.cLine.removeLineMark();
             this.cLine.setCPort2(null);
             cPort1.cLines = [];
         } else {

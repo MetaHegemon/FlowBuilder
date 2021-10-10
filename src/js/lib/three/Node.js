@@ -80,7 +80,9 @@ export default class{
         nodeObject.add(NodeAssets.getMiniShield().clone());
 
         //большая подложка. используется для интерактивности ноды(выделение, перемещение и т.д.)
-        nodeObject.add(NodeAssets.bigMount.clone());
+        const bigMount = NodeAssets.bigMount.clone();
+        bigMount.name = 'bigMount';
+        nodeObject.add(bigMount);
 
         //входные порты
         const inputPorts = this.createInputPorts(this.data.inputs);
@@ -987,6 +989,22 @@ export default class{
             this.shortCollapseOutputPorts(cPseudoPort);
         }
         this.scaleBigMount();
+
+    }
+
+    /**
+     * Переключение линий с/на псевдопорт
+     * @param cPseudoPort - класс псевдопорта
+     */
+    switchLinesOnPseudoPorts(cPseudoPort){
+        //Если порты скрыты, то псевдопорту присваиваются все линии,
+        //Если порты показаны, то псевдопорту присваиваются все скрытые линии скрытых портов, т.е. пустой массив
+        const hidedCPorts = cPseudoPort.getHidedCPorts();
+        const allCLines = [];
+        for(let i = 0; i < hidedCPorts.length; i += 1){
+            allCLines.push(...hidedCPorts[i].getCLines());
+        }
+        cPseudoPort.setCLines(allCLines);
     }
 
     /**
@@ -1003,6 +1021,7 @@ export default class{
         }
 
         const positions = this.calcPositionsForInputPorts();
+
         //удаление последней позиции для порта, т.к. псевдо-порт будет перемещён анимацией
         positions.length = positions.length - 1;
         this.setPositionsForInputPorts(positions);
@@ -1036,6 +1055,8 @@ export default class{
             cLines.map(l => l.collapsedPort2());
         });
 
+        this.switchLinesOnPseudoPorts(cPseudoPort);
+
         //расстановка портов по местам
         const positionOut = this.calcPositionsForOutputPorts();
         for(let i = 0; i < this.cPortsOutput.length; i += 1){
@@ -1045,7 +1066,7 @@ export default class{
         this.changePseudoPortName(cPseudoPort);
         cPseudoPort.showConnector();
         const positionIn = this.calcPositionsForInputPorts();
-        cPseudoPort.animateMoving({y: positionIn[positionIn.length - 1].y});
+        cPseudoPort.animateMoving({y: positionIn[positionIn.length - 1].y}, ()=>LineControl.refreshLines([this.mesh]));
     }
 
     /**
@@ -1079,6 +1100,7 @@ export default class{
 
         this.cPortsInput.push(cPseudoPort);
         cPseudoPort.setHidedCPorts([]);
+        this.switchLinesOnPseudoPorts(cPseudoPort);
         this.changePseudoPortName(cPseudoPort);
         cPseudoPort.hideConnector();
         //рассчитываем высоту ноды, что правильно рассчитать позиции портов
@@ -1092,7 +1114,7 @@ export default class{
         //this.cPortsOutput.map(p => p.animateMoving({y: positionOut[i].y}));
 
         const positionIn = this.calcPositionsForInputPorts();
-        cPseudoPort.animateMoving({y: positionIn[positionIn.length - 1].y});
+        cPseudoPort.animateMoving({y: positionIn[positionIn.length - 1].y}, ()=>LineControl.refreshLines([this.mesh]));
     }
 
     /**
@@ -1152,11 +1174,13 @@ export default class{
             });
         });
 
+        this.switchLinesOnPseudoPorts(cPseudoPort);
+
         this.changePseudoPortName(cPseudoPort);
         cPseudoPort.showConnector();
         //расстановка портов по местам
         const positions = this.calcPositionsForOutputPorts();
-        cPseudoPort.animateMoving({x: this.nodeWidth, y: positions[positions.length - 1].y});
+        cPseudoPort.animateMoving({x: this.nodeWidth, y: positions[positions.length - 1].y}, ()=>LineControl.refreshLines([this.mesh]));
     }
 
     /**
@@ -1189,7 +1213,7 @@ export default class{
 
                 //для входных портов на другом конце линии коннектор делается активным
                 if(!l.isPort2Collapsed) {
-                    const cPort2 = cLine.getCPort2();
+                    const cPort2 = l.getCPort2();
                     cPort2.setConnectorActive();
                 }
             });
@@ -1198,12 +1222,13 @@ export default class{
         this.cPortsOutput.push(cPseudoPort);
         this.changePseudoPortName(cPseudoPort);
         cPseudoPort.setHidedCPorts([]);
+        this.switchLinesOnPseudoPorts(cPseudoPort);
         cPseudoPort.hideConnector();
         //рассчитываем высоту ноды, что правильно рассчитать позиции портов
         this.calcNodeHeight();
         //расстановка портов на позиции
         const position = this.calcPositionsForOutputPorts();
-        cPseudoPort.animateMoving({ x: this.nodeWidth, y: position[position.length - 1].y});
+        cPseudoPort.animateMoving({ x: this.nodeWidth, y: position[position.length - 1].y}, ()=>LineControl.refreshLines([this.mesh])); //TODO обновлять не все размерные линии ноды, а только те, которые нужно
     }
 
     /**
@@ -1363,7 +1388,11 @@ export default class{
         topRightCorner.position.setX(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize);
         const header = top.getObjectByName('frontHeader');
         header.scale.setX(this.nodeWidth - C.nodeMesh.mount.borderSize * 2);
-        header.position.setX(this.nodeWidth/2 - C.nodeMesh.mount.borderSize);
+        header.position.set(
+            this.nodeWidth/2 - C.nodeMesh.mount.borderSize,
+            -C.nodeMesh.mount.front.headHeight / 2 - C.nodeMesh.mount.roundCornerRadius + C.nodeMesh.mount.borderSize,
+            header.position.z
+        );
 
         const bodyHeight = this.nodeHeight - C.nodeMesh.mount.roundCornerRadius  * 2 - C.nodeMesh.mount.front.headHeight - C.nodeMesh.footer.height;
         const body = this.mesh.getObjectByName('frontBody');
