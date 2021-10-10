@@ -222,6 +222,7 @@ export default class {
 
         this.isPort1Collapsed = true;
         this.setColor(ThemeControl.theme.node.portTypes.pseudo.connectorColor);
+
     }
 
     /**
@@ -256,13 +257,22 @@ export default class {
      */
     setColor(colorStyle){
         this.mesh.material.color.setStyle(colorStyle);
+        if(this.lineMark){
+            const lineMarkBig = this.lineMark.getObjectByName('lineMarkBig');
+            lineMarkBig.material.color.setStyle(colorStyle);
+        }
     }
 
     /**
      * Сброс цвета линии на цвет первого порта
      */
     resetColor(){
-        this.mesh.material.color.setStyle(this.cPort1.getColor());
+        const color = this.cPort1.getColor();
+        this.mesh.material.color.setStyle(color);
+        if(this.lineMark){
+            const lineMarkBig = this.lineMark.getObjectByName('lineMarkBig');
+            lineMarkBig.material.color.setStyle(color);
+        }
     }
 
     /**

@@ -13,6 +13,7 @@ import LineControl from '../three/LineControl';
 import FBS from './../FlowBuilderStore';
 import TextEditor from "./../three/TextEditor";
 import RightResizer from './RightResizer';
+import WatchPointControl from "../three/WatchPointControl";
 
 //Класс контроля перемещения
 const Drag = new DragControl();
@@ -142,19 +143,21 @@ export default class{
             if (this.intersects.length > 0) {
                 if (e.buttons === 1) {
                     let intersect;
-                    if((intersect = this.checkOnIntersect(this.intersects, ['rightResizer'])))
+                    if(this.intersects[0].object.name === 'rightResizer')
                     {
                         //сохраняем 3д-объект ресайзера, на которое произведено нажатие, для изменения её ширины
-                        this.selectedOnPointerDown = intersect.object;
+                        this.selectedOnPointerDown = this.intersects[0].object;
                     }
-                    else if (NodeControl.isItNodeComponent(this.intersects[0].object.name))
-                    {
+                    else if (NodeControl.isItMoveableElement(this.intersects[0].object.name)) {
                         //сохраняем 3д-объект ноды, на которое произведено нажатие, для её перемещения
-                        this.selectedOnPointerDown = this.intersects[0].object.userData.nodeClass.getMNode();
+                        this.selectedOnPointerDown = this.intersects[0].object.userData.nodeClass.get3dObject();
+                        this.setCursor('move'); //когда скажут, что нужно переделать обратно, просто скопируй туда где Drag.enable
+                    }
+                    else if(WatchPointControl.isItMoveableElement(this.intersects[0].object.name)){
+                        this.selectedOnPointerDown = this.intersects[0].object.userData.class.get3dObject();
                     }
                     else if ((intersect = this.checkOnIntersect(this.intersects, ['connector'])))
                     {
-
                         const cPort = intersect.object.userData.portClass;
                         if(cPort.connectorActive) {
                             if (cPort.type !== 'pseudo') {
@@ -237,11 +240,15 @@ export default class{
             if(Resizer.active){
                 //изменяем ширину ноды
                 Resizer.move(this.pointerPos3d);
-                LineControl.refreshLines([Resizer.getMNode()]);
+                LineControl.refreshLines([Resizer.get3dObject()]);
             } else if (Drag.active) {
-                //перетаскиваем ноду
+                //перетаскиваем объекты
                 Drag.dragObjects(this.pointerPos3d);
-                LineControl.refreshLines(Drag.getObjects());
+
+                if(Drag.type === 'node') {
+                    //для ноды обновляем линии портов
+                    LineControl.refreshLines(Drag.getObjects());
+                }
             }
             else if (LineControl.active) //рисуем линию
             {
@@ -321,25 +328,26 @@ export default class{
                         } else if (this.selectedOnPointerDown.name === 'node') {
                             //включение начала перемещения ноды
                             if (this.isMoved(this.pointerPos3d, this.pointerDownPos)) {
-                                const backMountIntersect = this.checkOnIntersect(this.intersects, ['bigMount']);
-                                if (backMountIntersect) {
-                                    const cNode = backMountIntersect.object.userData.nodeClass;
-                                    let objectsForDrag;
-                                    if(cNode.isSelected()){
-                                        objectsForDrag = this.select.cNodes;
-                                        //сортируется список перемещаемых нод, что бы текущую поднять наверх,
-                                        // что бы отличить её от остальных после перемещения
-                                        objectsForDrag.sort((a, b) => {
-                                            return a === cNode ? -1 : cNode === b;
-                                        });
-                                    } else {
-                                        objectsForDrag = [cNode];
-                                    }
-
-                                    Drag.enable(objectsForDrag, this.pointerPos3d);
-                                    this.setCursor('move');
+                                const cNode = this.intersects[0].object.userData.nodeClass;
+                                let objectsForDrag;
+                                if (cNode.isSelected()) {
+                                    objectsForDrag = this.select.cNodes;
+                                    //сортируется список перемещаемых нод, что бы текущую поднять наверх,
+                                    // что бы отличить её от остальных после перемещения
+                                    objectsForDrag.sort((a, b) => {
+                                        return a === cNode ? -1 : cNode === b;
+                                    });
+                                } else {
+                                    objectsForDrag = [cNode];
                                 }
+                                //возврат всех нод на свои координаты по Z
+                                NodeControl.moveNodesToOriginZ();
+                                Drag.enable('node', objectsForDrag, this.pointerPos3d);
+                                //поднятие всех перемещаемых нод на верхний уровень по Z
+                                objectsForDrag.map(cN => cN.moveToOverAllZ());
                             }
+                        } else if(this.selectedOnPointerDown.name === 'watchPoint'){
+                            Drag.enable('watchPoint', [this.selectedOnPointerDown.userData.class], this.pointerPos3d);
                         } else if (this.selectedOnPointerDown.name === 'connector') {
                             //включаем рисование линии
                             if(this.intersects[0]) {
@@ -387,11 +395,16 @@ export default class{
                 //выключение изменения ширины ноды
                 Resizer.disable();
             } else if (Drag.active) {
-                //выключение перемещения ноды
+                if(Drag.type === 'node') {
+                    const objects = Drag.getObjects();
+                    //возврат всех нод на свои координаты по Z, кроме той, за которую перемещали остальные она всегда первая
+                    NodeControl.moveNodesToOriginZ([objects[0]]);
+                }
+                //выключение перемещения
                 Drag.disable();
                 this.resetCursor();
             } else if (LineControl.active) {
-                //завершение рисования линия
+                //завершение рисования линии
                 this.intersects = this.raycaster.intersectObjects(FBS.sceneControl.scene.children, true);
                 if (
                     this.intersects.length > 0 &&
@@ -424,9 +437,11 @@ export default class{
                                 const cLine = this.intersects[0].object.userData.class;
                                 this.onLineClick(cLine);
                             }
-                        } else if(NodeControl.isItNodeComponent(this.intersects[0].object.name)){
+                        } else if(NodeControl.isItMoveableElement(this.intersects[0].object.name)){
                             const cNode = this.intersects[0].object.userData.nodeClass;
                             this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
+                            //сброс 'move' курсора
+                            this.resetCursor();
                         }
                     }
                 } else {
@@ -446,7 +461,7 @@ export default class{
             if((intersect = this.checkOnIntersect(this.intersects, ['title'])) && !this.textEditor.active){
                 //включение редактирование заголовка
                 this.textEditor.enable(intersect.object);
-            } else if(NodeControl.isItNodeComponent(this.intersects[0].object.name)){
+            } else if(NodeControl.isItMoveableElement(this.intersects[0].object.name)){
                 //разворачивание полностью свёрнутой ноды
                 const cNode = this.intersects[0].object.userData.nodeClass;
                 if(cNode.fullCollapse.isCollapsed){

@@ -24,7 +24,7 @@ export default {
             fontColor: '#000000'
         },
         exportButton: {
-            fontSize: '#000000'
+            fontColor: '#000000'
         }
     },
     node: {

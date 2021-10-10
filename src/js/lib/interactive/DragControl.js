@@ -1,11 +1,15 @@
 /*
-Объект контроля перемещения нод
+Объект контроля перемещения
  */
-import NodeControl from "../three/NodeControl";
+
+//import for description
+import Node from './../three/Node';
+import WatchPoint from "../three/WatchPoint";
 
 export default class{
     constructor() {
         this.active = false;        //флаг активности перемещения
+        this.type = null;           //тип перетаскиваемого элемента node/watchPoint/etc..
         this.objects = [];          //список перемещаемых объектов
         this.offsets = [];          //смещение объектов относительно курсора мыши, эквивалентен this.objects
     }
@@ -30,20 +34,17 @@ export default class{
 
     /**
      * Включение перемещения
-     * @param cNodes {[]} список классов нод для перемещения
+     * @param type {String} тип перетаскиваемого элемента
+     * @param objects {[Node|WatchPoint]} список классов для перемещения
      * @param pos {Vector2} начальное смещение нод относительно курсора мыши
      */
-    enable(cNodes, pos){
-        //возврат всех нод на свои координаты по Z
-        NodeControl.moveNodesToOriginZ();
-
+    enable(type, objects, pos){
         this.active = true;
-        cNodes.map(cN=>{
-            //поднятие всех перемещаемых нод на верхний уровень по Z
-            cN.moveToOverAllZ();
-            const mNode = cN.getMNode()
-            this.objects.push(mNode);
-            this.offsets.push({x: mNode.position.x - pos.x, y: mNode.position.y - pos.y});
+        this.type = type;
+        objects.map(o=>{
+            const m = o.get3dObject()
+            this.objects.push(m);
+            this.offsets.push({x: m.position.x - pos.x, y: m.position.y - pos.y});
         });
     }
 
@@ -52,8 +53,7 @@ export default class{
      */
     disable(){
         this.active = false;
-        //возврат всех нод на свои координаты по Z, кроме той, за которую перемещали остальные она всегда первая
-        NodeControl.moveNodesToOriginZ([this.objects[0]]);
+        this.type = null;
         this.objects = [];
         this.offsets = [];
     }

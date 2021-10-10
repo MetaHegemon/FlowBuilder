@@ -89,7 +89,7 @@ export default {
         }
     },
     fontPaths: {
-        mainNormal: './fonts/Inter-Regular.ttf',
-        mainMedium: './fonts/Inter-Medium.ttf',
+        mainNormal: './fonts/OpenSans-Regular.ttf',
+        mainMedium: './fonts/OpenSans-Medium.ttf',
     }
 };

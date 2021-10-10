@@ -1,5 +1,5 @@
 /**
- * Модуль управления вотч поинтом
+ * Модуль-вотчпоинт
  *
  *
  */
@@ -13,6 +13,8 @@ export default class{
     constructor() {
         this.width = C.watchPoint.defaultWidth;
         this.height = C.watchPoint.defaultHeight;
+
+        this.select = false;
 
         this.wpPosition = null;
 
@@ -42,8 +44,8 @@ export default class{
         //нижняя панель
         group.add(NodeAssets.getWatchPointControlPanelBottom().clone());
 
-        //закрепляем за каждым дочерним объектом класс ноды, что бы из сцены получить к нему доступ
-        group.traverse(o => o.userData.nodeClass = this);
+        //закрепляем за каждым дочерним объектом на текущий экземпляр класса, что бы из сцены получить к нему доступ
+        group.traverse(o => o.userData.class = this);
         group.visible = false;
         group.position.setZ(C.layers.watchPoint.self);
 
@@ -59,6 +61,10 @@ export default class{
             this.wpPosition.set(p.x, p.y, this.wpPosition.z);
         }
         this.mesh.visible = true;
+    }
+
+    get3dObject(){
+        return this.mesh;
     }
 
     scaleWatchPoint(){

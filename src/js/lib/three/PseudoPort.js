@@ -2,7 +2,7 @@
  * Модуль расширения обычного порта до псевдо порта
  */
 
-import Port from './NodePort';
+import Port from './Port';
 
 export default class extends Port{
     constructor(direction, cNode) {

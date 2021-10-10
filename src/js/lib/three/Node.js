@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import Port from './NodePort';
-import PseudoPort from "./NodePseudoPort";
+import Port from './Port';
+import PseudoPort from "./PseudoPort";
 import C from "./../Constants";
 import ThemeControl from '../../themes/ThemeControl';
 import NodeAssets from '../three/NodeAssets';
@@ -251,10 +251,10 @@ export default class{
     /**
      * Упаковка портов вместе с псевдо-портом. Лишние порты скрываются и закрепляются за псевдо-портом.
      * Псевдопорт добавляется к общему списку видимых портов
-     * @param cPorts {Array}
+     * @param cPorts {[Port|PseudoPort]}
      * @param direction {String}
-     * @param cPseudoPort {Class}
-     * @returns {Array}
+     * @param cPseudoPort {PseudoPort}
+     * @returns {[Port|PseudoPort]}
      */
     packPortsWithPseudo(cPorts, direction, cPseudoPort){
         const portsForHide = [];
@@ -373,7 +373,7 @@ export default class{
     /**
      * @returns {Group} 3д объект ноды
      */
-    getMNode(){
+    get3dObject(){
         return this.mesh;
     }
 
@@ -578,7 +578,7 @@ export default class{
 
     /**
      * Изменение имени псевдо-порта в соответствии с состоянием ноды
-     * @param cPort
+     * @param cPort {PseudoPort}
      */
     changePseudoPortName(cPort) {
         if (cPort.direction === 'input') {

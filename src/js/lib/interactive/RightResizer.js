@@ -22,7 +22,7 @@ export default class{
         this.active = true;
         this.resizer = resizer;
         this.cNode = resizer.userData.nodeClass;
-        this.mNode = this.cNode.getMNode();
+        this.mNode = this.cNode.get3dObject();
 
         //возврат всех нод на свои координаты по Z
         NodeControl.moveNodesToOriginZ();
@@ -49,8 +49,8 @@ export default class{
      * Возвращает 3д-объект изменяемой ноды
      * @returns {Group}
      */
-    getMNode(){
-        return this.cNode.getMNode();
+    get3dObject(){
+        return this.cNode.get3dObject();
     }
 
     /**

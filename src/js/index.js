@@ -13,7 +13,7 @@ FBS.sceneControl.setScene();
 
 
 NodeControl.buildNodes(flowData.nodes);
-FBS.sceneControl.addObjectsToScene(NodeControl.getMNodes());
+FBS.sceneControl.addObjectsToScene(NodeControl.get3dObjects());
 
 new Interactive();
 

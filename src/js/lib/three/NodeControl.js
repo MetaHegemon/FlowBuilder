@@ -9,7 +9,7 @@ class NodeControl {
     constructor() {
         this.mNodes = [];       //список всех 3д объектов нод
         this.cNodes = [];       //список всех классов-нод
-        this.nodeInteractiveComponentNames = [
+        this.moveableElements = [
             'backCornerTopLeft', 'backBodyTop', 'backCornerTopRight', 'backBody',
             'backCornerBottomLeft', 'backBodyBottom', 'backCornerBottomRight', 'miniBackMount',
 
@@ -21,6 +21,8 @@ class NodeControl {
 
             'miniBackMount',
             'miniIndicatorMount',
+
+            'indicator'
         ];
     }
 
@@ -31,7 +33,7 @@ class NodeControl {
     buildNodes(data) {
         for (let i = 0; i < data.length; i += 1) {
             const cNode = new Node(data[i], i * C.layers.nodeStep);
-            this.mNodes.push(cNode.getMNode());
+            this.mNodes.push(cNode.get3dObject());
             this.cNodes.push(cNode);
         }
     }
@@ -40,7 +42,7 @@ class NodeControl {
      * Возвращает список всех 3д-объектов нод
      * @returns {[]}
      */
-    getMNodes() {
+    get3dObjects() {
         return this.mNodes;
     }
 
@@ -66,7 +68,7 @@ class NodeControl {
     moveNodesToOriginZ(exceptMNodes) {
         if (exceptMNodes) {
             this.cNodes.map(cN => {
-                const mNode = cN.getMNode();
+                const mNode = cN.get3dObject();
                 const isExcept = exceptMNodes.some(n => {
                     return n === mNode;
                 });
@@ -77,9 +79,9 @@ class NodeControl {
         }
     }
 
-    isItNodeComponent(name){
-        for(let i = 0; i < this.nodeInteractiveComponentNames.length; i += 1){
-            if(this.nodeInteractiveComponentNames[i] === name){
+    isItMoveableElement(name){
+        for(let i = 0; i < this.moveableElements.length; i += 1){
+            if(this.moveableElements[i] === name){
                 return true;
             }
         }

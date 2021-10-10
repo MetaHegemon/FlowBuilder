@@ -528,6 +528,7 @@ class NodeAssets{
         const material = MaterialControl.getMaterial(name);
         const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(C.nodeMesh.rightResizer.width, 1), material);
         mesh.name = name;
+        mesh.position.setZ(C.layers.node.rightResizer);
 
         return mesh;
     }

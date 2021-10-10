@@ -12,9 +12,12 @@ export default {
         nodeStep: 0.1,                      //шаг между нодами
         backMount: 0,
         title: 0,
-        indicator: 0.3,
+        indicator: 0.03,
         frontMount: 0.01,
         header: 0.02,
+        node: {
+            rightResizer: 0.04
+        },
         port: {
             self: 0.02,
             magnet: 0,
@@ -43,7 +46,7 @@ export default {
         }
     },
     //смещение на которое нужно сдвинуть поинтер после нажатия, что бы зафиксировать движение с зажатой клавишей
-    deltaOnPointerInteractive: 3,
+    deltaOnPointerInteractive: 0.5,
     fontPaths: {
         awSolid: './fonts/fa-solid-900.ttf',
         awLight: './fonts/fa-light-300.ttf',
