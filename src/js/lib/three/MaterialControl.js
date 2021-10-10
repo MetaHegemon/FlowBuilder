@@ -50,7 +50,7 @@ class MaterialControl{
                 material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.mount.front.headColor})
             },
             {
-                names: ['collapseButton','playButton', 'menuButton', 'miniMenuButton', 'iconCross'],
+                names: ['collapseButton','playButton', 'menuButton', 'miniMenuButton'],
                 material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.header.fontColor})
             },
             {
@@ -58,7 +58,11 @@ class MaterialControl{
                 material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.watchPoint.cornerResize.fontColor})
             },
             {
-                names: ['copyButton', 'exportButton'],
+                names: ['closeButton'],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.watchPoint.closeButton.fontColor})
+            },
+            {
+                names: ['copyButton'],
                 material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.watchPoint.copyButton.fontColor})
             },
             {

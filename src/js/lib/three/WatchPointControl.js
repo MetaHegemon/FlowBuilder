@@ -2,7 +2,7 @@
  * Модуль управления несколькими вотчпоинтами
  *
  */
-
+import {Object3D} from "three";
 
 class WatchPointControl{
     constructor() {
@@ -21,6 +21,28 @@ class WatchPointControl{
             }
         }
         return false;
+    }
+
+    /**
+     *
+     * @param objects {[Object3D]}
+     */
+    refreshLines(objects){
+        objects.map(o => {
+            const instance = o.userData.class;
+            instance.updateLine();
+        });
+    }
+
+    /**
+     *
+     * @param objects {[Object3D]}
+     */
+    recalculateEdgePositions(objects){
+        objects.map(o => {
+            const instance = o.userData.class;
+            instance.calcEdgePositions();
+        });
     }
 }
 

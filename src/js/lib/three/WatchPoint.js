@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import C from "../Constants";
 import NodeAssets from './NodeAssets';
 import FBS from "../FlowBuilderStore";
+import ThemeControl from "../../themes/ThemeControl";
 
 export default class{
     constructor() {
@@ -17,11 +18,19 @@ export default class{
         this.select = false;
 
         this.wpPosition = null;
+        this.lineMarkPosition = null;               //Vector3 позиция маркера на линии
+
+        this.line = null;                           //линия от ближайшей грани вотчпоинта к маркеру линии
+        this.edgePositions = {                      //координаты точек на гранях вотчпоинта
+            left: null,
+            right: null,
+            top: null,
+            bottom: null
+        };
 
         this.mesh = this.createWindow();
         this.scaleWatchPoint();
-
-
+        this.calcEdgePositions();
     }
 
     createWindow() {
@@ -53,14 +62,57 @@ export default class{
     }
 
     show(lineMarkPosition){
-        FBS.sceneControl.addObjectsToScene([this.mesh]);
+
         if(!this.wpPosition){
+            this.lineMarkPosition = lineMarkPosition;
             this.wpPosition = this.mesh.position;
             //TODO найти место для вотчпоинта
             const p = lineMarkPosition;
             this.wpPosition.set(p.x, p.y, this.wpPosition.z);
+            this.line = this.createLine();
         }
         this.mesh.visible = true;
+        this.updateLine();
+        FBS.sceneControl.addObjectsToScene([this.mesh, this.line]);
+    }
+
+    createLine(){
+        const material = new THREE.LineBasicMaterial({color: 0x0000ff});
+        const points = [new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, 0 )];
+        const geometry = new THREE.BufferGeometry().setFromPoints( points );
+
+        const mesh = new THREE.Line( geometry, material );
+        mesh.name = 'watchPointLine';
+
+        return mesh;
+    }
+
+    updateLine(){
+        //ищем ближайшую точку на грани
+        const distances = {
+            l: this.lineMarkPosition.distanceTo(this.edgePositions.left),
+            r: this.lineMarkPosition.distanceTo(this.edgePositions.right),
+            t: this.lineMarkPosition.distanceTo(this.edgePositions.top),
+            b: this.lineMarkPosition.distanceTo(this.edgePositions.bottom)
+        }
+
+        const shortest = Math.min(distances.l, distances.r, distances.t, distances.b);
+        let endPoint;
+        if(shortest === distances.l){
+            endPoint = this.edgePositions.left;
+        } else if(shortest === distances.r){
+            endPoint = this.edgePositions.right;
+        } else if(shortest === distances.t){
+            endPoint = this.edgePositions.top;
+        } else if(shortest === distances.b){
+            endPoint = this.edgePositions.bottom;
+        }
+
+        this.line.geometry.setFromPoints([this.lineMarkPosition, endPoint]);
+    }
+
+    hide(){
+        this.mesh.visible = false;
     }
 
     get3dObject(){
@@ -146,7 +198,7 @@ export default class{
     scaleControlPanelTop(){
         const controlPanel = this.mesh.getObjectByName('watchPointControlPanelTop');
 
-        const closeButton = controlPanel.getObjectByName('iconCross');
+        const closeButton = controlPanel.getObjectByName('closeButton');
         closeButton.position.set(this.width - C.watchPoint.closeButton.marginRight, -C.watchPoint.closeButton.marginTop, closeButton.position.z);
     }
 
@@ -157,7 +209,7 @@ export default class{
         cornerResize.position.set(
             this.width - C.watchPoint.cornerResize.marginRight,
             - C.watchPoint.bottomControlPanelHeight - C.watchPoint.backRadius + C.watchPoint.cornerResize.marginBottom,
-            cornerResize.position.z
+            C.layers.watchPoint.iconCornerResize.self
         );
 
         const copyButton = controlPanel.getObjectByName('copyButton');
@@ -165,5 +217,38 @@ export default class{
         const exportButton = controlPanel.getObjectByName('exportButton');
         exportButton.position.set(C.watchPoint.exportButton.leftMargin, -C.watchPoint.exportButton.topMargin, C.layers.watchPoint.exportButton);
     }
+
+    calcEdgePositions(){
+        const localLeft = new THREE.Vector3(0, -this.height/2, C.layers.watchPoint.self);
+        const localRight = new THREE.Vector3(this.width, -this.height/2, C.layers.watchPoint.self);
+        const localTop = new THREE.Vector3(this.width/2, 0, C.layers.watchPoint.self);
+        const localBottom = new THREE.Vector3(this.width/2, -this.height, C.layers.watchPoint.self);
+
+        this.edgePositions.left = this.mesh.localToWorld(localLeft);
+        this.edgePositions.right = this.mesh.localToWorld(localRight);
+        this.edgePositions.top = this.mesh.localToWorld(localTop);
+        this.edgePositions.bottom = this.mesh.localToWorld(localBottom);
+
+    }
+
+    /**
+     * Подсветка интерактивных элементов
+     * @param name {String}
+     */
+    hoverElementByName(name) {
+        const button = this.mesh.getObjectByName(name);
+        button.material.color.setStyle(ThemeControl.theme.watchPoint[name].hoverColor);
+    }
+
+    /**
+     * Выключение подсветки интерактивных элементов
+     * @param name {String}
+     */
+    unhoverElementByName(name) {
+        const button = this.mesh.getObjectByName(name);
+        button.material.color.setStyle(ThemeControl.theme.watchPoint[name].fontColor);
+    }
+
+
 
 }

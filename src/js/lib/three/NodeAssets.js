@@ -63,12 +63,6 @@ class NodeAssets{
         this.menuButton = this.createMenuButton();
         this.playButton = this.createPlayButton();
 
-        //ICONS
-        this.icons = {
-            cross: this.createIconCross(),
-            cornerResize: this.createIcontCornerResize()
-        }
-
         //LINE
         this.line = this.createLine();
 
@@ -95,7 +89,9 @@ class NodeAssets{
             frontBody: this.createBody('watchPointFrontBody'),
 
             copyButton: this.createWatchPointCopyButton(),
-            exportButton: this.createWatchPointExportButton()
+            exportButton: this.createWatchPointExportButton(),
+            iconCornerResize: this.createWatchPointIconCornerResize(),
+            closeButton: this.createWatchPointCloseButton()
         };
     }
 
@@ -382,73 +378,6 @@ class NodeAssets{
         mesh.position.setY(C.nodeMesh.header.height / 2 - C.nodeMesh.header.menu.topMargin);
 
         return mesh;
-    }
-
-    //ICONS
-
-    createIconCross(){
-        const mesh = new Text();
-        mesh.name = 'iconCross';
-        mesh.text = '';
-        mesh.font = C.fontPaths.awLight;
-        mesh.fontSize = C.watchPoint.closeButton.fontSize;
-        mesh.material = MaterialControl.getMaterial(mesh.name);
-        mesh.anchorX = 'center';
-        mesh.anchorY = 'middle';
-
-        return mesh;
-    }
-
-    createIcontCornerResize(){
-        const group = new THREE.Group();
-        group.name = 'iconCornerResize';
-        const material = MaterialControl.getMaterial(group.name);
-
-        const w = C.watchPoint.cornerResize.width;
-        const h = C.watchPoint.cornerResize.height;
-
-        const longLine = new Text();
-        longLine.text = '';
-        longLine.font = C.fontPaths.awLight;
-        longLine.fontSize = C.watchPoint.cornerResize.fontSize;
-        longLine.material = material;
-        longLine.anchorX = 'center';
-        longLine.anchorY = 'middle';
-        longLine.position.setY(-h/6);
-        longLine.scale.setX(1.15);
-        group.add(longLine);
-
-        const shortLine = new Text();
-        shortLine.text = '';
-        shortLine.font = C.fontPaths.awLight;
-        shortLine.fontSize = C.watchPoint.cornerResize.fontSize;
-        shortLine.material = material;
-        shortLine.anchorX = 'center';
-        shortLine.anchorY = 'middle';
-        shortLine.position.setY(-h/3);
-        shortLine.scale.setX(0.6);
-        group.add(shortLine);
-
-        //reactor
-        const shape = new THREE.Shape();
-        shape.moveTo(-w/2, h/2)
-            .lineTo(w/2, h/2)
-            .lineTo(-w/2, -h/2)
-            .closePath();
-
-        const reactor = new THREE.Mesh(
-            new THREE.ShapeGeometry(shape),
-            //new THREE.MeshBasicMaterial({color: 'green', transparent: true, opacity: 0.5})
-            MaterialControl.getMaterial('transparent')
-        );
-
-        reactor.rotateZ(Math.PI/4*3);
-        reactor.name = group.name;
-        group.add(reactor);
-
-        group.position.setZ(10);
-        group.rotateZ(Math.PI/4);
-        return group;
     }
 
     getControlPanel(withCollapseButton) {
@@ -885,6 +814,72 @@ class NodeAssets{
 
     //WATCH POINT
 
+    createWatchPointCloseButton(){
+        const mesh = new Text();
+        mesh.name = 'closeButton';
+        mesh.text = '';
+        mesh.font = C.fontPaths.awLight;
+        mesh.fontSize = C.watchPoint.closeButton.fontSize;
+        mesh.material = MaterialControl.getMaterial(mesh.name);
+        mesh.anchorX = 'center';
+        mesh.anchorY = 'middle';
+
+        return mesh;
+    }
+
+    createWatchPointIconCornerResize(){
+        const group = new THREE.Group();
+        group.name = 'iconCornerResize';
+        const material = MaterialControl.getMaterial(group.name);
+
+        const w = C.watchPoint.cornerResize.width;
+        const h = C.watchPoint.cornerResize.height;
+
+        const longLine = new Text();
+        longLine.text = '';
+        longLine.font = C.fontPaths.awLight;
+        longLine.fontSize = C.watchPoint.cornerResize.fontSize;
+        longLine.material = material;
+        longLine.anchorX = 'center';
+        longLine.anchorY = 'middle';
+        longLine.position.set(0, -h/6, C.layers.watchPoint.iconCornerResize.text);
+        longLine.scale.setX(1.15);
+        group.add(longLine);
+
+        const shortLine = new Text();
+        shortLine.text = '';
+        shortLine.font = C.fontPaths.awLight;
+        shortLine.fontSize = C.watchPoint.cornerResize.fontSize;
+        shortLine.material = material;
+        shortLine.anchorX = 'center';
+        shortLine.anchorY = 'middle';
+        shortLine.position.set(0,-h/3, C.layers.watchPoint.iconCornerResize.text);
+        shortLine.scale.setX(0.6);
+        group.add(shortLine);
+
+        //reactor
+        const shape = new THREE.Shape();
+        shape.moveTo(-w/2, h/2)
+            .lineTo(w/2, h/2)
+            .lineTo(-w/2, -h/2)
+            .closePath();
+
+        const reactor = new THREE.Mesh(
+            new THREE.ShapeGeometry(shape),
+            //new THREE.MeshBasicMaterial({color: 'green', transparent: true, opacity: 0.5})
+            MaterialControl.getMaterial('transparent')
+        );
+
+        reactor.rotateZ(Math.PI/4*3);
+        reactor.name = group.name;
+        reactor.position.setZ(C.layers.watchPoint.iconCornerResize.reactor);
+        group.add(reactor);
+
+        console.log(group);
+        group.rotateZ(Math.PI/4);
+        return group;
+    }
+
     createWatchPointCopyButton(){
         const mesh = new Text();
         mesh.text = 'Copy';
@@ -894,11 +889,6 @@ class NodeAssets{
         mesh.material = MaterialControl.getMaterial(mesh.name);
         mesh.anchorX = 'center';
         mesh.anchorY = 'middle';
-        mesh.position.set(
-            C.watchPoint.copyButton.leftMargin,
-            C.watchPoint.copyButton.topMargin,
-            C.layers.watchPoint.copyButton
-        );
 
         return mesh;
     }
@@ -912,11 +902,6 @@ class NodeAssets{
         mesh.material = MaterialControl.getMaterial(mesh.name);
         mesh.anchorX = 'center';
         mesh.anchorY = 'middle';
-        mesh.position.set(
-            C.watchPoint.exportButton.leftMargin,
-            C.watchPoint.exportButton.topMargin,
-            C.layers.watchPoint.exportButton
-        );
 
         return mesh;
     }
@@ -1006,9 +991,7 @@ class NodeAssets{
         const name = 'watchPointControlPanelTop';
         const group = new THREE.Group();
 
-        const iconCross = this.icons.cross.clone();
-        iconCross.position.setZ(C.layers.watchPoint.iconCross);
-        group.add(this.icons.cross.clone());
+        group.add(this.watchPoint.closeButton.clone());
 
         group.name = name;
         group.position.setZ(C.layers.watchPoint.controlPanelTop);
@@ -1020,17 +1003,9 @@ class NodeAssets{
         const name = 'watchPointControlPanelBottom';
         const group = new THREE.Group();
 
-        const iconCornerResize = this.icons.cornerResize.clone();
-        iconCornerResize.position.setZ(C.layers.watchPoint.iconCornerResize);
-        group.add(iconCornerResize);
-
-        const copyButton = this.watchPoint.copyButton.clone();
-        copyButton.position.setZ(C.layers.watchPoint.copyButton);
-        group.add(copyButton);
-
-        const exportButton = this.watchPoint.exportButton.clone();
-        exportButton.position.setZ(C.layers.watchPoint.exportButton);
-        group.add(exportButton);
+        group.add(this.watchPoint.iconCornerResize.clone());
+        group.add(this.watchPoint.copyButton.clone());
+        group.add(this.watchPoint.exportButton.clone());
 
         group.name = name;
         group.position.setZ(C.layers.watchPoint.controlPanelBottom);

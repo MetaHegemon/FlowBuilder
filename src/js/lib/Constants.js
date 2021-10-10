@@ -37,12 +37,16 @@ export default {
             self: 12,
             back: 0,
             front: 0.01,
-            controlPanelTop: 0.01,
-            controlPanelBottom: 0.01,
+            controlPanelTop: 0.02,
+            controlPanelBottom: 0.02,
             copyButton: 0,
             exportButton: 0,
-            iconCross: 0,
-            iconCornerResize: 0
+            closeButton: 0,
+            iconCornerResize: {
+                self: 0,
+                text: 0,
+                reactor: 0.01
+            }
         }
     },
     //смещение на которое нужно сдвинуть поинтер после нажатия, что бы зафиксировать движение с зажатой клавишей

@@ -14,6 +14,7 @@ import FBS from './../FlowBuilderStore';
 import TextEditor from "./../three/TextEditor";
 import RightResizer from './RightResizer';
 import WatchPointControl from "../three/WatchPointControl";
+import WatchPoint from "../three/WatchPoint";
 
 //Класс контроля перемещения
 const Drag = new DragControl();
@@ -155,6 +156,7 @@ export default class{
                     }
                     else if(WatchPointControl.isItMoveableElement(this.intersects[0].object.name)){
                         this.selectedOnPointerDown = this.intersects[0].object.userData.class.get3dObject();
+                        this.setCursor('move');
                     }
                     else if ((intersect = this.checkOnIntersect(this.intersects, ['connector'])))
                     {
@@ -248,6 +250,9 @@ export default class{
                 if(Drag.type === 'node') {
                     //для ноды обновляем линии портов
                     LineControl.refreshLines(Drag.getObjects());
+                } else if(Drag.type === 'watchPoint'){
+                    WatchPointControl.recalculateEdgePositions(Drag.getObjects());
+                    WatchPointControl.refreshLines(Drag.getObjects());
                 }
             }
             else if (LineControl.active) //рисуем линию
@@ -274,6 +279,7 @@ export default class{
                 if (e.buttons === 0) { //подсветка или смена курсора при наведении на разные объекты сцены
                     if (this.intersects.length > 0) {
                         const firstObject = this.intersects[0].object;
+
                         if (firstObject.name === 'portLabelText') {
                             const cPort = firstObject.userData.portClass;
                             cPort.hoverLabel();
@@ -310,8 +316,20 @@ export default class{
                             this.setCursor('pointer');
                         } else if (firstObject.name === 'menuButton') {
                             this.setCursor('pointer');
-                        } else if (this.checkOnIntersect(this.intersects, ['rightResizer'])) {
+                        } else if (firstObject.name === 'rightResizer') {
                             this.setCursor('col-resize');
+                        } else if (firstObject.name === 'iconCornerResize') {
+                            this.setCursor('nwse-resize');
+                        } else if (
+                            firstObject.name === 'copyButton' || firstObject.name === 'exportButton' ||
+                            firstObject.name === 'closeButton'
+                        ){
+                            const instance = firstObject.userData.class;
+                            if(instance instanceof WatchPoint){
+                                instance.hoverElementByName(firstObject.name);
+                                this.hovered.push(firstObject);
+                                this.setCursor('pointer');
+                            }
                         } else {
                             this.unhoverObjects(firstObject);
                             this.resetCursor();
@@ -418,30 +436,46 @@ export default class{
             } else {
                 if (this.intersects.length > 0) {
                     if (e.button === 0) {
+                        const first = this.intersects[0];
                         //обработка нажатия на разные элементы сцены
-                        if (this.intersects[0].object.name === 'collapseButton') {
-                            this.onCollapseButtonClick(this.intersects[0].object);
-                        } else if (this.intersects[0].object.name === 'playButton') {
-                            this.onPlayButtonClick(this.intersects[0].object);
-                        } else if (this.intersects[0].object.name === 'menuButton') {
-                            this.onMenuButtonClick(this.intersects[0].object);
-                        } else if(this.intersects[0].object.name === 'portLabelText'){
-                            this.onPortLabelClick(this.intersects[0].object);
-                        } else if(this.intersects[0].object.name === 'lineMarkPointer'){
-                            if(LineControl.canBeSelected(this.intersects[0].object)){
-                                const cLine = this.intersects[0].object.userData.class;
+                        if (first.object.name === 'collapseButton') {
+                            this.onCollapseButtonClick(first.object);
+                        } else if (first.object.name === 'playButton') {
+                            this.onPlayButtonClick(first.object);
+                        } else if (first.object.name === 'menuButton') {
+                            this.onMenuButtonClick(first.object);
+                        } else if(first.object.name === 'portLabelText'){
+                            this.onPortLabelClick(first.object);
+                        } else if(first.object.name === 'lineMarkPointer'){
+                            if(LineControl.canBeSelected(first.object)){
+                                const cLine = first.object.userData.class;
                                 this.onWatchPointClick(cLine);
                             }
-                        } else if(this.intersects[0].object.name === 'line'){
-                            if(LineControl.canBeSelected(this.intersects[0].object)){
-                                const cLine = this.intersects[0].object.userData.class;
+                        } else if(first.object.name === 'line'){
+                            if(LineControl.canBeSelected(first.object)){
+                                const cLine = first.object.userData.class;
                                 this.onLineClick(cLine);
                             }
-                        } else if(NodeControl.isItMoveableElement(this.intersects[0].object.name)){
-                            const cNode = this.intersects[0].object.userData.nodeClass;
+                        } else if(NodeControl.isItMoveableElement(first.object.name)){
+                            const cNode = first.object.userData.nodeClass;
                             this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
                             //сброс 'move' курсора
                             this.resetCursor();
+                        } else if (first.object.name === 'closeButton'){
+                            const instance = first.object.userData.class;
+                            if(instance instanceof WatchPoint){
+                                this.onWatchPointCloseButtonClick(instance);
+                            }
+                        } else if (first.object.name === 'copyButton'){
+                            const instance = first.object.userData.class;
+                            if(instance instanceof WatchPoint){
+                                this.onWatchPointCopyButtonClick(instance);
+                            }
+                        } else if(first.object.name === 'exportButton'){
+                            const instance = first.object.userData.class;
+                            if(instance instanceof WatchPoint){
+                                this.onWatchPointExportButtonClick(instance);
+                            }
                         }
                     }
                 } else {
@@ -536,6 +570,12 @@ export default class{
             } else if(this.hovered[i].name === 'lineMarkPointer'){
                 const cLine = this.hovered[i].userData.class;
                 cLine.unhoverLineMark();
+            } else if(
+                this.hovered[i].name === 'copyButton' || this.hovered[i].name === 'exportButton' ||
+                this.hovered[i].name === 'closeButton'
+            ){
+                const cWatchPoint = this.hovered[i].userData.class;
+                cWatchPoint.unhoverElementByName(this.hovered[i].name);
             }
             this.hovered.splice(i, 1);
             i -= 1;
@@ -614,6 +654,30 @@ export default class{
             }
             cNode.select();
         }
+    }
+
+    /**
+     * Обработчик скрытия вотч-поинта
+     * @param instance {WatchPoint}
+     */
+    onWatchPointCloseButtonClick(instance){
+        instance.hide();
+    }
+
+    /**
+     * Обработчик копирования из вотч-поинта
+     * @param instance {WatchPoint}
+     */
+    onWatchPointCopyButtonClick(instance){
+        clog('onWatchPointCopyButtonClick');
+    }
+
+    /**
+     * Обработчик экспорта из вотч поинта
+     * @param instance{WatchPoint}
+     */
+    onWatchPointExportButtonClick(instance){
+        clog('onWatchPointExportButtonClick');
     }
 
     /**

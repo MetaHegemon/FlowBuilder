@@ -20,11 +20,17 @@ export default {
         cornerResize: {
             fontColor: '#5F5F5F'
         },
+        closeButton: {
+            fontColor: '#2F2F2F',
+            hoverColor: '#2491F6'
+        },
         copyButton: {
-            fontColor: '#000000'
+            fontColor: '#000000',
+            hoverColor: '#2491F6'
         },
         exportButton: {
-            fontSize: '#000000'
+            fontColor: '#000000',
+            hoverColor: '#2491F6'
         }
     },
     node: {
