@@ -8,18 +8,19 @@ import C from "./../Constants";
 import { SelectionBox } from './SelectionBox';
 import  SelectionHelper  from './SelectHelper';
 import ThemeControl from "../../themes/ThemeControl";
-import NodeControl from "../three/NodeControl";
-import LineControl from '../three/LineControl';
+import NodeControl from "../three/node/NodeControl";
+import LineControl from '../three/line/LineControl';
 import FBS from './../FlowBuilderStore';
 import TextEditor from "./../three/TextEditor";
-import RightResizer from './RightResizer';
-import WatchPointControl from "../three/WatchPointControl";
-import WatchPoint from "../three/WatchPoint";
+import NodeWidthResizer from './NodeWidthResizer';
+import WatchPointControl from "../three/line/WatchPointControl";
+import WatchPoint from "../three/line/WatchPoint";
 
 //Класс контроля перемещения
 const Drag = new DragControl();
+
 //Класс контроля изменения ширины нод
-const Resizer = new RightResizer();
+const NodeResizer = new NodeWidthResizer();
 
 export default class{
     constructor() {
@@ -144,7 +145,7 @@ export default class{
             if (this.intersects.length > 0) {
                 if (e.buttons === 1) {
                     let intersect;
-                    if(this.intersects[0].object.name === 'rightResizer')
+                    if(this.intersects[0].object.name === 'nodeWidthResizer')
                     {
                         //сохраняем 3д-объект ресайзера, на которое произведено нажатие, для изменения её ширины
                         this.selectedOnPointerDown = this.intersects[0].object;
@@ -239,10 +240,10 @@ export default class{
             this.pointerPos3d.x = this.raycaster.ray.origin.x;
             this.pointerPos3d.y = this.raycaster.ray.origin.y;
 
-            if(Resizer.active){
+            if(NodeResizer.active){
                 //изменяем ширину ноды
-                Resizer.move(this.pointerPos3d);
-                LineControl.refreshLines([Resizer.get3dObject()]);
+                NodeResizer.move(this.pointerPos3d);
+                LineControl.refreshLines([NodeResizer.get3dObject()]);
             } else if (Drag.active) {
                 //перетаскиваем объекты
                 Drag.dragObjects(this.pointerPos3d);
@@ -316,7 +317,7 @@ export default class{
                             this.setCursor('pointer');
                         } else if (firstObject.name === 'menuButton') {
                             this.setCursor('pointer');
-                        } else if (firstObject.name === 'rightResizer') {
+                        } else if (firstObject.name === 'nodeWidthResizer') {
                             this.setCursor('col-resize');
                         } else if (firstObject.name === 'iconCornerResize') {
                             this.setCursor('nwse-resize');
@@ -340,9 +341,9 @@ export default class{
                     }
                 } else if (e.buttons === 1) {
                     if (this.selectedOnPointerDown) {
-                        if(this.selectedOnPointerDown.name === 'rightResizer'){
+                        if(this.selectedOnPointerDown.name === 'nodeWidthResizer'){
                             //включение изменения ширины ноды
-                            Resizer.enable(this.selectedOnPointerDown);
+                            NodeResizer.enable(this.selectedOnPointerDown);
                         } else if (this.selectedOnPointerDown.name === 'node') {
                             //включение начала перемещения ноды
                             if (this.isMoved(this.pointerPos3d, this.pointerDownPos)) {
@@ -409,9 +410,9 @@ export default class{
             this.select.helper.onSelectOver(e);
         } else {
             this.selectedOnPointerDown = null;
-            if(Resizer.active){
+            if(NodeResizer.active){
                 //выключение изменения ширины ноды
-                Resizer.disable();
+                NodeResizer.disable();
             } else if (Drag.active) {
                 if(Drag.type === 'node') {
                     const objects = Drag.getObjects();

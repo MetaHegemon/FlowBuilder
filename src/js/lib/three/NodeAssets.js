@@ -22,7 +22,7 @@ class NodeAssets{
         //CONTROL
         this.title = this.createTitle();
         this.indicator = this.createIndicator();
-        this.rightResizer = this.createRightResizer();
+        this.widthResizer = this.createWidthResizer();
 
         //BACK
         this.backCornerTopLeft = this.createCornerTopLeft('backCornerTopLeft', C.nodeMesh.mount.roundCornerRadius);
@@ -399,7 +399,7 @@ class NodeAssets{
 
         group.add(this.getBackMount());
         group.add(this.getFrontMount());
-        group.add(this.rightResizer);
+        group.add(this.widthResizer);
         group.add(this.getControlPanel(options.withCollapseButton));
 
         group.name = 'regularMount';
@@ -452,12 +452,12 @@ class NodeAssets{
         return mesh;
     }
 
-    createRightResizer() {
-        const name = 'rightResizer';
+    createWidthResizer() {
+        const name = 'nodeWidthResizer';
         const material = MaterialControl.getMaterial(name);
-        const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(C.nodeMesh.rightResizer.width, 1), material);
+        const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(C.nodeMesh.widthResizer.width, 1), material);
         mesh.name = name;
-        mesh.position.setZ(C.layers.node.rightResizer);
+        mesh.position.setZ(C.layers.node.widthResizer);
 
         return mesh;
     }

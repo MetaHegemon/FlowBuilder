@@ -1,11 +1,11 @@
 import * as THREE from "three";
 import Port from './Port';
 import PseudoPort from "./PseudoPort";
-import C from "./../Constants";
-import ThemeControl from '../../themes/ThemeControl';
-import NodeAssets from '../three/NodeAssets';
-import FBS from "../FlowBuilderStore";
-import LineControl from "./LineControl";
+import C from "../../Constants";
+import ThemeControl from '../../../themes/ThemeControl';
+import NodeAssets from '../NodeAssets';
+import FBS from "../../FlowBuilderStore";
+import LineControl from "../line/LineControl";
 
 export default class{
     constructor(data, originZ){
@@ -289,8 +289,8 @@ export default class{
      * Изменение и перемещение ресайзера, при изменении размеров ноды
      * @param mesh {THREE.Mesh}
      */
-    scaleRightResizer(mesh) {
-        mesh = mesh ? mesh : this.mesh.getObjectByName('rightResizer');
+    scaleWidthResizer(mesh) {
+        mesh = mesh ? mesh : this.mesh.getObjectByName('nodeWidthResizer');
         mesh.scale.setY(Math.abs(this.nodeHeight - C.nodeMesh.mount.roundCornerRadius * 2 -
             this.cPortsOutput.length * C.nodeMesh.port.height - C.nodeMesh.footer.height));
         mesh.position.set(this.nodeWidth, -C.nodeMesh.mount.roundCornerRadius - mesh.scale.y/2, mesh.position.z);
@@ -921,7 +921,7 @@ export default class{
      * Включение активности ресайзера на сцене
      */
     turnOnResizer(){
-        const resizer = this.mesh.getObjectByName('rightResizer');
+        const resizer = this.mesh.getObjectByName('nodeWidthResizer');
         resizer.visible = true;
     }
 
@@ -929,7 +929,7 @@ export default class{
      * выключение активности ресайзера на сцене
      */
     turnOffResizer(){
-        const resizer = this.mesh.getObjectByName('rightResizer');
+        const resizer = this.mesh.getObjectByName('nodeWidthResizer');
         resizer.visible = false;
     }
 
@@ -1235,7 +1235,7 @@ export default class{
      * Изменение размера ноды по высоте, при неполном схлопывании
      */
     scaleNodeWithAnimation(){
-        this.scaleRightResizer();
+        this.scaleWidthResizer();
 
         const mBackMount = this.mesh.getObjectByName('backBody');
         new FBS.tween.Tween(mBackMount.scale)
@@ -1290,7 +1290,7 @@ export default class{
         this.scaleBigMount();
         this.scaleBackBody();
         this.scaleFrontBody();
-        this.scaleRightResizer();
+        this.scaleWidthResizer();
     }
 
     /**

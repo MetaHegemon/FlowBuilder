@@ -1,7 +1,7 @@
 window.clog = console.log.bind(console);
 
 import '../css/main.css';
-import NodeControl from "./lib/three/NodeControl";
+import NodeControl from "./lib/three/node/NodeControl";
 import FBS from './lib/FlowBuilderStore';
 import Interactive from "./lib/interactive/Interactive";
 import flowData from './InputData';

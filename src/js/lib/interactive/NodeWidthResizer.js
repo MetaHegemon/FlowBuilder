@@ -3,7 +3,7 @@
  */
 
 import * as THREE from 'three';
-import NodeControl from './../three/NodeControl';
+import NodeControl from '../three/node/NodeControl';
 import C from "../Constants";
 
 export default class{

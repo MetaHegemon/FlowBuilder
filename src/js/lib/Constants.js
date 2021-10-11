@@ -16,7 +16,7 @@ export default {
         frontMount: 0.01,
         header: 0.02,
         node: {
-            rightResizer: 0.04
+            widthResizer: 0.04
         },
         port: {
             self: 0.02,
@@ -194,7 +194,7 @@ export default {
                 letterSpacing: 0.032
             }
         },
-        rightResizer: {
+        widthResizer: {
             width: 4                            //ширина ресайзера
         }
     },

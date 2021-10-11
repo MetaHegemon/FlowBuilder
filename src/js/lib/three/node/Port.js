@@ -1,8 +1,8 @@
 import * as THREE from "three";
-import ThemeControl from './../../themes/ThemeControl';
-import NodeAssets from './NodeAssets';
-import FBS from "../FlowBuilderStore";
-import C from "../Constants";
+import ThemeControl from '../../../themes/ThemeControl';
+import NodeAssets from '../NodeAssets';
+import FBS from "../../FlowBuilderStore";
+import C from "../../Constants";
 
 export default class {
     constructor(direction, data, cNode) {

@@ -4,10 +4,10 @@
 
 import * as THREE from 'three';
 import {LineGeometry} from "three/examples/jsm/lines/LineGeometry";
-import C from './../Constants';
-import ThemeControl from '../../themes/ThemeControl';
-import NodeAssets from './NodeAssets';
-import FBS from "../FlowBuilderStore";
+import C from '../../Constants';
+import ThemeControl from '../../../themes/ThemeControl';
+import NodeAssets from '../NodeAssets';
+import FBS from "../../FlowBuilderStore";
 import WatchPoint from "./WatchPoint";
 
 export default class {

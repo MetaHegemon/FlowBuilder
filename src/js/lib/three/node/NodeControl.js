@@ -2,8 +2,8 @@
  * Модуль управления нодами
  */
 
-import Node from '../three/Node';
-import C from './../Constants';
+import Node from './Node';
+import C from '../../Constants';
 
 class NodeControl {
     constructor() {

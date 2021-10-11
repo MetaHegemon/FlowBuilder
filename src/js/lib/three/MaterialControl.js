@@ -17,7 +17,7 @@ class MaterialControl{
                 material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.scene.backgroundColor})
             },
             {
-                names: ['transparent', 'rightResizer', 'connectorMagnet', 'lineMarkPointer'],
+                names: ['transparent', 'nodeWidthResizer', 'connectorMagnet', 'lineMarkPointer'],
                 material: new THREE.MeshBasicMaterial({transparent: true, opacity: 0})
             },
             {

@@ -2,8 +2,8 @@
  * Модуль управления линиями
  */
 import Line from './Line';
-import ThemeControl from '../../themes/ThemeControl';
-import FBS from '../FlowBuilderStore';
+import ThemeControl from '../../../themes/ThemeControl';
+import FBS from '../../FlowBuilderStore';
 
 class LineControl{
     constructor() {

@@ -5,10 +5,10 @@
  */
 
 import * as THREE from 'three';
-import C from "../Constants";
-import NodeAssets from './NodeAssets';
-import FBS from "../FlowBuilderStore";
-import ThemeControl from "../../themes/ThemeControl";
+import C from "../../Constants";
+import NodeAssets from '../NodeAssets';
+import FBS from "../../FlowBuilderStore";
+import ThemeControl from "../../../themes/ThemeControl";
 
 export default class{
     constructor() {
