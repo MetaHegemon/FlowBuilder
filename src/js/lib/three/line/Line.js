@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import {LineGeometry} from "three/examples/jsm/lines/LineGeometry";
 import C from '../../Constants';
 import ThemeControl from '../../../themes/ThemeControl';
-import NodeAssets from '../NodeAssets';
+import Assets3d from '../Assets3d';
 import FBS from "../../FlowBuilderStore";
 import WatchPoint from "./WatchPoint";
 
@@ -59,7 +59,7 @@ export default class {
      * @returns {Object}
      */
     createLine(){
-        const mesh = NodeAssets.line.clone();
+        const mesh = Assets3d.line.clone();
         mesh.material = mesh.material.clone();
 
         //запись в 3д-объект ссылки на класс
@@ -321,7 +321,7 @@ export default class {
      * Создание 3д-объекта метки
      */
     createLineMark(){
-        const lineMark = NodeAssets.getLineMark().clone();
+        const lineMark = Assets3d.getLineMark().clone();
         lineMark.traverse(o=> o.userData.class = this);
         const bigMark = lineMark.getObjectByName('lineMarkBig');
         bigMark.material.color.setStyle(this.mesh.material.color.getStyle());

@@ -3,7 +3,7 @@ import Port from './Port';
 import PseudoPort from "./PseudoPort";
 import C from "../../Constants";
 import ThemeControl from '../../../themes/ThemeControl';
-import NodeAssets from '../NodeAssets';
+import Assets3d from '../Assets3d';
 import FBS from "../../FlowBuilderStore";
 import LineControl from "../line/LineControl";
 
@@ -61,26 +61,26 @@ export default class{
         nodeObject.name = 'node';
 
         //заголовок
-        const title = NodeAssets.title.clone();
+        const title = Assets3d.title.clone();
         title.text = this.data.name;
         nodeObject.add(title);
 
         //индикатор
-        const indicator = NodeAssets.indicator.clone();
+        const indicator = Assets3d.indicator.clone();
         indicator.text = this.data.indicator;
         nodeObject.add(indicator);
 
         //обычная подложка
-        const regularShield = NodeAssets.getRegularShield({
+        const regularShield = Assets3d.getRegularShield({
             withCollapseButton: this.data.inputs.length > 1 || this.data.outputs.length > 1
         }).clone();
         nodeObject.add(regularShield);
 
         //мини-подложка
-        nodeObject.add(NodeAssets.getMiniShield().clone());
+        nodeObject.add(Assets3d.getMiniShield().clone());
 
         //большая подложка. используется для интерактивности ноды(выделение, перемещение и т.д.)
-        const bigMount = NodeAssets.bigMount.clone();
+        const bigMount = Assets3d.bigMount.clone();
         bigMount.name = 'bigMount';
         nodeObject.add(bigMount);
 

@@ -6,7 +6,7 @@
 
 import * as THREE from 'three';
 import C from "../../Constants";
-import NodeAssets from '../NodeAssets';
+import Assets3d from '../Assets3d';
 import FBS from "../../FlowBuilderStore";
 import ThemeControl from "../../../themes/ThemeControl";
 
@@ -39,19 +39,19 @@ export default class{
 
         //
         //большая подложка. используется для интерактивности ноды(выделение, перемещение и т.д.)
-        const bigMount = NodeAssets.bigMount.clone();
+        const bigMount = Assets3d.bigMount.clone();
         bigMount.name = 'watchPointBigMount';
         group.add(bigMount);
 
         //подложка
-        const shield = NodeAssets.getWatchPointShield().clone();
+        const shield = Assets3d.getWatchPointShield().clone();
         group.add(shield);
 
         //верхняя панель
-        group.add(NodeAssets.getWatchPointControlPanelTop().clone());
+        group.add(Assets3d.getWatchPointControlPanelTop().clone());
 
         //нижняя панель
-        group.add(NodeAssets.getWatchPointControlPanelBottom().clone());
+        group.add(Assets3d.getWatchPointControlPanelBottom().clone());
 
         //закрепляем за каждым дочерним объектом на текущий экземпляр класса, что бы из сцены получить к нему доступ
         group.traverse(o => o.userData.class = this);
