@@ -461,6 +461,8 @@ export default class{
                             this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
                             //сброс 'move' курсора
                             this.resetCursor();
+                        } else if(WatchPointControl.isItMoveableElement(first.object.name)){
+                            this.resetCursor();
                         } else if (first.object.name === 'closeButton'){
                             const instance = first.object.userData.class;
                             if(instance instanceof WatchPoint){
