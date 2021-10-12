@@ -38,8 +38,8 @@ export default class {
         }
 
         this.zoomEvent = {                          //объект для отправки события пересечения границы сворачивания нод
-            inEvent: new Event('needFullUnCollapse'),
-            outEvent: new Event('needFullCollapse'),
+            inEvent: new CustomEvent('needFullUnCollapse'),
+            outEvent: new CustomEvent('needFullCollapse'),
             inDispatched: this.frustumSize < C.three.zoom.fullCollapseBorder,
             outDispatched: this.frustumSize > C.three.zoom.fullCollapseBorder
         };
@@ -173,6 +173,9 @@ export default class {
         this.camera.top = this.frustumSize/2;
         this.camera.bottom = this.frustumSize/-2;
         this.camera.updateProjectionMatrix();
+
+        //Отправка события с размерами вьюпорта. Нужно линиям, что бы обновить разрешение своего материала
+        this.canvas.dispatchEvent(new CustomEvent('renderResize', {detail: {w: this.canvas.width, h: this.canvas.height}}));
     }
 
     /**

@@ -875,7 +875,6 @@ class NodeAssets{
         reactor.position.setZ(C.layers.watchPoint.iconCornerResize.reactor);
         group.add(reactor);
 
-        console.log(group);
         group.rotateZ(Math.PI/4);
         return group;
     }

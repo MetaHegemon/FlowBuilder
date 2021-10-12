@@ -81,7 +81,7 @@ class LineControl{
 
     /**
      * Обновление линий для списка нод
-     * @param mNodes {[]}
+     * @param mNodes {[Group]}
      */
     refreshLines(mNodes) {
         mNodes.map(mNode=> {

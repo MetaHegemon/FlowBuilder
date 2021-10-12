@@ -59,7 +59,7 @@ export default {
         awDuotone: './fonts/fa-duotone-900.ttf'
     },
     lines: {
-        lineWidth: 0.002,
+        lineWidth: 2,
         segments: 40,                   //количество сегментов линии
         mark: {
             positionOnLine: 80,         //расстояние в % от начала линии, на котором строится вотчпоинт

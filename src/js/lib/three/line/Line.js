@@ -52,6 +52,10 @@ export default class {
         this.watchPoint = null;             //ссылка на класс-вотчпоинт этой линии
 
         this.mesh = this.createLine();
+        this.updateResolution(FBS.dom.canvas.width, FBS.dom.canvas.height);
+
+        //обработчик события изменения разрешения вьюпорта. обновляет разрешение материала. для линий это необходимо
+        FBS.dom.canvas.addEventListener('renderResize', (e) => this.updateResolution(e.detail.w, e.detail.h));
     }
 
     /**
@@ -66,6 +70,17 @@ export default class {
         mesh.userData.class = this;
 
         return mesh;
+    }
+
+
+    /**
+     * Обновление разрешения материала линий
+     * Если этого не делать, то на широком экране линии растягиваются в ширь
+     * @param w {number}
+     * @param h {number}
+     */
+    updateResolution(w, h){
+        this.mesh.material.resolution.set(w,h);
     }
 
     /**
@@ -99,6 +114,9 @@ export default class {
         //линия добавляется в списки линий в портах
         this.cPort1.cLines.push(this);
         this.cPort2.cLines.push(this);
+
+        //this.mesh.material.linewidth = 10;
+        //clog(this.mesh.material);
 
         //создание вотчпоинта
         this.lineMark = this.createLineMark();
@@ -210,6 +228,9 @@ export default class {
         geometry.setPositions(_.p);
         this.mesh.geometry = geometry;
         //this.mesh.geometry.setPositions(_.p);
+
+       // clog(this.mesh.geometry.attributes.position.array);
+
 
         this.updateLineMarkPosition();
     }
