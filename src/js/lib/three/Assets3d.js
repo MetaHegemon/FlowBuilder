@@ -749,7 +749,7 @@ class NodeAssets{
 
     createLine() {
         const geometry = new LineGeometry();
-        geometry.setPositions([0, 0, 0, 0, 0, 0]);
+        //geometry.setPositions([0, 0, 0, 0, 0, 0]);
         const material = new LineMaterial({
             color: ThemeControl.theme.line.colorOnActive,
             linewidth: C.lines.lineWidth

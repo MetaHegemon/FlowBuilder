@@ -3,7 +3,6 @@
  */
 
 import * as THREE from 'three';
-import {LineGeometry} from "three/examples/jsm/lines/LineGeometry";
 import C from '../../Constants';
 import ThemeControl from '../../../themes/ThemeControl';
 import Assets3d from '../Assets3d';
@@ -64,6 +63,7 @@ export default class {
      */
     createLine(){
         const mesh = Assets3d.line.clone();
+        mesh.geometry = mesh.geometry.clone();
         mesh.material = mesh.material.clone();
 
         //запись в 3д-объект ссылки на класс
@@ -71,7 +71,6 @@ export default class {
 
         return mesh;
     }
-
 
     /**
      * Обновление разрешения материала линий
@@ -114,9 +113,6 @@ export default class {
         //линия добавляется в списки линий в портах
         this.cPort1.cLines.push(this);
         this.cPort2.cLines.push(this);
-
-        //this.mesh.material.linewidth = 10;
-        //clog(this.mesh.material);
 
         //создание вотчпоинта
         this.lineMark = this.createLineMark();
@@ -188,6 +184,7 @@ export default class {
      * Построение кривой линии
      */
     updateLine() {
+
         const _ = this.updateLineBuffer;
         _.sx = this.pos1.x;
         _.sy = this.pos1.y;
@@ -224,13 +221,8 @@ export default class {
         }
         _.p.push(_.ex, _.ey, 0);
 
-        const geometry = new LineGeometry();
-        geometry.setPositions(_.p);
-        this.mesh.geometry = geometry;
-        //this.mesh.geometry.setPositions(_.p);
 
-       // clog(this.mesh.geometry.attributes.position.array);
-
+        this.mesh.geometry.setPositions(_.p);
 
         this.updateLineMarkPosition();
     }
