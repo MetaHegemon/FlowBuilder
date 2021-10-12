@@ -14,7 +14,7 @@ class LineControl{
 
     /**
      * Включение рисования линии
-     * @param mConnector - 3д-объект коннектора
+     * @param mConnector {Mesh}- 3д-объект коннектора
      */
     enable(mConnector) {
         this.active = true;
@@ -31,7 +31,7 @@ class LineControl{
             this.cLine = new Line();
             this.cLine.setCPort1(cPort1);
         }
-        const mesh = this.cLine.getMLine();
+        const mesh = this.cLine.get3dObject();
 
         this.cLine.setColor(ThemeControl.theme.line.colorOnActive);
 

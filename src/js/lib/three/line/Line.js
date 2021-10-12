@@ -142,7 +142,7 @@ export default class {
      * Возвращает 3д-объект для линии
      * @returns {Object}
      */
-    getMLine(){
+    get3dObject(){
         return this.mesh;
     }
 
@@ -208,8 +208,8 @@ export default class {
 
         const geometry = new LineGeometry();
         geometry.setPositions(_.p);
-
         this.mesh.geometry = geometry;
+        //this.mesh.geometry.setPositions(_.p);
 
         this.updateLineMarkPosition();
     }
