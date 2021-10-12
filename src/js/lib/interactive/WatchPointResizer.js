@@ -45,6 +45,8 @@ export default class{
         this.cWatchPoint.setHeight(Math.round(y));
         //изменение геометрии ноды
         this.cWatchPoint.scaleWatchPoint();
+        this.cWatchPoint.calcEdgePositions();
+        this.cWatchPoint.updateLine();
     }
 
     /**

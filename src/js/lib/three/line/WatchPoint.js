@@ -72,6 +72,7 @@ export default class{
             this.line = this.createLine();
         }
         this.mesh.visible = true;
+        this.line.visible = true;
         this.updateLine();
         FBS.sceneControl.addObjectsToScene([this.mesh, this.line]);
     }
@@ -113,6 +114,7 @@ export default class{
 
     hide(){
         this.mesh.visible = false;
+        this.line.visible = false;
     }
 
     /**
