@@ -871,7 +871,7 @@ class NodeAssets{
         );
 
         reactor.rotateZ(Math.PI/4*3);
-        reactor.name = group.name;
+        reactor.name = 'watchPointCornerResizeReactor';
         reactor.position.setZ(C.layers.watchPoint.iconCornerResize.reactor);
         group.add(reactor);
 

@@ -15,12 +15,16 @@ import TextEditor from "./../three/TextEditor";
 import NodeWidthResizer from './NodeWidthResizer';
 import WatchPointControl from "../three/line/WatchPointControl";
 import WatchPoint from "../three/line/WatchPoint";
+import WatchPointResizer from "./WatchPointResizer";
 
 //Класс контроля перемещения
 const Drag = new DragControl();
 
 //Класс контроля изменения ширины нод
 const NodeResizer = new NodeWidthResizer();
+
+//Контроль изменения размера вотчпоинта
+const WPResizer = new WatchPointResizer();
 
 export default class{
     constructor() {
@@ -150,6 +154,10 @@ export default class{
                         //сохраняем 3д-объект ресайзера, на которое произведено нажатие, для изменения её ширины
                         this.selectedOnPointerDown = this.intersects[0].object;
                     }
+                    else if(this.intersects[0].object.name === 'watchPointCornerResizeReactor'){
+                        //сохраняем 3д-объект ресайзера, на которое произведено нажатие, для изменения размера вотчпоинта
+                        this.selectedOnPointerDown = this.intersects[0].object;
+                    }
                     else if (NodeControl.isItMoveableElement(this.intersects[0].object.name)) {
                         //сохраняем 3д-объект ноды, на которое произведено нажатие, для её перемещения
                         this.selectedOnPointerDown = this.intersects[0].object.userData.nodeClass.get3dObject();
@@ -273,7 +281,12 @@ export default class{
                     //рисуем линию к курсору мыши
                     LineControl.drawLineFromPos(this.pointerPos3d.x, this.pointerPos3d.y);
                 }
-            } else {
+            }
+            else if(WPResizer.active){
+                WPResizer.move(this.pointerPos3d);
+            }
+            else
+            {
                 //получаем список пересечений
                 this.intersects = this.raycaster.intersectObjects(FBS.sceneControl.scene.children, true);
 
@@ -319,7 +332,7 @@ export default class{
                             this.setCursor('pointer');
                         } else if (firstObject.name === 'nodeWidthResizer') {
                             this.setCursor('col-resize');
-                        } else if (firstObject.name === 'iconCornerResize') {
+                        } else if (firstObject.name === 'watchPointCornerResizeReactor') {
                             this.setCursor('nwse-resize');
                         } else if (
                             firstObject.name === 'copyButton' || firstObject.name === 'exportButton' ||
@@ -365,8 +378,6 @@ export default class{
                                 //поднятие всех перемещаемых нод на верхний уровень по Z
                                 objectsForDrag.map(cN => cN.moveToOverAllZ());
                             }
-                        } else if(this.selectedOnPointerDown.name === 'watchPoint'){
-                            Drag.enable('watchPoint', [this.selectedOnPointerDown.userData.class], this.pointerPos3d);
                         } else if (this.selectedOnPointerDown.name === 'connector') {
                             //включаем рисование линии
                             if(this.intersects[0]) {
@@ -375,6 +386,10 @@ export default class{
                                     LineControl.enable(firstObject);
                                 }
                             }
+                        } else if(this.selectedOnPointerDown.name === 'watchPoint'){
+                            Drag.enable('watchPoint', [this.selectedOnPointerDown.userData.class], this.pointerPos3d);
+                        } else if(this.selectedOnPointerDown.name === 'watchPointCornerResizeReactor'){
+                            WPResizer.enable(this.selectedOnPointerDown);
                         }
                     } else {
 
@@ -434,6 +449,9 @@ export default class{
                 } else {
                     LineControl.disable();
                 }
+            } else if(WPResizer.active){
+                //выключение изменения размеров вотчпоинта
+                WPResizer.disable();
             } else {
                 if (this.intersects.length > 0) {
                     if (e.button === 0) {

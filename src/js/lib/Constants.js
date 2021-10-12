@@ -71,6 +71,10 @@ export default {
     watchPoint: {
         defaultWidth: 415,
         defaultHeight: 540,
+        minWidth: 200,
+        maxWidth: 800,
+        minHeight: 200,
+        maxHeight: 800,
         backRadius: 3,
         borderSize: 1,
         topControlPanelHeight: 30,

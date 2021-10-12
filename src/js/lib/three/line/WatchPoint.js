@@ -115,8 +115,20 @@ export default class{
         this.mesh.visible = false;
     }
 
-    get3dObject(){
-        return this.mesh;
+    /**
+     * Задаём ширину 3д-объекта
+     * @param value {number}
+     */
+    setWidth(value){
+        this.width = value;
+    }
+
+    /**
+     * Задаём высоту 3д-объекта
+     * @param value {number}
+     */
+    setHeight(value){
+        this.height = value;
     }
 
     scaleWatchPoint(){
@@ -228,7 +240,6 @@ export default class{
         this.edgePositions.right = this.mesh.localToWorld(localRight);
         this.edgePositions.top = this.mesh.localToWorld(localTop);
         this.edgePositions.bottom = this.mesh.localToWorld(localBottom);
-
     }
 
     /**
@@ -249,6 +260,11 @@ export default class{
         button.material.color.setStyle(ThemeControl.theme.watchPoint[name].fontColor);
     }
 
+    get3dObject(){
+        return this.mesh;
+    }
 
+    updateTheme(){
 
+    }
 }
