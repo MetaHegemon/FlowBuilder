@@ -48,7 +48,7 @@ export default class {
      * Возвращает 3д-объект порта
      * @returns {THREE.Group}
      */
-    getMPort(){
+    get3dObject(){
         return this.mesh;
     }
 

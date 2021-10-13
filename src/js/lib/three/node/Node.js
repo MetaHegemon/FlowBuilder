@@ -88,13 +88,13 @@ export default class{
         const inputPorts = this.createInputPorts(this.data.inputs);
         this.allCPorts.push(...inputPorts);
         this.cPortsInput = this.packPortsWithPseudo(inputPorts, 'input', null);
-        this.cPortsInput.map(p => nodeObject.add(p.getMPort()));
+        this.cPortsInput.map(p => nodeObject.add(p.get3dObject()));
 
         //выходные порты
         const outputPorts = this.createOutputPorts(this.data.outputs);
         this.allCPorts.push(...outputPorts);
         this.cPortsOutput = this.packPortsWithPseudo( outputPorts, 'output');
-        this.cPortsOutput.map(p => nodeObject.add(p.getMPort()));
+        this.cPortsOutput.map(p => nodeObject.add(p.get3dObject()));
 
         nodeObject.position.set(this.data.position.x, this.data.position.y, this.originZ);
 
@@ -169,7 +169,7 @@ export default class{
         const positions = [];
         let currentYPos = this.getFirstPortPositionY();
         this.cPortsInput.map(p => {
-            const mPort = p.getMPort();
+            const mPort = p.get3dObject();
             positions.push({x: 0, y: currentYPos, z: mPort.position.z});
             currentYPos -= C.nodeMesh.port.height;
         });
@@ -178,13 +178,13 @@ export default class{
 
     /**
      * Расчёт позиций входных портов при минимальной высоте ноды
-     * @returns {*[]}
+     * @returns {[number]}
      */
     calcPositionsForInputPortsMin(){
         const positions = [];
         let currentYPos = this.getFirstPortPositionYMin();
         this.cPortsInput.map(p => {
-            const mPort = p.getMPort();
+            const mPort = p.get3dObject();
             positions.push({x: 0, y: currentYPos, z: mPort.position.z});
             currentYPos -= C.nodeMesh.port.height;
         });
@@ -198,7 +198,7 @@ export default class{
     setPositionsForInputPorts(positions){
         for(let i = 0; i < this.cPortsInput.length; i += 1){
             if(!positions[i]) break;
-            const mPort = this.cPortsInput[i].getMPort();
+            const mPort = this.cPortsInput[i].get3dObject();
             mPort.position.set(positions[i].x, positions[i].y, positions[i].z);
         }
     }
@@ -212,7 +212,7 @@ export default class{
         let currentYPos = this.getLastPortPosition();
 
         for(let i = 0; i < this.cPortsOutput.length; i += 1){
-            const mPort = this.cPortsOutput[i].getMPort();
+            const mPort = this.cPortsOutput[i].get3dObject();
             positions[i] = {x: this.nodeWidth, y: currentYPos, z: mPort.position.z};
             currentYPos += C.nodeMesh.port.height;
         }
@@ -228,7 +228,7 @@ export default class{
         let positions = [];
         let currentYPos = this.getLastPortPositionMin();
         for(let i = this.cPortsOutput.length - 1; i >= 0; i -= 1){
-            const mPort = this.cPortsOutput[i].getMPort();
+            const mPort = this.cPortsOutput[i].get3dObject();
             positions[i] = {x: this.nodeWidth, y: currentYPos, z: mPort.position.z};
             currentYPos += C.nodeMesh.port.height;
         }
@@ -243,7 +243,7 @@ export default class{
     setPositionsForOutputPorts(positions){
         for(let i = 0; i < this.cPortsOutput.length; i += 1){
             if(!positions[i]) break;
-            const mPort = this.cPortsOutput[i].getMPort();
+            const mPort = this.cPortsOutput[i].get3dObject();
             mPort.position.set(positions[i].x, positions[i].y, positions[i].z);
         }
     }
@@ -497,7 +497,7 @@ export default class{
                 cPseudoPortInput.setCLines(this.middleCollapse.storeCLinesInput);
             } else {
                 //входного псевдо-порта не существовало, текущий порт удаляется
-                if(cPseudoPortInput)  this.mesh.remove(cPseudoPortInput.getMPort());
+                if(cPseudoPortInput)  this.mesh.remove(cPseudoPortInput.get3dObject());
             }
 
             const cPseudoPortOutput = this.getPseudoPort('output');
@@ -511,7 +511,7 @@ export default class{
                 cPseudoPortOutput.setCLines(this.middleCollapse.storeCLinesOutput);
             }else {
                 //выходного псевдо-порта не существовало, текущий порт удаляется
-                if(cPseudoPortOutput) this.mesh.remove(cPseudoPortOutput.getMPort());
+                if(cPseudoPortOutput) this.mesh.remove(cPseudoPortOutput.get3dObject());
             }
 
             //восстановление состояния портов до коллапса
@@ -653,8 +653,10 @@ export default class{
                     cPseudoPortInput = new PseudoPort('input', this);
                     //надпись нужно удалить сразу, что бы было красиво
                     cPseudoPortInput.hideLabel();
-                    const position = this.calcPositionsForInputPortsMin();
-                    cPseudoPortInput.moving(position[0]);
+                    //устанавливаем на стартовую позицию до анимирования
+                    const lastPort = this.cPortsInput[0].get3dObject();
+                    cPseudoPortInput.moving({x: lastPort.position.x, y: lastPort.position.y, z: lastPort.position.z});
+
                     cPseudoPortInput.addToNode(this.mesh);
                 }
                 //Создание выходного псевдо порта, если его нет и есть порты, которые надо им объеденить
@@ -662,8 +664,10 @@ export default class{
                     cPseudoPortOutput = new PseudoPort('output', this);
                     //надпись нужно удалить сразу, что бы было красиво
                     cPseudoPortOutput.hideLabel();
-                    const position = this.calcPositionsForOutputPortsMin();
-                    cPseudoPortOutput.moving(position[position.length - 1]);
+                    //устанавливаем на стартовую позицию до анимирования
+                    const lastPort = this.cPortsOutput[this.cPortsOutput.length - 1].get3dObject();
+                    cPseudoPortOutput.moving({x: lastPort.position.x, y: lastPort.position.y, z: lastPort.position.z});
+
                     cPseudoPortOutput.addToNode(this.mesh);
                 }
 
@@ -740,7 +744,7 @@ export default class{
                     cPseudoPortInput.setCLines(this.fullCollapse.storeCLinesInput);
                 } else {
                     //входного псевдо-порта не существовало, текущий порт удаляется
-                    if (cPseudoPortInput) this.mesh.remove(cPseudoPortInput.getMPort());
+                    if (cPseudoPortInput) this.mesh.remove(cPseudoPortInput.get3dObject());
                 }
 
                 const cPseudoPortOutput = this.getPseudoPort('output');
@@ -752,7 +756,7 @@ export default class{
                     cPseudoPortOutput.setCLines(this.fullCollapse.storeCLinesOutput);
                 } else {
                     //входного псевдо-порта не существовало, текущий порт удаляется
-                    if (cPseudoPortOutput) this.mesh.remove(cPseudoPortOutput.getMPort());
+                    if (cPseudoPortOutput) this.mesh.remove(cPseudoPortOutput.get3dObject());
                 }
                 //восстановление состояния портов до коллапса
                 this.cPortsInput = [...this.fullCollapse.storeCPortsInput];
@@ -1349,12 +1353,12 @@ export default class{
      */
     moveOutputPorts(){
         this.allCPorts.map(p => {
-            if(p.direction === 'output') p.getMPort().position.setX(this.nodeWidth);
+            if(p.direction === 'output') p.get3dObject().position.setX(this.nodeWidth);
         });
 
         const cPseudoPort = this.getPseudoPort('output');
         if(cPseudoPort) {
-            cPseudoPort.getMPort().position.setX(this.nodeWidth);
+            cPseudoPort.get3dObject().position.setX(this.nodeWidth);
         }
     }
 
