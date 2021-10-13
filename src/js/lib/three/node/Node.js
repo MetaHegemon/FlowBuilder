@@ -654,6 +654,7 @@ export default class{
                     //надпись нужно удалить сразу, что бы было красиво
                     cPseudoPortInput.hideLabel();
                     //устанавливаем на стартовую позицию до анимирования
+
                     const lastPort = this.cPortsInput[0].get3dObject();
                     cPseudoPortInput.moving({x: lastPort.position.x, y: lastPort.position.y, z: lastPort.position.z});
 
@@ -1007,7 +1008,7 @@ export default class{
         new FBS.tween.Tween({x:0})
             .to( {x: 1}, C.animation.nodeCollapseTime )
             .easing( FBS.tween.Easing.Exponential.InOut )
-            .onComplete(()=> {
+            .onUpdate(()=>{
                 LineControl.refreshLines([this.mesh]);
             })
             .start();
