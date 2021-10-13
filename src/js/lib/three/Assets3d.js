@@ -397,35 +397,6 @@ class NodeAssets{
     }
 
     //SHIELD
-    getRegularShield(options) {
-        const group = new THREE.Group();
-
-        group.add(this.getBackMount());
-        group.add(this.getFrontMount());
-        group.add(this.widthResizer);
-        group.add(this.getControlPanel(options.withCollapseButton));
-
-        group.name = 'regularMount';
-
-        return group;
-    }
-
-    getMiniShield() {
-        const group = new THREE.Group();
-        group.add(this.miniBack);
-        group.add(this.miniFrontTop);
-        group.add(this.miniFrontBody);
-        group.add(this.miniFrontBottom);
-        group.add(this.miniIndicatorMount);
-        group.add(this.miniMenuButton);
-
-        group.name = 'miniMount';
-
-        group.visible = false;
-        group.scale.set(0, 0, 1);
-
-        return group;
-    }
 
     createTitle() {
         const mesh = new Text();
@@ -463,6 +434,20 @@ class NodeAssets{
         mesh.position.setZ(C.layers.node.widthResizer);
 
         return mesh;
+    }
+
+    getRegularShield(options) {
+        const group = new THREE.Group();
+
+        group.add(this.getBackMount());
+        group.add(this.getFrontMount());
+        group.add(this.widthResizer);
+        group.add(this.getControlPanel(options.withCollapseButton));
+        group.position.setZ(C.layers.node.shield);
+
+        group.name = 'regularMount';
+
+        return group;
     }
 
     //MINI
@@ -600,6 +585,24 @@ class NodeAssets{
         );
 
         return mesh;
+    }
+
+    getMiniShield() {
+        const group = new THREE.Group();
+        group.add(this.miniBack);
+        group.add(this.miniFrontTop);
+        group.add(this.miniFrontBody);
+        group.add(this.miniFrontBottom);
+        group.add(this.miniIndicatorMount);
+        group.add(this.miniMenuButton);
+
+        group.name = 'miniMount';
+
+        group.visible = false;
+        group.scale.set(0, 0, 1);
+        group.position.setZ(C.layers.node.shield);
+
+        return group;
     }
 
     //PORT

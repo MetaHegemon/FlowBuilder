@@ -2,8 +2,7 @@ export default {
     defaultTheme: 'light',
     animation:{
         nodeCollapseTime: 150,              //milliseconds
-        portHideTime: 150,
-        collapseButtonRotateTime: 150,
+        portHideTime: 100,
         footerLabelHideTime: 150,
         caretBlinkingTime: 300,             //время мигания каретки
         failEditingTextTime: 300,           //время мигания красным при неудачном вводе текста
@@ -16,6 +15,7 @@ export default {
         frontMount: 0.001,
         header: 0.002,
         node: {
+            shield: 0,
             widthResizer: 0.004
         },
         port: {

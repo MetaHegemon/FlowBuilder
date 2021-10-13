@@ -200,7 +200,7 @@ export default class {
      */
     animateShow(callback){
         new FBS.tween.Tween( this.mesh.scale)
-            .to( {x: 1, y: 1, z: 1}, C.animation.portHideTime )
+            .to( {x: 1, y: 1, z: 1}, C.animation.nodeCollapseTime )
             .easing( FBS.tween.Easing.Exponential.InOut )
             .onComplete(()=>{
                 callback ? callback() : void null;
@@ -209,12 +209,21 @@ export default class {
     }
 
     /**
-     * Скрытие подписи порта
+     * Скрытие подписи порта без анимации
      */
     hideLabel(){
         const label = this.getMLabel();
         label.scale.set(0,0,1);
     }
+
+    /**
+     *
+     */
+    showLabel(){
+        const label = this.getMLabel();
+        label.scale.set(1,1,1);
+    }
+
 
     /**
      * Анимированное появление подписи порта
@@ -239,7 +248,7 @@ export default class {
      */
     animateMoving(to, onUpdate, callback){
         new FBS.tween.Tween( this.mesh.position)
-            .to( to, C.animation.portHideTime )
+            .to( to, C.animation.nodeCollapseTime )
             .easing( FBS.tween.Easing.Exponential.InOut )
             .onUpdate(()=>{
                 onUpdate ? onUpdate() : void null;

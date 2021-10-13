@@ -578,7 +578,7 @@ export default class{
 
     /**
      * Изменение имени псевдо-порта в соответствии с состоянием ноды
-     * @param cPort {PseudoPort}
+     * @param cPort {Class}
      */
     changePseudoPortName(cPort) {
         if (cPort.direction === 'input') {
@@ -719,7 +719,7 @@ export default class{
                 this.showMenuButtons(false);
                 //переключение с большой ноды на маленькую осуществляется 2-я анимациями
                 operationCount += 2;
-                this.switchOnMiniMount(()=>wait());
+                this.switchOnMiniMount(() => wait(), () => wait());
                 this.scaleBigMount(C.miniNodeMesh.width, C.miniNodeMesh.height);
             }
             else  //UNCOLLAPSE
@@ -733,16 +733,8 @@ export default class{
 
                 const cPseudoPortInput = this.getPseudoPort('input');
                 if (this.fullCollapse.isPseudoInputExist) {
-                    if(this.middleCollapse.isCollapsed){
-                        //при среднем схлопывании у псевдо-портов нет подписи
-                        cPseudoPortInput.hideLabel();
-                    } else {
-                        //Анимация плавного появления текста, иначе видно как он скачет сверху вниз
-                        cPseudoPortInput.hideLabel();
-                        this.changePseudoPortName(cPseudoPortInput);
-                        operationCount += 1;
-                        cPseudoPortInput.animateShowLabel(()=>wait());
-                    }
+                    //при среднем схлопывании у псевдо-портов нет подписи
+                    cPseudoPortInput.hideLabel();
                     if (!this.shortCollapse.inputPortsCollapsed) cPseudoPortInput.hideConnector();
                     //псевдо-порту возвращаются его линии
                     cPseudoPortInput.setCLines(this.fullCollapse.storeCLinesInput);
@@ -753,23 +745,14 @@ export default class{
 
                 const cPseudoPortOutput = this.getPseudoPort('output');
                 if (this.fullCollapse.isPseudoOutputExist) {
-                    if(this.middleCollapse.isCollapsed){
-                        //при среднем схлопывании у псевдо-портов нет подписи
-                        cPseudoPortOutput.hideLabel();
-                    } else {
-                        //Анимация плавного появления текста, иначе видно, как он скачет сверху вниз
-                        cPseudoPortOutput.hideLabel();
-                        this.changePseudoPortName(cPseudoPortOutput);
-                        operationCount += 1;
-                        cPseudoPortOutput.animateShowLabel(()=>wait());
-                    }
+                    //при среднем схлопывании у псевдо-портов нет подписи
+                    cPseudoPortOutput.hideLabel();
                     if (!this.shortCollapse.outputPortsCollapsed) cPseudoPortOutput.hideConnector();
                     //псевдо-порту возвращаются его линии
                     cPseudoPortOutput.setCLines(this.fullCollapse.storeCLinesOutput);
                 } else {
                     //входного псевдо-порта не существовало, текущий порт удаляется
                     if (cPseudoPortOutput) this.mesh.remove(cPseudoPortOutput.getMPort());
-
                 }
                 //восстановление состояния портов до коллапса
                 this.cPortsInput = [...this.fullCollapse.storeCPortsInput];
@@ -819,18 +802,33 @@ export default class{
                     this.calcNodeHeight();
                     if (cPseudoPortInput) {
                         const positions = this.calcPositionsForInputPorts();
-                        cPseudoPortInput.animateMoving({y: positions[positions.length - 1].y});
+
+                        cPseudoPortInput.animateMoving(
+                            {y: positions[positions.length - 1].y},
+                            null,
+                            () => {
+                                //по завершении перемещения порта показываем его подпись
+                                this.changePseudoPortName(cPseudoPortInput);
+                                cPseudoPortInput.showLabel();
+                            });
                     }
                     if (cPseudoPortOutput) {
                         const positions = this.calcPositionsForOutputPorts();
-                        cPseudoPortOutput.animateMoving({x: this.nodeWidth, y: positions[positions.length - 1].y});
+                        cPseudoPortOutput.animateMoving(
+                            {x: this.nodeWidth, y: positions[positions.length - 1].y},
+                            null,
+                            () => {
+                                //по завершении перемещения порта показываем его подпись
+                                this.changePseudoPortName(cPseudoPortOutput);
+                                cPseudoPortOutput.showLabel();
+                            });
                     }
                 }
 
                 this.showMenuButtons(true);
                 //переключение с маленькой ноды на большую осуществляется 2-я анимациями
                 operationCount += 2;
-                this.switchOnRegularNode(()=>wait());
+                this.switchOnRegularNode(() => wait(), () => wait());
                 this.scaleBigMount();
             }
 
@@ -840,29 +838,44 @@ export default class{
     }
 
     /**
-     * Переключение с большой подложки к маленькой
-     * @param callback
+     * Анимация разворота маленькой подложки
+     * @param callback {function}
      */
-    switchOnMiniMount(callback){
-        //разворот маленькой ноды
+    animateShowMiniMount(callback){
         const mini = this.mesh.getObjectByName('miniMount');
+        mini.position.setZ(C.layers.node.shield);
         mini.visible = true;
         new FBS.tween.Tween(mini.scale)
             .to( {x: 1, y: 1, z: 1}, C.animation.nodeCollapseTime )
             .easing( FBS.tween.Easing.Exponential.InOut )
-            .onComplete(()=>{
-                callback();
-            })
+            .onComplete(()=>callback())
             .start();
-        //схлопывание большой ноды
+    }
+
+    /**
+     * Анимация сворачивания большой подложки
+     * @param callback {function}
+     */
+    animateHideRegularMount(callback){
         const regular = this.mesh.getObjectByName('regularMount');
+        regular.position.setZ(regular.position.z - C.layers.nodeStep);
         new FBS.tween.Tween(regular.scale)
             .to( {x: 0, y: 0, z: 1}, C.animation.nodeCollapseTime )
             .easing( FBS.tween.Easing.Exponential.InOut )
-            .onComplete(()=>{
-                callback();
-            })
+            .onComplete(()=>callback())
             .start();
+    }
+
+    /**
+     * Переключение с большой подложки на маленькую
+     * @param callbackForMini {function}
+     * @param callbackForRegular {function}
+     */
+    switchOnMiniMount(callbackForMini, callbackForRegular){
+        //разворот маленькой подложки
+        this.animateShowMiniMount(callbackForMini);
+        //схлопывание большой подложки
+        this.animateHideRegularMount(callbackForRegular);
 
         //перемещение индикатора в центр
         const indicator = this.mesh.getObjectByName('indicator');
@@ -876,12 +889,12 @@ export default class{
     }
 
     /**
-     * Переключение с маленькой подложки на большую
-     * @param callback
+     * Анимированное сворачивание маленькой подложки
+     * @param callback {function}
      */
-    switchOnRegularNode(callback){
-        //схлопывание маленькой подложки
+    animateHideMiniMount(callback){
         const mini = this.mesh.getObjectByName('miniMount');
+        mini.position.setZ(mini.position.z - C.layers.nodeStep);
         new FBS.tween.Tween(mini.scale)
             .to( {x: 0, y: 0, z: 1}, C.animation.nodeCollapseTime )
             .easing( FBS.tween.Easing.Exponential.InOut )
@@ -890,9 +903,15 @@ export default class{
                 mini.visible = false;
             })
             .start();
+    }
 
-        //разворот большой подложки
+    /**
+     * Анимированный разворот большой подложки
+     * @param callback {function}
+     */
+    animateShowRegularMount(callback){
         const regular = this.mesh.getObjectByName('regularMount');
+        regular.position.setZ(C.layers.node.shield);
         regular.visible = true;
         new FBS.tween.Tween(regular.scale)
             .to( {x: 1, y: 1, z: 1}, C.animation.nodeCollapseTime )
@@ -901,6 +920,18 @@ export default class{
                 callback();
             })
             .start();
+    }
+
+    /**
+     * Переключение с маленькой подложки на большую
+     * @param callbackForMini {function} - для маленькой подложки, по завершении анимации
+     * @param callbackForRegular {function} - для большой подложки, по завершении анимации
+     */
+    switchOnRegularNode(callbackForMini, callbackForRegular){
+        //схлопывание маленькой подложки
+        this.animateHideMiniMount(callbackForMini);
+        //разворот большой подложки
+        this.animateShowRegularMount(callbackForRegular);
 
         //смещение индикатора в правый верхний угол
         const indicator = this.mesh.getObjectByName('indicator');
@@ -959,7 +990,7 @@ export default class{
                 angle = Math.PI;
             }
             new FBS.tween.Tween(mCollapse.rotation)
-                .to( {z: angle}, C.animation.collapseButtonRotateTime )
+                .to( {z: angle}, C.animation.nodeCollapseTime )
                 .easing( FBS.tween.Easing.Exponential.InOut )
                 .start();
         }
@@ -970,7 +1001,7 @@ export default class{
      */
     animateRefreshLines(){
         new FBS.tween.Tween({x:0})
-            .to( {x: 1}, C.animation.portHideTime )
+            .to( {x: 1}, C.animation.nodeCollapseTime )
             .easing( FBS.tween.Easing.Exponential.InOut )
             .onComplete(()=> {
                 LineControl.refreshLines([this.mesh]);
