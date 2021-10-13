@@ -4,7 +4,7 @@
 
 //import for description
 import Node from '../three/node/Node';
-import WatchPoint from "../three/line/WatchPoint";
+import WatchPoint from "../three/watchPoint/WatchPoint";
 
 export default class{
     constructor() {
