@@ -293,7 +293,6 @@ export default class{
                 if (e.buttons === 0) { //подсветка или смена курсора при наведении на разные объекты сцены
                     if (this.intersects.length > 0) {
                         const firstObject = this.intersects[0].object;
-                        clog(firstObject.name);
 
                         if (firstObject.name === 'portLabelText') {
                             const cPort = firstObject.userData.portClass;
@@ -443,7 +442,7 @@ export default class{
                 this.intersects = this.raycaster.intersectObjects(FBS.sceneControl.scene.children, true);
                 if (
                     this.intersects.length > 0 &&
-                    this.intersects[0].object.name === 'connector' &&
+                    (this.intersects[0].object.name === 'connector' || this.intersects[0].object.name === 'connectorMagnet') &&
                     LineControl.canBeConnected(this.intersects[0].object)
                 ) {
                     LineControl.connect(this.intersects[0].object);

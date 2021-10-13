@@ -8,7 +8,6 @@ import ThemeControl from '../../../themes/ThemeControl';
 import Assets3d from '../Assets3d';
 import FBS from "../../FlowBuilderStore";
 import WatchPoint from "../watchPoint/WatchPoint";
-import {LineMaterial} from "three/examples/jsm/lines/LineMaterial";
 
 export default class {
     constructor(){
@@ -451,7 +450,6 @@ export default class {
     }
 
     //WATCH POINT
-
     showWatchPoint(){
         if(!this.watchPoint){
             this.watchPoint = new WatchPoint();
