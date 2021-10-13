@@ -11,6 +11,10 @@ import WatchPoint from "./WatchPoint";
 
 export default class {
     constructor(){
+        //не удалять! расчёт постоянной ширины линии
+        //this.frustumSize = C.three.zoom.default;
+
+
         this.cPort1 = null;                 //ссылка на класс первого порта, первый порт всегда выходной порт
         this.cPort2 = null;                 //ссылка на класс второго порта - всегда входной
         this.selected = false;              //флаг выбора линии
@@ -55,8 +59,25 @@ export default class {
         this.thinLine = this.createThinLine();
         this.updateResolution();
 
+        this.setEvents();
+    }
+
+    setEvents(){
         //обработчик события изменения разрешения вьюпорта. обновляет разрешение материала. для линий это необходимо
         FBS.dom.canvas.addEventListener('renderResize', () => this.updateResolution());
+
+        //не удалять! расчёт постоянной ширины линии
+        //FBS.dom.canvas.addEventListener('zoomChange', e => this.listenZoom(e.detail.frustumSize));
+    }
+
+    //не удалять! расчёт постоянной ширины линии. пока не используется
+    /**
+     * Проверяем значение зума
+     * @param frustumSize {number}
+     */
+    listenZoom(frustumSize){
+        this.frustumSize = frustumSize;
+        this.updateResolution()
     }
 
     createFatLine(){
@@ -98,6 +119,11 @@ export default class {
      * Обновление разрешения для тонкой линии
      */
     updateThinLineResolution(){
+        //не удалять! Расчёт постоянной ширины линии, пригодится
+        /*this.thinLine.material.resolution.set(
+            FBS.dom.canvas.width * (this.frustumSize/C.three.zoom.default),
+            FBS.dom.canvas.height * (this.frustumSize/C.three.zoom.default)
+        );*/
         this.thinLine.material.resolution.set(FBS.dom.canvas.width, FBS.dom.canvas.height);
     }
 
