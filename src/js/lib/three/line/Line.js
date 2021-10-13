@@ -339,7 +339,7 @@ export default class {
     select(){
         if(!this.selected) {
             this.selected = true;
-            this.thinLine.material.color.setStyle(ThemeControl.theme.line.selectedColor);
+            this.setColor(ThemeControl.theme.line.selectedColor);
             this.cPort1.selectConnector();
             this.cPort2.selectConnector();
         }
@@ -351,7 +351,7 @@ export default class {
     unselect(){
         if(this.selected) {
             this.selected = false;
-            this.thinLine.material.color.setStyle(this.cPort1.getColor());
+            this.setColor(this.cPort1.getColor());
             this.cPort1.unselectConnector();
             this.cPort2.unselectConnector();
         }

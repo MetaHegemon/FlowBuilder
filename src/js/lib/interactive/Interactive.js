@@ -17,6 +17,9 @@ import WatchPointControl from "../three/line/WatchPointControl";
 import WatchPoint from "../three/line/WatchPoint";
 import WatchPointResizer from "./WatchPointResizer";
 
+//for jsDoc
+import Line from "../three/line/Line";
+
 //Класс контроля перемещения
 const Drag = new DragControl();
 
@@ -730,7 +733,7 @@ export default class{
 
     /**
      * Обработка нажатия на линию
-     * @param cLine - класс линии
+     * @param cLine {Line} - класс линии
      */
     onLineClick(cLine){
         clog('onLineClick');
