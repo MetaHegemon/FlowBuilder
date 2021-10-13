@@ -13,8 +13,8 @@ import LineControl from '../three/line/LineControl';
 import FBS from './../FlowBuilderStore';
 import TextEditor from "./../three/TextEditor";
 import NodeWidthResizer from './NodeWidthResizer';
-import WatchPointControl from "../three/watchPoint/WatchPointControl";
-import WatchPoint from "../three/watchPoint/WatchPoint";
+import WatchPointControl from "../three/line/WatchPointControl";
+import WatchPoint from "../three/line/WatchPoint";
 import WatchPointResizer from "./WatchPointResizer";
 
 //Класс контроля перемещения

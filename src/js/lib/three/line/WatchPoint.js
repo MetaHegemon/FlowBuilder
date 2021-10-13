@@ -61,7 +61,6 @@ export default class{
     }
 
     show(lineMarkPosition){
-
         if(!this.wpPosition){
             this.lineMarkPosition = lineMarkPosition;
             this.wpPosition = this.mesh.position;

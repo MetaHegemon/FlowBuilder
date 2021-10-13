@@ -6,7 +6,6 @@ import {Object3D} from "three";
 
 class WatchPointControl{
     constructor() {
-
         //список имён элементов вотчпоинта, за который вотчпоинт можно таскать
         this.moveableElements = [
             'watchPointFrontCornerTopLeft', 'watchPointFrontCornerTopRight',
