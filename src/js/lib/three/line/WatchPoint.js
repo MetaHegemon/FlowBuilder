@@ -115,6 +115,21 @@ export default class{
         this.line.removeFromParent();
     }
 
+    remove(){
+        this.hide();
+
+        this.mesh.traverse(o => {
+            if(o.geometry) o.geometry.dispose();
+            if(o.material) o.material.dispose();
+            o = null;
+        });
+        this.mesh = null;
+
+        this.line.geometry.dispose();
+        this.line.material.dispose();
+        this.line = null;
+    }
+
     /**
      * Задаём ширину 3д-объекта
      * @param value {number}

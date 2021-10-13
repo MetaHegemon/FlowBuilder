@@ -154,16 +154,11 @@ class LineControl{
         this.allCLines.push(this.cLine);
     }
 
-
+    /**
+     *
+     */
     hideWatchPoints(){
         this.allCLines.map(l => l.hideWatchPoint());
-    }
-
-    /**
-     * Обновление темы линии
-     */
-    updateTheme(){
-        this.allCLines.map(l=> l.updateTheme());
     }
 
     /**
@@ -175,6 +170,13 @@ class LineControl{
             cL.remove();
             this.removeFromCLinesList(cL);
         });
+    }
+
+    /**
+     * Обновление темы линии
+     */
+    updateTheme(){
+        this.allCLines.map(l=> l.updateTheme());
     }
 }
 

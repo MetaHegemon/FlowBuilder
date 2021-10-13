@@ -364,6 +364,7 @@ export default class {
         FBS.sceneControl.removeFromScene(this.thinLine);
         if(this.lineMark) this.removeLineMark();
         if(this.fatLine) this.removeFatLine();
+        if(this.watchPoint) this.watchPoint.remove();
         //снятие выделения с коннекторов
         if(this.cPort1) this.cPort1.unselectConnector();
         if(this.cPort2) this.cPort2.unselectConnector();

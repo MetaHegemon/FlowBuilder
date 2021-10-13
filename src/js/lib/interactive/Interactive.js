@@ -93,6 +93,7 @@ export default class{
             //удаление выделенных элементов (линий)
             if(this.select.cLines.length > 0){
                 LineControl.remove(this.select.cLines);
+                this.select.cLines = [];
             }
         }
     }
@@ -759,7 +760,9 @@ export default class{
         cLine.showWatchPoint();
     }
 
-
+    /**
+     * Скрытие всех активных вотчпоинтов
+     */
     hideWatchPoints(){
         LineControl.hideWatchPoints();
     }
