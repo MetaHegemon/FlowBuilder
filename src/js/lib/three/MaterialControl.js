@@ -4,6 +4,8 @@
 //TODO, написать выдачу материала по цвету, брать цвет из темы, если материал с таким цветом уже есть, то выдавать существующий
 import * as THREE from "three";
 import ThemeControl from "../../themes/ThemeControl";
+import {LineMaterial} from "three/examples/jsm/lines/LineMaterial";
+import C from "../Constants";
 
 class MaterialControl{
     constructor() {
@@ -162,6 +164,14 @@ class MaterialControl{
      */
     getPortMarkLabelMaterial(type){
         return new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.portTypes[type].markFontColor});
+    }
+
+    getThinLineMaterial(){
+        return new LineMaterial({ linewidth: C.lines.thinLineWidth});
+    }
+
+    getFatLineMaterial(){
+        return new LineMaterial({transparent: true, opacity: 0, linewidth: C.lines.fatLineWidth});
     }
 }
 

@@ -28,6 +28,10 @@ export default {
         },
         footerLabel: 0.01,
         topForNode: 10,
+        line: {
+            fat: -1,
+            thin: -1.01
+        },
         lineMark: {
             pointer: 0.02,
             big: 0,
@@ -59,7 +63,8 @@ export default {
         awDuotone: './fonts/fa-duotone-900.ttf'
     },
     lines: {
-        lineWidth: 2,
+        thinLineWidth: 2,
+        fatLineWidth: 12,
         segments: 40,                   //количество сегментов линии
         mark: {
             positionOnLine: 80,         //расстояние в % от начала линии, на котором строится вотчпоинт

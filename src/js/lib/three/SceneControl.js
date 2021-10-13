@@ -175,7 +175,7 @@ export default class {
         this.camera.updateProjectionMatrix();
 
         //Отправка события с размерами вьюпорта. Нужно линиям, что бы обновить разрешение своего материала
-        this.canvas.dispatchEvent(new CustomEvent('renderResize', {detail: {w: this.canvas.width, h: this.canvas.height}}));
+        this.canvas.dispatchEvent(new CustomEvent('renderResize'));
     }
 
     /**

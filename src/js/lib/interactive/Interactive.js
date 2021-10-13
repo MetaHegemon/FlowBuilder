@@ -293,6 +293,7 @@ export default class{
                 if (e.buttons === 0) { //подсветка или смена курсора при наведении на разные объекты сцены
                     if (this.intersects.length > 0) {
                         const firstObject = this.intersects[0].object;
+                        clog(firstObject.name);
 
                         if (firstObject.name === 'portLabelText') {
                             const cPort = firstObject.userData.portClass;
@@ -311,7 +312,7 @@ export default class{
                                     this.setCursor('pointer');
                                 }
                             }
-                        } else if (firstObject.name === 'line')
+                        } else if (firstObject.name === 'fatLine')
                         {
                             if(LineControl.canBeSelected(firstObject)) {
                                 this.setCursor('pointer');
@@ -470,7 +471,7 @@ export default class{
                                 const cLine = first.object.userData.class;
                                 this.onWatchPointClick(cLine);
                             }
-                        } else if(first.object.name === 'line'){
+                        } else if(first.object.name === 'fatLine'){
                             if(LineControl.canBeSelected(first.object)){
                                 const cLine = first.object.userData.class;
                                 this.onLineClick(cLine);

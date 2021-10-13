@@ -64,7 +64,10 @@ class NodeAssets{
         this.playButton = this.createPlayButton();
 
         //LINE
-        this.line = this.createLine();
+        this.line = {
+            thin: this.createThinLine(),
+            fat: this.createFatLine()
+        }
 
         //WATCH POINT
         this.watchPoint = {
@@ -747,16 +750,24 @@ class NodeAssets{
 
     //LINE
 
-    createLine() {
+    createThinLine() {
         const geometry = new LineGeometry();
-        //geometry.setPositions([0, 0, 0, 0, 0, 0]);
-        const material = new LineMaterial({
-            color: ThemeControl.theme.line.colorOnActive,
-            linewidth: C.lines.lineWidth
-        });
+        const material = MaterialControl.getThinLineMaterial();
 
         const mesh = new Line2(geometry, material);
-        mesh.name = 'line';
+        mesh.name = 'thinLine';
+        mesh.position.setZ(C.layers.line.thin);
+
+        return mesh;
+    }
+
+    createFatLine() {
+        const geometry = new LineGeometry();
+        const material = MaterialControl.getFatLineMaterial();
+
+        const mesh = new Line2(geometry, material);
+        mesh.name = 'fatLine';
+        mesh.position.setZ(C.layers.line.fat);
 
         return mesh;
     }

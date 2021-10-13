@@ -31,7 +31,7 @@ class LineControl{
             this.cLine = new Line();
             this.cLine.setCPort1(cPort1);
         }
-        const mesh = this.cLine.get3dObject();
+        const mesh = this.cLine.getThinLine3dObject();
 
         this.cLine.setColor(ThemeControl.theme.line.colorOnActive);
 
@@ -132,7 +132,7 @@ class LineControl{
 
     /**
      * Возвращает возможность выбора линии
-     * @param mLine
+     * @param mLine {Mesh}
      * @returns {boolean}
      */
     canBeSelected(mLine){

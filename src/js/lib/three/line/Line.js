@@ -8,6 +8,7 @@ import ThemeControl from '../../../themes/ThemeControl';
 import Assets3d from '../Assets3d';
 import FBS from "../../FlowBuilderStore";
 import WatchPoint from "./WatchPoint";
+import {LineMaterial} from "three/examples/jsm/lines/LineMaterial";
 
 export default class {
     constructor(){
@@ -50,19 +51,32 @@ export default class {
 
         this.watchPoint = null;             //ссылка на класс-вотчпоинт этой линии
 
-        this.mesh = this.createLine();
-        this.updateResolution(FBS.dom.canvas.width, FBS.dom.canvas.height);
+        this.fatLine = null;           //дубликат основной линии, но жирный и для интерактивности
+
+        this.thinLine = this.createThinLine();
+        this.updateResolution();
 
         //обработчик события изменения разрешения вьюпорта. обновляет разрешение материала. для линий это необходимо
-        FBS.dom.canvas.addEventListener('renderResize', (e) => this.updateResolution(e.detail.w, e.detail.h));
+        FBS.dom.canvas.addEventListener('renderResize', () => this.updateResolution());
+    }
+
+    createFatLine(){
+        const mesh = Assets3d.line.fat.clone();
+        mesh.geometry = mesh.geometry.clone();
+        mesh.material = mesh.material.clone();
+
+        //запись в 3д-объект ссылки на класс
+        mesh.userData.class = this;
+
+        return mesh;
     }
 
     /**
      * Создание 3д-объекта линии
      * @returns {Object}
      */
-    createLine(){
-        const mesh = Assets3d.line.clone();
+    createThinLine(){
+        const mesh = Assets3d.line.thin.clone();
         mesh.geometry = mesh.geometry.clone();
         mesh.material = mesh.material.clone();
 
@@ -75,11 +89,24 @@ export default class {
     /**
      * Обновление разрешения материала линий
      * Если этого не делать, то на широком экране линии растягиваются в ширь
-     * @param w {number}
-     * @param h {number}
      */
-    updateResolution(w, h){
-        this.mesh.material.resolution.set(w,h);
+    updateResolution(){
+        this.updateThinLineResolution();
+        this.updateFatLineResolution();
+    }
+
+    /**
+     * Обновление разрешения для тонкой линии
+     */
+    updateThinLineResolution(){
+        this.thinLine.material.resolution.set(FBS.dom.canvas.width, FBS.dom.canvas.height);
+    }
+
+    /**
+     * Обновление разрешения для толстой линии
+     */
+    updateFatLineResolution(){
+        if(this.fatLine) this.fatLine.material.resolution.set(FBS.dom.canvas.width, FBS.dom.canvas.height);
     }
 
     /**
@@ -114,10 +141,17 @@ export default class {
         this.cPort1.cLines.push(this);
         this.cPort2.cLines.push(this);
 
-        //создание вотчпоинта
+        //создание маркера на линии
         this.lineMark = this.createLineMark();
         this.updateLineMarkPosition()
-        this.mesh.parent.add(this.lineMark);
+        this.thinLine.parent.add(this.lineMark);
+
+        //добавление толстой линии
+        this.fatLine = this.createFatLine();
+        this.updateFatLineResolution();
+        this.thinLine.parent.add(this.fatLine);
+
+        this.updateFatLine();
     }
 
     /**
@@ -153,11 +187,19 @@ export default class {
     }
 
     /**
-     * Возвращает 3д-объект для линии
+     * Возвращает 3д-объект для тонкой линии
      * @returns {Object}
      */
-    get3dObject(){
-        return this.mesh;
+    getThinLine3dObject(){
+        return this.thinLine;
+    }
+
+    /**
+     * Возвращает 3д-объект для толстой линии
+     * @returns {Object}
+     */
+    getFatLine3dObject(){
+        return this.fatLine;
     }
 
     /**
@@ -222,9 +264,13 @@ export default class {
         _.p.push(_.ex, _.ey, 0);
 
 
-        this.mesh.geometry.setPositions(_.p);
+        this.thinLine.geometry.setPositions(_.p);
 
         this.updateLineMarkPosition();
+    }
+
+    updateFatLine(){
+        this.fatLine.geometry.setPositions(this.updateLineBuffer.p);
     }
 
     /**
@@ -269,7 +315,7 @@ export default class {
      * @param colorStyle {String}
      */
     setColor(colorStyle){
-        this.mesh.material.color.setStyle(colorStyle);
+        this.thinLine.material.color.setStyle(colorStyle);
         if(this.lineMark){
             const lineMarkBig = this.lineMark.getObjectByName('lineMarkBig');
             lineMarkBig.material.color.setStyle(colorStyle);
@@ -281,7 +327,7 @@ export default class {
      */
     resetColor(){
         const color = this.cPort1.getColor();
-        this.mesh.material.color.setStyle(color);
+        this.thinLine.material.color.setStyle(color);
         if(this.lineMark){
             const lineMarkBig = this.lineMark.getObjectByName('lineMarkBig');
             lineMarkBig.material.color.setStyle(color);
@@ -294,7 +340,7 @@ export default class {
     select(){
         if(!this.selected) {
             this.selected = true;
-            this.mesh.material.color.setStyle(ThemeControl.theme.line.selectedColor);
+            this.thinLine.material.color.setStyle(ThemeControl.theme.line.selectedColor);
             this.cPort1.selectConnector();
             this.cPort2.selectConnector();
         }
@@ -306,7 +352,7 @@ export default class {
     unselect(){
         if(this.selected) {
             this.selected = false;
-            this.mesh.material.color.setStyle(this.cPort1.getColor());
+            this.thinLine.material.color.setStyle(this.cPort1.getColor());
             this.cPort1.unselectConnector();
             this.cPort2.unselectConnector();
         }
@@ -316,14 +362,16 @@ export default class {
      * Удаление линии со сцены
      */
     remove(){
-        FBS.sceneControl.removeFromScene(this.mesh);
+        FBS.sceneControl.removeFromScene(this.thinLine);
         if(this.lineMark) this.removeLineMark();
+        if(this.fatLine) this.removeFatLine();
         //снятие выделения с коннекторов
         if(this.cPort1) this.cPort1.unselectConnector();
         if(this.cPort2) this.cPort2.unselectConnector();
         //удаление линии из списка линий в портах
         if(this.cPort1) this.cPort1.removeCLine(this);
         if(this.cPort2) this.cPort2.removeCLine(this);
+
     }
 
 
@@ -337,7 +385,7 @@ export default class {
         const lineMark = Assets3d.getLineMark().clone();
         lineMark.traverse(o=> o.userData.class = this);
         const bigMark = lineMark.getObjectByName('lineMarkBig');
-        bigMark.material.color.setStyle(this.mesh.material.color.getStyle());
+        bigMark.material.color.setStyle(this.thinLine.material.color.getStyle());
 
         return lineMark;
     }
@@ -348,7 +396,7 @@ export default class {
      */
     getPositionForLineMark(){
         const progress = C.lines.segments/100 * C.lines.mark.positionOnLine; //point on line
-        const instanceStart = this.mesh.geometry.getAttribute('instanceStart').data;
+        const instanceStart = this.thinLine.geometry.getAttribute('instanceStart').data;
         const points = instanceStart.array;
 
         return {
@@ -365,7 +413,7 @@ export default class {
 
     unhoverLineMark(){
         const bigMark = this.lineMark.getObjectByName('lineMarkBig');
-        bigMark.material.color.setStyle(this.mesh.material.color.getStyle());
+        bigMark.material.color.setStyle(this.thinLine.material.color.getStyle());
     }
 
     /**
@@ -384,7 +432,22 @@ export default class {
      */
     removeLineMark(){
         FBS.sceneControl.removeFromScene(this.lineMark);
+        this.lineMark.traverse((o)=>{
+            if(o.geometry) o.geometry.dispose();
+            if(o.material) o.material.dispose();
+            o = null;
+        })
         this.lineMark = null;
+    }
+
+    /**
+     * Удаление толстой линии
+     */
+    removeFatLine(){
+        this.fatLine.removeFromParent();
+        this.fatLine.geometry.dispose();
+        this.fatLine.material.dispose();
+        this.fatLine = null;
     }
 
     //WATCH POINT
