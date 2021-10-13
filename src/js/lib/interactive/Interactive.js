@@ -186,6 +186,7 @@ export default class{
                 //нажатие в пустоту
                 if(e.buttons === 1) {
                     this.unselectAll();
+                    this.hideWatchPoints();
                     //активируется мультивыделение
                     this.select.active = true;
                     this.select.helper.onSelectStart(e);
@@ -756,6 +757,11 @@ export default class{
     onWatchPointClick(cLine){
         clog('onWatchPointClick');
         cLine.showWatchPoint();
+    }
+
+
+    hideWatchPoints(){
+        LineControl.hideWatchPoints();
     }
 
     /**

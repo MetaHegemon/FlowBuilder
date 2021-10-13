@@ -456,7 +456,12 @@ export default class {
         }
 
         this.watchPoint.show(this.lineMark.position);
+    }
 
+    hideWatchPoint(){
+        if(this.watchPoint){
+            this.watchPoint.hide();
+        }
     }
 
     /**

@@ -154,6 +154,11 @@ class LineControl{
         this.allCLines.push(this.cLine);
     }
 
+
+    hideWatchPoints(){
+        this.allCLines.map(l => l.hideWatchPoint());
+    }
+
     /**
      * Обновление темы линии
      */
