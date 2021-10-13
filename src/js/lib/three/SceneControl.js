@@ -37,12 +37,7 @@ export default class {
             deltaY: null
         }
 
-        this.zoomEvent = {                          //объект для отправки события пересечения границы сворачивания нод
-            inEvent: new CustomEvent('needFullUnCollapse'),
-            outEvent: new CustomEvent('needFullCollapse'),
-            inDispatched: this.frustumSize < C.three.zoom.fullCollapseBorder,
-            outDispatched: this.frustumSize > C.three.zoom.fullCollapseBorder
-        };
+        this.eventZoomChange = new CustomEvent('zoomChange', {detail: {frustumSize: this.frustumSize}});
     }
 
     /**
@@ -233,14 +228,9 @@ export default class {
      * Отслеживание значения зума, для отправки события сворачивания всех нод
      */
     listenZoom(){
-        if(this.frustumSize > C.three.zoom.fullCollapseBorder && !this.zoomEvent.outDispatched){
-            this.canvas.dispatchEvent(this.zoomEvent.outEvent);
-            this.zoomEvent.outDispatched = true;
-            this.zoomEvent.inDispatched = false;
-        } else if(this.frustumSize < C.three.zoom.fullCollapseBorder && !this.zoomEvent.inDispatched){
-            this.canvas.dispatchEvent(this.zoomEvent.inEvent);
-            this.zoomEvent.inDispatched = true;
-            this.zoomEvent.outDispatched = false;
+        if(this.eventZoomChange.detail.frustumSize !== this.frustumSize) {
+            this.eventZoomChange.detail.frustumSize = this.frustumSize;
+            this.canvas.dispatchEvent(this.eventZoomChange);
         }
     }
 

@@ -11,7 +11,7 @@ FBS.dom.createWindow(document.documentElement.clientWidth, document.documentElem
 document.body.append(FBS.dom.getWindow());
 FBS.sceneControl.setScene();
 
-
+NodeControl.init();
 NodeControl.buildNodes(flowData.nodes);
 FBS.sceneControl.addObjectsToScene(NodeControl.get3dObjects());
 

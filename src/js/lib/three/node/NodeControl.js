@@ -4,6 +4,7 @@
 
 import Node from './Node';
 import C from '../../Constants';
+import FBS from "../../FlowBuilderStore";
 
 class NodeControl {
     constructor() {
@@ -24,6 +25,36 @@ class NodeControl {
 
             'indicator'
         ];
+    }
+
+    init(){
+        this.setEvents();
+    }
+
+    setEvents(){
+        FBS.dom.canvas.addEventListener('zoomChange', e => this.listenZoom(e.detail.frustumSize));
+    }
+
+    /**
+     * Проверяем значение зума, после определённой границы сворачиваем или разворачиваем все ноды
+     * @param frustumSize {number}
+     */
+    listenZoom(frustumSize){
+        if(frustumSize > C.three.zoom.fullCollapseBorder && !this.isNodesFullCollapsed){
+            this.fullCollapseNodes(true);
+            this.isNodesFullCollapsed  = true;
+        } else if(frustumSize < C.three.zoom.fullCollapseBorder && this.isNodesFullCollapsed){
+            this.fullCollapseNodes(false);
+            this.isNodesFullCollapsed  = false;
+        }
+    }
+
+    /**
+     * Сворачивание/разворачивание всех нод при zoomOut/zoomIn
+     * @param isNeedCollapse {Boolean}
+     */
+    fullCollapseNodes(isNeedCollapse){
+        this.cNodes.map((node)=>node.fullCollapseNode(isNeedCollapse));
     }
 
     /**

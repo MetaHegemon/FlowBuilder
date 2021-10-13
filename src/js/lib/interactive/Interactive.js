@@ -70,8 +70,6 @@ export default class{
         document.addEventListener('keyup', (e) => this.onKeyUp(e));
         FBS.dom.canvas.addEventListener('contextmenu', (e) => this.onContextMenu(e));
         //события вещающие при переходе зума камеры за или под определённый порог
-        FBS.dom.canvas.addEventListener('needFullCollapse', () => this.fullCollapseNode(true));
-        FBS.dom.canvas.addEventListener('needFullUnCollapse', () => this.fullCollapseNode(false));
     }
 
     /**
@@ -551,17 +549,6 @@ export default class{
     onCollapseButtonClick(mCollapse){
         const cNode = mCollapse.userData.nodeClass;
         cNode.middleCollapseNode();
-    }
-
-    /**
-     * Сворачивание/разворачивание всех нод при zoomOut/zoomIn
-     * @param isNeedCollapse
-     */
-    fullCollapseNode(isNeedCollapse){
-        const cNodes = NodeControl.getCNodes();
-        cNodes.map((node)=>{
-            node.fullCollapseNode(isNeedCollapse);
-        });
     }
 
     /**

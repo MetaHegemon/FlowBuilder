@@ -9,47 +9,47 @@ export default {
         failEditingTextTime: 300,           //время мигания красным при неудачном вводе текста
     },
     layers: {                               //слои(координаты по Z) для элементов ноды
-        nodeStep: 0.1,                      //шаг между нодами
+        nodeStep: 0.01,                      //шаг между нодами
         backMount: 0,
         title: 0,
-        indicator: 0.03,
-        frontMount: 0.01,
-        header: 0.02,
+        indicator: 0.003,
+        frontMount: 0.001,
+        header: 0.002,
         node: {
-            widthResizer: 0.04
+            widthResizer: 0.004
         },
         port: {
-            self: 0.02,
+            self: 0.002,
             magnet: 0,
-            connector: 0.1,
+            connector: 0.01,
             markMount: 0,
-            markLabel: 0.01,
+            markLabel: 0.001,
             label: 0
         },
-        footerLabel: 0.01,
+        footerLabel: 0.001,
         topForNode: 10,
         line: {
             fat: -1,
-            thin: -1.01
+            thin: -1.001
         },
         lineMark: {
-            pointer: 0.02,
+            pointer: 0.002,
             big: 0,
-            small: 0.01
+            small: 0.001
         },
         watchPoint: {
-            self: 12,
+            self: 20,
             back: 0,
-            front: 0.01,
-            controlPanelTop: 0.02,
-            controlPanelBottom: 0.02,
+            front: 0.001,
+            controlPanelTop: 0.002,
+            controlPanelBottom: 0.002,
             copyButton: 0,
             exportButton: 0,
             closeButton: 0,
             iconCornerResize: {
                 self: 0,
                 text: 0,
-                reactor: 0.01
+                reactor: 0.001
             }
         }
     },
