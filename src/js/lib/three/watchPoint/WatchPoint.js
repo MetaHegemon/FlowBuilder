@@ -37,7 +37,6 @@ export default class{
         const group = new THREE.Group();
         group.name = 'watchPoint';
 
-        //
         //большая подложка. используется для интерактивности ноды(выделение, перемещение и т.д.)
         const bigMount = Assets3d.bigMount.clone();
         bigMount.name = 'watchPointBigMount';
@@ -113,8 +112,8 @@ export default class{
     }
 
     hide(){
-        this.mesh.visible = false;
-        this.line.visible = false;
+        this.mesh.removeFromParent();
+        this.line.removeFromParent();
     }
 
     /**
