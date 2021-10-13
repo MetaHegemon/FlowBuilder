@@ -25,6 +25,7 @@ class LineControl{
             this.cLine = cPort1.cLines[0];
             this.cLine.removeLineMark();
             this.cLine.setCPort2(null);
+            this.cLine.hideWatchPoint();
             cPort1.cLines = [];
         } else {
             //создание новой линии от порта
