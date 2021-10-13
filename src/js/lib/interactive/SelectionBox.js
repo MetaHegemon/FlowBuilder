@@ -54,11 +54,17 @@ class SelectionBox {
 
     }
 
-    selectOnTouch(){
+    /**
+     * Выбор элементов при касании рамкой выделения
+     * @param selectNodes {boolean} - выбрать ноды
+     * @param selectLines {boolean} - выбрать линии
+     * @returns {[]|*}
+     */
+    selectOnTouch(selectNodes, selectLines){
         this.collection = [];
 
         this.updateFrustum(this.startPoint, this.endPoint);
-        this.searchChildInFrustumOnTouch( _frustum, this.scene );
+        this.searchChildInFrustumOnTouch( _frustum, this.scene, selectNodes, selectLines);
 
         return this.collection;
     }
@@ -67,20 +73,30 @@ class SelectionBox {
      * Поиск объектов по касанию внутри обзорного окна
      * @param frustum {Frustum}
      * @param object
+     * @param selectNodes {boolean} - выбрать ноды
+     * @param selectLines {boolean} - выбрать линии
      */
-    searchChildInFrustumOnTouch( frustum, object ) {
+    searchChildInFrustumOnTouch( frustum, object, selectNodes, selectLines ) {
         if ( object.isMesh || object.isLine || object.isPoints ) {
             if (object.geometry.boundingBox === null) object.geometry.computeBoundingBox();
 
-            if(object.name === 'bigMount'){
+            if (selectNodes && object.name === 'bigMount') {
                 boundingBox = new Box3().setFromObject(object.parent);
-                if(frustum.intersectsBox(boundingBox)){
+                if (frustum.intersectsBox(boundingBox)) {
                     this.collection.push(object);
                 }
-            } else if(object.name === 'line'){
-
-                if(frustum.intersectsBox(boundingBox)){
-                    this.collection.push(object);
+            }
+            if (selectLines && object.name === 'thinLine') {
+                //проверяем находится ли bounding box внутри рамки выделения
+                boundingBox = new Box3().setFromObject(object);
+                if (frustum.intersectsBox(boundingBox)) {
+                    //проверяем находятся ли точки линии внутри рамки выделения
+                    for(let i = 0; i < object.userData.points.length; i += 1){
+                        if(frustum.containsPoint(object.userData.points[i])){
+                            this.collection.push(object);
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -88,9 +104,7 @@ class SelectionBox {
         if ( object.children.length > 0 ) {
 
             for ( let x = 0; x < object.children.length; x ++ ) {
-
-                this.searchChildInFrustumOnTouch( frustum, object.children[ x ] );
-
+                this.searchChildInFrustumOnTouch( frustum, object.children[ x ], selectNodes, selectLines  );
             }
 
         }

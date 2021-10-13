@@ -177,7 +177,7 @@ export default class{
                                 //если с портом можно взаимодействовать, то
                                 //сохраняем 3д-объект коннектора, на которое произведено нажатие
                                 this.selectedOnPointerDown = intersect.object;
-                                this.unselectAllLines();
+                                //this.unselectAllLines(); //возможно придётся вернуть
                                 //включаем рисование линии
                                 LineControl.enable(intersect.object);
                             }
@@ -223,6 +223,7 @@ export default class{
         {
             this.select.helper.onSelectMove(e);
             this.unselectAllNodes();
+            this.unselectAllLines();
             this.select.box.endPoint.set(this.screenPos.x, this.screenPos.y, 0.5);
             let allSelected;
             if(e.ctrlKey){
@@ -230,17 +231,22 @@ export default class{
                 allSelected = this.select.box.selectOnCapture();
             } else {
                 //выделение нод при касании
-                allSelected = this.select.box.selectOnTouch();
+                allSelected = this.select.box.selectOnTouch(true, true);
             }
+            //clog(allSelected);
             //сохраняем список всех выделенных нод
             allSelected.map(o=>{
                 if (o.name === 'bigMount') {
                     const cNode = o.userData.nodeClass;
                     this.addCNodeToSelected(cNode);
+                } else if(o.name === 'thinLine'){
+                    const cLine = o.userData.class;
+                    this.addCLineToSelected(cLine);
                 }
             });
             //подсветка выделенных нод
             this.select.cNodes.map(cN => cN.select());
+            this.select.cLines.map(cL => cL.select());
         }
         else
         {
@@ -707,8 +713,8 @@ export default class{
     }
 
     /**
-     * Добавление ноды к выбранным
-     * @param cNode
+     * Добавление ноды в список выбранных
+     * @param cNode {Node}
      */
     addCNodeToSelected(cNode){
         const isExist = this.select.cNodes.some(n=>{
@@ -716,6 +722,18 @@ export default class{
         });
 
         if(!isExist) this.select.cNodes.push(cNode);
+    }
+
+    /**
+     * Добавление линии в список выбранных
+     * @param cLine {Line}
+     */
+    addCLineToSelected(cLine){
+        const isExist = this.select.cLines.some(l=>{
+            return l === cLine;
+        });
+
+        if(!isExist) this.select.cLines.push(cLine);
     }
 
     /**

@@ -14,12 +14,35 @@ export default class {
         //не удалять! расчёт постоянной ширины линии
         //this.frustumSize = C.three.zoom.default;
 
+        this.cPort1 = null;                                 //ссылка на класс первого порта, первый порт всегда выходной порт
+        this.cPort2 = null;                                 //ссылка на класс второго порта - всегда входной
+        this.selected = false;                              //флаг выбора линии
+        this.updateLineBuffer = this.getUpdateLineBuffer(); //буфер для хранения переменных при обновлении линии, для экономии памяти
 
-        this.cPort1 = null;                 //ссылка на класс первого порта, первый порт всегда выходной порт
-        this.cPort2 = null;                 //ссылка на класс второго порта - всегда входной
-        this.selected = false;              //флаг выбора линии
-        this.updateLineBuffer =             //буфер для хранения переменных при обновлении линии, для экономии памяти
-        {
+        this.pos1 = new THREE.Vector2();
+        this.pos2 = new THREE.Vector2();
+
+        this.isPort1Collapsed = false;      //флаг состояния порта1
+        this.isPort2Collapsed = false;      //флаг состояния порта2
+                                            //через них один порт может узнать, что со вторым
+        this.lineMark = null;               //ссылка на 3д-объект метки
+
+        this.watchPoint = null;             //ссылка на класс-вотчпоинт этой линии
+
+        this.fatLine = null;           //дубликат основной линии, но жирный и для интерактивности
+
+        this.thinLine = this.createThinLine();
+        this.updateResolution();
+
+        this.setEvents();
+    }
+
+    /**
+     * Создание буфера линии, для хранения расчётов данных
+     * @returns {{a: *[], b: *[], sx: number, sy: number, steps: number, p: *[], vectors: *[], ex: number, ey: number, dx: number, t: number, y1: number, x1: number, y2: number, x2: number, y3: number, x3: number, y4: number, x4: number, y5: number, x5: number, y6: number, x6: number}}
+     */
+    getUpdateLineBuffer(){
+        const buffer = {
             sx: 0,
             sy: 0,
             ex: 0,
@@ -41,25 +64,14 @@ export default class {
             x5: 0,
             y5: 0,
             x6: 0,
-            y6: 0
+            y6: 0,
+            vectors: []
         };
+        for(let i = 0; i < C.lines.segments; i += 1){
+            buffer.vectors.push(new THREE.Vector3());
+        }
 
-        this.pos1 = new THREE.Vector2();
-        this.pos2 = new THREE.Vector2();
-
-        this.isPort1Collapsed = false;      //флаг состояния порта1
-        this.isPort2Collapsed = false;      //флаг состояния порта2
-                                            //через них один порт может узнать, что со вторым
-        this.lineMark = null;               //ссылка на 3д-объект метки
-
-        this.watchPoint = null;             //ссылка на класс-вотчпоинт этой линии
-
-        this.fatLine = null;           //дубликат основной линии, но жирный и для интерактивности
-
-        this.thinLine = this.createThinLine();
-        this.updateResolution();
-
-        this.setEvents();
+        return buffer;
     }
 
     setEvents(){
@@ -288,12 +300,26 @@ export default class {
         }
         _.p.push(_.ex, _.ey, 0);
 
-
         this.thinLine.geometry.setPositions(_.p);
+
+        this.setVectorsOfPoints(_);
+
+        this.thinLine.userData.points = _.vectors;
 
         this.updateLineMarkPosition();
     }
 
+    setVectorsOfPoints(buffer) {
+        for (let i = 0; i < buffer.vectors.length; i += 1) {
+            buffer.vectors[i].x = buffer.p[i * 3];
+            buffer.vectors[i].y = buffer.p[i * 3 + 1];
+            buffer.vectors[i].z = buffer.p[i * 3 + 2];
+        }
+    }
+
+    /**
+     * Обновление толстой линии
+     */
     updateFatLine(){
         this.fatLine.geometry.setPositions(this.updateLineBuffer.p);
     }
