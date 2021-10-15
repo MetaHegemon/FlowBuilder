@@ -23,7 +23,7 @@ export default class {
         const port = Assets3d.getPort(this.data.name, this.data.type, this.direction, this.data.mark).clone();
 
         //добавление всем дочерним объектам ссылки на этот класс
-        port.traverse(object =>object.userData.portClass = this);
+        port.traverse(object =>object.userData.portInstance = this);
 
         return port
     }

@@ -5,6 +5,7 @@
 import Node from './Node';
 import C from '../../Constants';
 import FBS from "../../FlowBuilderStore";
+import Drag from './../../interactive/DragControl';
 
 class NodeControl {
     constructor() {
@@ -25,6 +26,10 @@ class NodeControl {
 
             'indicator'
         ];
+        this.select = {
+            cNodes: []
+        };
+        this.hovered = [];                          //контейнер для хранения всех подсвеченных объектов
     }
 
     init(){
@@ -33,6 +38,242 @@ class NodeControl {
 
     setEvents(){
         FBS.dom.canvas.addEventListener('zoomChange', e => this.listenZoom(e.detail.frustumSize));
+    }
+
+    onPointerDown(e, intersects){
+        const firstObject = intersects[1].object;
+        if (e.buttons === 1) {
+            if (this.isItMoveableElement(firstObject.name)) {
+                FBS.dom.setCursor('move'); //когда скажут, что нужно переделать обратно, просто скопируй туда где Drag.enable
+            }
+        }
+    }
+
+    onPointerMove(e, intersects, NodeResizer, pointerDownPos, pointerPos3d){
+        const firstObject = intersects[1].object;
+
+        if(e.buttons === 0) //без нажатия
+        {
+            if (firstObject.name === 'portLabelText') {
+                const cPort = firstObject.userData.portInstance;
+                cPort.hoverLabel();
+                this.hovered.push(firstObject);
+                FBS.dom.setCursor('pointer');
+            } else if (firstObject.name === 'footerLabel') {
+                const cNode = firstObject.userData.instance;
+                cNode.hoverFooterLabel();
+                this.hovered.push(firstObject);
+                FBS.dom.setCursor('pointer');
+            } else if (firstObject.name === 'collapseButton') {
+                FBS.dom.setCursor('pointer');
+            } else if (firstObject.name === 'playButton') {
+                FBS.dom.setCursor('pointer');
+            } else if (firstObject.name === 'menuButton') {
+                FBS.dom.setCursor('pointer');
+            } else if (firstObject.name === 'nodeWidthResizer') {
+                FBS.dom.setCursor('col-resize');
+            } else {
+                //this.unhoverObjects(firstObject);
+                //FBS.dom.resetCursor();
+            }
+        }
+        else if(e.buttons === 1) //левая
+        {
+            clog(firstObject.name);
+            if (firstObject.name === 'nodeWidthResizer') {
+                //включение изменения ширины ноды
+                NodeResizer.enable(firstObject);
+            } else {
+                //включение начала перемещения ноды
+                if (this.isMoved(pointerPos3d, pointerDownPos)) {
+                    const cNode = intersects[0].object.userData.instance;
+                    let objectsForDrag;
+                    if (cNode.isSelected()) {
+                        objectsForDrag = this.select.cNodes;
+                        //сортируется список перемещаемых нод, что бы текущую поднять наверх,
+                        // что бы отличить её от остальных после перемещения
+                        objectsForDrag.sort((a, b) => {
+                            return a === cNode ? -1 : cNode === b;
+                        });
+                    } else {
+                        objectsForDrag = [cNode];
+                    }
+                    //возврат всех нод на свои координаты по Z
+                    this.moveNodesToOriginZ();
+                    Drag.enable('node', objectsForDrag, pointerPos3d);
+                    //поднятие всех перемещаемых нод на верхний уровень по Z
+                    objectsForDrag.map(cN => cN.moveToOverAllZ());
+                }
+            }
+        }
+    }
+
+    onPointerUp(e, intersects){
+        const firstObject = intersects[1].object;
+        if (e.button === 0) {
+            //обработка нажатия на разные элементы сцены
+            if (firstObject.name === 'collapseButton') {
+                this.onCollapseButtonClick(firstObject);
+            } else if (firstObject.name === 'playButton') {
+                this.onPlayButtonClick(firstObject);
+            } else if (firstObject.name === 'menuButton') {
+                this.onMenuButtonClick(firstObject);
+            } else if(firstObject.name === 'portLabelText'){
+                this.onPortLabelClick(firstObject);
+            } else if(this.isItMoveableElement(firstObject.name)){
+                const cNode = firstObject.userData.instance;
+                this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
+                //сброс 'move' курсора
+                FBS.dom.resetCursor();
+            }
+        }
+    }
+
+    /**
+     * Снятие подсветки со всех объектов, кроме аргумента
+     * @param exceptObject - 3д-объект, который надо исключить
+     */
+    unhoverObjects(exceptObject){
+        for(let i = 0; i < this.hovered.length; i += 1) {
+            if (this.hovered[i] === exceptObject) continue;
+            if (this.hovered[i].name === 'portLabelText') {
+                const cPort = this.hovered[i].userData.portInstance;
+                cPort.unhoverLabel();
+            } else if (this.hovered[i].name === 'footerLabel') {
+                const cNode = this.hovered[i].userData.instance;
+                cNode.unhoverFooterLabel();
+            }
+            this.hovered.splice(i, 1);
+            i -= 1;
+        }
+    }
+
+    /**
+     * Обработчик кнопки управления сворачиванием ноды
+     * @param mCollapse  - 3д-объект кнопки
+     */
+    onCollapseButtonClick(mCollapse){
+        const cNode = mCollapse.userData.instance;
+        cNode.middleCollapseNode();
+    }
+
+    /**
+     * Обработчик нажатия на кнопку управления play
+     * @param mPlay
+     */
+    onPlayButtonClick(mPlay){
+        const cNode = mPlay.userData.instance;
+        cNode.play(mPlay);
+    }
+
+    /**
+     * Обработчик нажатия на кнопку управления menu
+     */
+    onMenuButtonClick(){
+
+    }
+
+    /**
+     * Обработчик клика на подпись порта
+     * @param mPort - 3д-объект порта
+     */
+    onPortLabelClick(mPort){
+        const cPort = mPort.userData.portInstance;
+        if(cPort.type === 'pseudo'){
+            //Сворачивание разворачивание портов в ноде
+            const cNode = cPort.getCNode();
+            cNode.shortCollapsePorts(cPort);
+        }
+    }
+
+    /**
+     *  Обработчик нажатия на ноду
+     * @param cNode {Object} - класс ноды
+     * @param shiftKey  {Boolean}
+     * @param ctrlKey   {Boolean}
+     */
+    onNodeClick (cNode, shiftKey, ctrlKey) {
+        if (cNode.isSelected()) {
+            if(ctrlKey) {
+                //нода удаляется из списка выбранных
+                for (let i = 0; i < this.select.cNodes.length; i += 1) {
+                    if (this.select.cNodes[i] === cNode) {
+                        this.select.cNodes.splice(i, 1);
+                        break;
+                    }
+                }
+                //снимается подсветка
+                cNode.unselect();
+            } else if(shiftKey){
+
+            } else {
+                if(this.select.cNodes.length > 1){
+                    //текущая нода остаётся выбранной, с остальных выбор снимается
+                    this.unselectAllSelectedNodesExcept(cNode);
+                } else {
+                    this.select.cNodes = [];
+                    cNode.unselect();
+                }
+            }
+        } else {
+            //все ноды возвращаются на свои координаты по Z
+            this.moveNodesToOriginZ([cNode]);
+            //текущая нода поднимается над всеми остальными
+            cNode.moveToOverAllZ();
+            if(!shiftKey && !ctrlKey) {
+                this.unselectAllSelectedNodesExcept(cNode);
+            }
+            this.addCNodeToSelected(cNode);
+            cNode.select();
+        }
+    }
+
+    /**
+     * Снятие выделения всех нод
+     */
+    unselectAllNodes(){
+        this.select.cNodes.map(l=>l.unselect());
+        this.select.cNodes = [];
+    }
+
+    highlightSelectedNodes(){
+        this.select.cNodes.map(cN => cN.select());
+    }
+
+    /**
+     * Снятие выбора со всех нод за исключением
+     * @param cNode - класс ноды, который нужно проигнорировать при снятии выбора
+     */
+    unselectAllSelectedNodesExcept(cNode){
+        for (let i = 0; i < this.select.cNodes.length; i += 1) {
+            if (this.select.cNodes[i] === cNode) continue;
+            this.select.cNodes[i].unselect();
+            this.select.cNodes.splice(i, 1);
+            i -= 1;
+        }
+    }
+
+    /**
+     * Добавление ноды в список выбранных
+     * @param cNode {Node}
+     */
+    addCNodeToSelected(cNode){
+        const isExist = this.select.cNodes.some(n=>{
+            return n === cNode;
+        });
+
+        if(!isExist) this.select.cNodes.push(cNode);
+    }
+
+    /**
+     * Проверка изменилось ли положение поинтера после нажатия
+     * @param currentPos {Vector2}
+     * @param startPos {Vector2}
+     * @returns {boolean}
+     */
+    isMoved(currentPos, startPos){
+        return Math.abs(currentPos.x - startPos.x) > C.deltaOnPointerInteractive ||
+            Math.abs(currentPos.y - startPos.y) > C.deltaOnPointerInteractive;
     }
 
     /**

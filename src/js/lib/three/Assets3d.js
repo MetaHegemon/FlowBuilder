@@ -11,7 +11,6 @@ import C from "../Constants";
 import {Text} from "troika-three-text";
 import MaterialControl from './MaterialControl';
 import {LineGeometry} from "three/examples/jsm/lines/LineGeometry";
-import {LineMaterial} from "three/examples/jsm/lines/LineMaterial";
 import {Line2} from "three/examples/jsm/lines/Line2";
 
 class NodeAssets{
@@ -103,6 +102,7 @@ class NodeAssets{
      * @returns {Mesh}
      */
     createBigMount() {
+        const name = 'bigMount';
         const material = MaterialControl.getMaterial('transparent');
 
         const r = C.nodeMesh.bigMount.radius;
@@ -140,6 +140,7 @@ class NodeAssets{
         group.traverse(o => {
             if (o.isMesh) o.material = material;
         });
+        group.position.setZ(C.layers.node.backMount);
 
         return group;
     }
@@ -318,7 +319,7 @@ class NodeAssets{
         mesh.letterSpacing = C.nodeMesh.footer.label.letterSpacing;
         mesh.anchorX = 'left';
         mesh.anchorY = 'bottom';
-        mesh.position.set(C.nodeMesh.footer.label.leftMargin, C.nodeMesh.footer.label.bottomMargin, C.layers.footerLabel);
+        mesh.position.set(C.nodeMesh.footer.label.leftMargin, C.nodeMesh.footer.label.bottomMargin, C.layers.node.footerLabel);
 
         return mesh;
     }
@@ -331,7 +332,7 @@ class NodeAssets{
 
         group.name = 'frontMount';
 
-        group.position.set(C.nodeMesh.mount.borderSize, -C.nodeMesh.mount.borderSize, C.layers.frontMount);
+        group.position.set(C.nodeMesh.mount.borderSize, -C.nodeMesh.mount.borderSize, C.layers.node.frontMount);
 
         return group;
     }
@@ -391,7 +392,7 @@ class NodeAssets{
         group.add(this.playButton);
         group.add(this.menuButton);
 
-        group.position.set(0, -C.nodeMesh.header.height / 2, C.layers.header);
+        group.position.set(0, -C.nodeMesh.header.height / 2, C.layers.node.header);
 
         return group;
     }
@@ -407,7 +408,7 @@ class NodeAssets{
         mesh.material = MaterialControl.getMaterial(mesh.name);
         mesh.anchorX = 'left';
         mesh.anchorY = 'bottom';
-        mesh.position.set(C.nodeMesh.title.leftMargin, C.nodeMesh.title.bottomMargin, 0);
+        mesh.position.set(C.nodeMesh.title.leftMargin, C.nodeMesh.title.bottomMargin, C.layers.node.title);
 
         return mesh;
     }
@@ -421,7 +422,7 @@ class NodeAssets{
         mesh.material = MaterialControl.getMaterial(mesh.name);
         mesh.anchorX = 'center';
         mesh.anchorY = 'middle';
-        mesh.position.setZ(C.layers.indicator);
+        mesh.position.setZ(C.layers.node.indicator);
 
         return mesh;
     }
@@ -581,7 +582,7 @@ class NodeAssets{
         mesh.position.set(
             C.miniNodeMesh.width / 2,
             -C.miniNodeMesh.height + (C.miniNodeMesh.footerHeight + C.miniNodeMesh.roundCornerRadius) / 2,
-            C.layers.footerLabel
+            C.layers.node.footerLabel
         );
 
         return mesh;

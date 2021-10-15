@@ -3,8 +3,7 @@
  */
 
 import * as THREE from 'three';
-import DragControl from './DragControl';
-import C from "./../Constants";
+import Drag from './DragControl';
 import { SelectionBox } from './SelectionBox';
 import  SelectionHelper  from './SelectHelper';
 import ThemeControl from "../../themes/ThemeControl";
@@ -14,14 +13,10 @@ import FBS from './../FlowBuilderStore';
 import TextEditor from "./../three/TextEditor";
 import NodeWidthResizer from './NodeWidthResizer';
 import WatchPointControl from "../three/line/WatchPointControl";
-import WatchPoint from "../three/line/WatchPoint";
 import WatchPointResizer from "./WatchPointResizer";
 
 //for jsDoc
 import Line from "../three/line/Line";
-
-//Класс контроля перемещения
-const Drag = new DragControl();
 
 //Класс контроля изменения ширины нод
 const NodeResizer = new NodeWidthResizer();
@@ -29,8 +24,12 @@ const NodeResizer = new NodeWidthResizer();
 //Контроль изменения размера вотчпоинта
 const WPResizer = new WatchPointResizer();
 
-export default class{
+class Interactive{
     constructor() {
+
+    }
+
+    init(){
         this.raycaster = new THREE.Raycaster();
         this.intersects = [];
         this.textEditor = new TextEditor();
@@ -44,16 +43,12 @@ export default class{
         this.select = {                         //объект для отслеживания выделенных объектов на сцене
             active: false,
             box: new SelectionBox( FBS.sceneControl.getCamera(), FBS.sceneControl.getScene()),
-            helper: new SelectionHelper( this.box, FBS.sceneControl.renderer, 'selectBox' ),
-            cLines: [],
-            cNodes: []
+            helper: new SelectionHelper( this.box, FBS.sceneControl.renderer, 'selectBox' )
         }
 
         this.screenPos = new THREE.Vector2();       //ссылка на координаты экрана от -1 до 1
         this.pointerPos3d = new THREE.Vector2();    //ссылка на координаты курсора в сцене
         this.pointerDownPos = new THREE.Vector2();  //ссылка на координаты последнего нажатия курсора
-        this.hovered = [];                          //контейнер для хранения всех подсвеченных объектов
-        this.selectedOnPointerDown = null;          //ссылка на последний объект, на который было нажатие
 
         this.setEvents();
     }
@@ -91,11 +86,7 @@ export default class{
                 ThemeControl.update(FBS.dom, FBS.sceneControl, NodeControl, LineControl);
             }
         } else if(e.code === 'Backspace' || e.code === 'Delete'){
-            //удаление выделенных элементов (линий)
-            if(this.select.cLines.length > 0){
-                LineControl.remove(this.select.cLines);
-                this.select.cLines = [];
-            }
+            LineControl.removeSelectedLines();
         }
     }
 
@@ -130,8 +121,7 @@ export default class{
         if(this.textEditor.active)
         //выключение редактирования, при клике не на заголовок
         {
-            const titleIntersect = this.checkOnIntersect(this.intersects, ['title']);
-            if (!titleIntersect) {
+            if(this.intersects.length > 0 && this.intersects[0].object.name !== 'title'){
                 this.textEditor.accept();
             }
         }
@@ -149,46 +139,20 @@ export default class{
         else
         {
             if (this.intersects.length > 0) {
-                if (e.buttons === 1) {
-                    let intersect;
-                    if(this.intersects[0].object.name === 'nodeWidthResizer')
-                    {
-                        //сохраняем 3д-объект ресайзера, на которое произведено нажатие, для изменения её ширины
-                        this.selectedOnPointerDown = this.intersects[0].object;
-                    }
-                    else if(this.intersects[0].object.name === 'watchPointCornerResizeReactor'){
-                        //сохраняем 3д-объект ресайзера, на которое произведено нажатие, для изменения размера вотчпоинта
-                        this.selectedOnPointerDown = this.intersects[0].object;
-                    }
-                    else if (NodeControl.isItMoveableElement(this.intersects[0].object.name)) {
-                        //сохраняем 3д-объект ноды, на которое произведено нажатие, для её перемещения
-                        this.selectedOnPointerDown = this.intersects[0].object.userData.nodeClass.get3dObject();
-                        this.setCursor('move'); //когда скажут, что нужно переделать обратно, просто скопируй туда где Drag.enable
-                    }
-                    else if(WatchPointControl.isItMoveableElement(this.intersects[0].object.name)){
-                        this.selectedOnPointerDown = this.intersects[0].object.userData.class.get3dObject();
-                        this.setCursor('move');
-                    }
-                    else if ((intersect = this.checkOnIntersect(this.intersects, ['connector'])))
-                    {
-                        const cPort = intersect.object.userData.portClass;
-                        if(cPort.connectorActive) {
-                            if (cPort.type !== 'pseudo') {
-                                //если с портом можно взаимодействовать, то
-                                //сохраняем 3д-объект коннектора, на которое произведено нажатие
-                                this.selectedOnPointerDown = intersect.object;
-                                //this.unselectAllLines(); //возможно придётся вернуть
-                                //включаем рисование линии
-                                LineControl.enable(intersect.object);
-                            }
-                        }
-                    }
+                const firstObject = this.intersects[0].object;
+                if(firstObject.name === 'nodeBigMount'){
+                    NodeControl.onPointerDown(e, this.intersects);
+                } else if(firstObject.name === 'watchPointBigMount'){
+                    WatchPointControl.onPointerDown(e, this.intersects);
+                } else if(firstObject.name === 'connector'){
+                    LineControl.onPointerDown(e, this.intersects);
                 }
             } else {
                 //нажатие в пустоту
                 if(e.buttons === 1) {
                     this.unselectAll();
-                    this.hideWatchPoints();
+                    LineControl.hideWatchPoints();
+
                     //активируется мультивыделение
                     this.select.active = true;
                     this.select.helper.onSelectStart(e);
@@ -205,6 +169,7 @@ export default class{
     }
 
     onPointerMove(e) {
+        this.unhoverObjects();
         this.screenPos.x = (e.clientX / FBS.dom.canvas.clientWidth) * 2 - 1;
         this.screenPos.y = -(e.clientY / FBS.dom.canvas.clientHeight) * 2 + 1;
 
@@ -222,8 +187,8 @@ export default class{
         else if(this.select.active) //SELECTING
         {
             this.select.helper.onSelectMove(e);
-            this.unselectAllNodes();
-            this.unselectAllLines();
+            NodeControl.unselectAllNodes();
+            LineControl.unselectAllLines();
             this.select.box.endPoint.set(this.screenPos.x, this.screenPos.y, 0.5);
             let allSelected;
             if(e.ctrlKey){
@@ -233,23 +198,21 @@ export default class{
                 //выделение нод при касании
                 allSelected = this.select.box.selectOnTouch(true, true);
             }
-            //clog(allSelected);
             //сохраняем список всех выделенных нод
             allSelected.map(o=>{
-                if (o.name === 'bigMount') {
-                    const cNode = o.userData.nodeClass;
-                    this.addCNodeToSelected(cNode);
+                if (o.name === 'nodeBigMount') {
+                    const cNode = o.userData.instance;
+                    NodeControl.addCNodeToSelected(cNode);
                 } else if(o.name === 'thinLine'){
-                    const cLine = o.userData.class;
-                    this.addCLineToSelected(cLine);
+                    const cLine = o.userData.instance;
+                    LineControl.addCLineToSelected(cLine);
                 }
             });
             //подсветка выделенных нод
-            this.select.cNodes.map(cN => cN.select());
-            this.select.cLines.map(cL => cL.select());
+            NodeControl.highlightSelectedNodes();
+            LineControl.highlightSelectedLines();
         }
-        else
-        {
+        else {
             //обновляем параметры луча (цель и направление)
             this.raycaster.setFromCamera(this.screenPos, FBS.sceneControl.camera);
 
@@ -257,7 +220,7 @@ export default class{
             this.pointerPos3d.x = this.raycaster.ray.origin.x;
             this.pointerPos3d.y = this.raycaster.ray.origin.y;
 
-            if(NodeResizer.active){
+            if (NodeResizer.active) {
                 //изменяем ширину ноды
                 NodeResizer.move(this.pointerPos3d);
                 LineControl.refreshLines([NodeResizer.get3dObject()]);
@@ -265,15 +228,13 @@ export default class{
                 //перетаскиваем объекты
                 Drag.dragObjects(this.pointerPos3d);
 
-                if(Drag.type === 'node') {
+                if (Drag.type === 'node') {
                     //для ноды обновляем линии портов
                     LineControl.refreshLines(Drag.getObjects());
-                } else if(Drag.type === 'watchPoint'){
-                    WatchPointControl.recalculateEdgePositions(Drag.getObjects());
-                    WatchPointControl.refreshLines(Drag.getObjects());
+                } else if (Drag.type === 'watchPoint') {
+                    WatchPointControl.afterMove(Drag.getObjects());
                 }
-            }
-            else if (LineControl.active) //рисуем линию
+            } else if (LineControl.active) //рисуем линию
             {
                 //получаем список пересечений
                 this.intersects = this.raycaster.intersectObjects(FBS.sceneControl.scene.children, true);
@@ -283,128 +244,38 @@ export default class{
                     LineControl.canBeConnected(this.intersects[0].object)
                 ) {
                     //примагничивание линии к порту назначения
-                    const cPort = this.intersects[0].object.userData.portClass;
+                    const cPort = this.intersects[0].object.userData.portInstance;
                     const pos = cPort.getConnectorPos();
                     LineControl.drawLineFromPos(pos.x, pos.y);
                 } else {
                     //рисуем линию к курсору мыши
                     LineControl.drawLineFromPos(this.pointerPos3d.x, this.pointerPos3d.y);
                 }
-            }
-            else if(WPResizer.active){
+            } else if (WPResizer.active) {
                 WPResizer.move(this.pointerPos3d);
-            }
-            else
-            {
+            } else {
                 //получаем список пересечений
                 this.intersects = this.raycaster.intersectObjects(FBS.sceneControl.scene.children, true);
 
-                if (e.buttons === 0) { //подсветка или смена курсора при наведении на разные объекты сцены
-                    if (this.intersects.length > 0) {
-                        const firstObject = this.intersects[0].object;
-
-                        if (firstObject.name === 'portLabelText') {
-                            const cPort = firstObject.userData.portClass;
-                            cPort.hoverLabel();
-                            this.hovered.push(firstObject);
-                            this.setCursor('pointer');
-                        } else if (firstObject.name === 'footerLabel') {
-                            const cNode = firstObject.userData.nodeClass;
-                            cNode.hoverFooterLabel();
-                            this.hovered.push(firstObject);
-                            this.setCursor('pointer');
-                        } else if (firstObject.name === 'connector') {
-                            const cPort = firstObject.userData.portClass;
-                            if(cPort.connectorActive) {
-                                if (cPort.type !== 'pseudo') {
-                                    this.setCursor('pointer');
-                                }
-                            }
-                        } else if (firstObject.name === 'fatLine')
-                        {
-                            if(LineControl.canBeSelected(firstObject)) {
-                                this.setCursor('pointer');
-                            }
-                        } else if (firstObject.name === 'lineMarkPointer')
-                        {
-                            if(LineControl.canBeSelected(firstObject)){
-                                const cLine = firstObject.userData.class;
-                                cLine.hoverLineMark();
-                                this.hovered.push(firstObject);
-                                this.setCursor('pointer');
-                            }
-                        } else if (firstObject.name === 'collapseButton') {
-                            this.setCursor('pointer');
-                        } else if (firstObject.name === 'playButton') {
-                            this.setCursor('pointer');
-                        } else if (firstObject.name === 'menuButton') {
-                            this.setCursor('pointer');
-                        } else if (firstObject.name === 'nodeWidthResizer') {
-                            this.setCursor('col-resize');
-                        } else if (firstObject.name === 'watchPointCornerResizeReactor') {
-                            this.setCursor('nwse-resize');
-                        } else if (
-                            firstObject.name === 'copyButton' || firstObject.name === 'exportButton' ||
-                            firstObject.name === 'closeButton'
-                        ){
-                            const instance = firstObject.userData.class;
-                            if(instance instanceof WatchPoint){
-                                instance.hoverElementByName(firstObject.name);
-                                this.hovered.push(firstObject);
-                                this.setCursor('pointer');
-                            }
-                        } else {
-                            this.unhoverObjects(firstObject);
-                            this.resetCursor();
-                        }
+                if (this.intersects.length > 0) {
+                    const firstObject = this.intersects[0].object;
+                    if (firstObject.name === 'nodeBigMount') {
+                        NodeControl.onPointerMove(e, this.intersects, NodeResizer, this.pointerDownPos, this.pointerPos3d);
+                    } else if (firstObject.name === 'watchPointBigMount') {
+                        WatchPointControl.onPointerMove(e, this.intersects, WPResizer,  this.pointerPos3d);
+                    } else if (
+                        firstObject.name === 'connector' ||
+                        firstObject.name === 'fatLine' ||
+                        firstObject.name === 'lineMarkPointer'
+                    ) {
+                        LineControl.onPointerMove(e, this.intersects);
                     } else {
-                        this.unhoverObjects(null);
-                        this.resetCursor();
-                    }
-                } else if (e.buttons === 1) {
-                    if (this.selectedOnPointerDown) {
-                        if(this.selectedOnPointerDown.name === 'nodeWidthResizer'){
-                            //включение изменения ширины ноды
-                            NodeResizer.enable(this.selectedOnPointerDown);
-                        } else if (this.selectedOnPointerDown.name === 'node') {
-                            //включение начала перемещения ноды
-                            if (this.isMoved(this.pointerPos3d, this.pointerDownPos)) {
-                                const cNode = this.intersects[0].object.userData.nodeClass;
-                                let objectsForDrag;
-                                if (cNode.isSelected()) {
-                                    objectsForDrag = this.select.cNodes;
-                                    //сортируется список перемещаемых нод, что бы текущую поднять наверх,
-                                    // что бы отличить её от остальных после перемещения
-                                    objectsForDrag.sort((a, b) => {
-                                        return a === cNode ? -1 : cNode === b;
-                                    });
-                                } else {
-                                    objectsForDrag = [cNode];
-                                }
-                                //возврат всех нод на свои координаты по Z
-                                NodeControl.moveNodesToOriginZ();
-                                Drag.enable('node', objectsForDrag, this.pointerPos3d);
-                                //поднятие всех перемещаемых нод на верхний уровень по Z
-                                objectsForDrag.map(cN => cN.moveToOverAllZ());
-                            }
-                        } else if (this.selectedOnPointerDown.name === 'connector') {
-                            //включаем рисование линии
-                            if(this.intersects[0]) {
-                                const firstObject = this.intersects[0].object;
-                                if (firstObject.name === 'connector') {
-                                    LineControl.enable(firstObject);
-                                }
-                            }
-                        } else if(this.selectedOnPointerDown.name === 'watchPoint'){
-                            Drag.enable('watchPoint', [this.selectedOnPointerDown.userData.class], this.pointerPos3d);
-                        } else if(this.selectedOnPointerDown.name === 'watchPointCornerResizeReactor'){
-                            WPResizer.enable(this.selectedOnPointerDown);
-                        }
-                    } else {
-
+                        //this.unhoverObjects();
+                        //FBS.dom.resetCursor();
                     }
                 } else {
-
+                    //this.unhoverObjects();
+                    FBS.dom.resetCursor();
                 }
             }
         }
@@ -433,7 +304,6 @@ export default class{
             this.select.active = false;
             this.select.helper.onSelectOver(e);
         } else {
-            this.selectedOnPointerDown = null;
             if(NodeResizer.active){
                 //выключение изменения ширины ноды
                 NodeResizer.disable();
@@ -445,7 +315,7 @@ export default class{
                 }
                 //выключение перемещения
                 Drag.disable();
-                this.resetCursor();
+                FBS.dom.resetCursor();
             } else if (LineControl.active) {
                 //завершение рисования линии
                 this.intersects = this.raycaster.intersectObjects(FBS.sceneControl.scene.children, true);
@@ -463,53 +333,14 @@ export default class{
                 WPResizer.disable();
             } else {
                 if (this.intersects.length > 0) {
-                    if (e.button === 0) {
-                        const first = this.intersects[0];
-                        //обработка нажатия на разные элементы сцены
-                        if (first.object.name === 'collapseButton') {
-                            this.onCollapseButtonClick(first.object);
-                        } else if (first.object.name === 'playButton') {
-                            this.onPlayButtonClick(first.object);
-                        } else if (first.object.name === 'menuButton') {
-                            this.onMenuButtonClick(first.object);
-                        } else if(first.object.name === 'portLabelText'){
-                            this.onPortLabelClick(first.object);
-                        } else if(first.object.name === 'lineMarkPointer'){
-                            if(LineControl.canBeSelected(first.object)){
-                                const cLine = first.object.userData.class;
-                                this.onWatchPointClick(cLine);
-                            }
-                        } else if(first.object.name === 'fatLine'){
-                            if(LineControl.canBeSelected(first.object)){
-                                const cLine = first.object.userData.class;
-                                this.onLineClick(cLine);
-                            }
-                        } else if(NodeControl.isItMoveableElement(first.object.name)){
-                            const cNode = first.object.userData.nodeClass;
-                            this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
-                            //сброс 'move' курсора
-                            this.resetCursor();
-                        } else if(WatchPointControl.isItMoveableElement(first.object.name)){
-                            this.resetCursor();
-                        } else if (first.object.name === 'closeButton'){
-                            const instance = first.object.userData.class;
-                            if(instance instanceof WatchPoint){
-                                this.onWatchPointCloseButtonClick(instance);
-                            }
-                        } else if (first.object.name === 'copyButton'){
-                            const instance = first.object.userData.class;
-                            if(instance instanceof WatchPoint){
-                                this.onWatchPointCopyButtonClick(instance);
-                            }
-                        } else if(first.object.name === 'exportButton'){
-                            const instance = first.object.userData.class;
-                            if(instance instanceof WatchPoint){
-                                this.onWatchPointExportButtonClick(instance);
-                            }
-                        }
+                    const firstObject = this.intersects[0].object;
+                    if(firstObject.name === 'nodeBigMount'){
+                        NodeControl.onPointerUp(e, this.intersects);
+                    } else if(firstObject.name === 'watchPointBigMount'){
+                        WatchPointControl.onPointerUp(e, this.intersects);
+                    } else if(firstObject.name === 'lineMarkPointer' || firstObject.name === 'fatLine'){
+                        LineControl.onPointerUp(e, this.intersects);
                     }
-                } else {
-
                 }
             }
             this.pointerDownPos.x = this.pointerDownPos.y = 0;
@@ -521,13 +352,13 @@ export default class{
      */
     onDblclick(){
         if(this.intersects.length > 0) {
-            let intersect;
-            if((intersect = this.checkOnIntersect(this.intersects, ['title'])) && !this.textEditor.active){
+            const firstObject = this.intersects[0].object;
+            if( firstObject.name === 'title' && !this.textEditor.active){
                 //включение редактирование заголовка
-                this.textEditor.enable(intersect.object);
+                this.textEditor.enable(firstObject);
             } else if(NodeControl.isItMoveableElement(this.intersects[0].object.name)){
                 //разворачивание полностью свёрнутой ноды
-                const cNode = this.intersects[0].object.userData.nodeClass;
+                const cNode = this.intersects[0].object.userData.instance;
                 if(cNode.fullCollapse.isCollapsed){
                     cNode.fullCollapseNode(false);
                 }
@@ -536,69 +367,12 @@ export default class{
     }
 
     /**
-     * Обработчик клика на подпись порта
-     * @param mPort - 3д-объект порта
-     */
-    onPortLabelClick(mPort){
-        const cPort = mPort.userData.portClass;
-        if(cPort.type === 'pseudo'){
-            //Сворачивание разворачивание портов в ноде
-            const cNode = cPort.getCNode();
-            cNode.shortCollapsePorts(cPort);
-        }
-    }
-
-    /**
-     * Обработчик кнопки управления сворачиванием ноды
-     * @param mCollapse - 3д-объект кнопки
-     */
-    onCollapseButtonClick(mCollapse){
-        const cNode = mCollapse.userData.nodeClass;
-        cNode.middleCollapseNode();
-    }
-
-    /**
-     * Обработчик нажатия на кнопку управления play
-     * @param mPlay
-     */
-    onPlayButtonClick(mPlay){
-        const cNode = mPlay.userData.nodeClass;
-        cNode.play(mPlay);
-    }
-
-    /**
-     * Обработчик нажатия на кнопку управления menu
-     */
-    onMenuButtonClick(){
-
-    }
-
-    /**
      * Снятие подсветки со всех объектов, кроме аргумента
-     * @param exceptObject - 3д-объект, который надо исключить
      */
-    unhoverObjects(exceptObject){
-        for(let i = 0; i < this.hovered.length; i += 1) {
-            if (this.hovered[i] === exceptObject) continue;
-            if(this.hovered[i].name === 'portLabelText'){
-                const cPort = this.hovered[i].userData.portClass;
-                cPort.unhoverLabel();
-            } else if(this.hovered[i].name === 'footerLabel'){
-                const cNode = this.hovered[i].userData.nodeClass;
-                cNode.unhoverFooterLabel();
-            } else if(this.hovered[i].name === 'lineMarkPointer'){
-                const cLine = this.hovered[i].userData.class;
-                cLine.unhoverLineMark();
-            } else if(
-                this.hovered[i].name === 'copyButton' || this.hovered[i].name === 'exportButton' ||
-                this.hovered[i].name === 'closeButton'
-            ){
-                const cWatchPoint = this.hovered[i].userData.class;
-                cWatchPoint.unhoverElementByName(this.hovered[i].name);
-            }
-            this.hovered.splice(i, 1);
-            i -= 1;
-        }
+    unhoverObjects(){
+        NodeControl.unhoverObjects();
+        LineControl.unhoverObjects();
+        WatchPointControl.unhoverObjects();
     }
 
     /**
@@ -621,196 +395,14 @@ export default class{
     }
 
     /**
-     * Проверка изменилось ли положение поинтера после нажатия
-     * @param currentPos {Vector2}
-     * @param startPos {Vector2}
-     * @returns {boolean}
-     */
-    isMoved(currentPos, startPos){
-        return Math.abs(currentPos.x - startPos.x) > C.deltaOnPointerInteractive ||
-            Math.abs(currentPos.y - startPos.y) > C.deltaOnPointerInteractive;
-    }
-
-    /**
-     *  Обработчик нажатия на ноду
-     * @param cNode {Object} - класс ноды
-     * @param shiftKey  {Boolean}
-     * @param ctrlKey   {Boolean}
-     */
-    onNodeClick (cNode, shiftKey, ctrlKey) {
-        if (cNode.isSelected()) {
-            if(ctrlKey) {
-                //нода удаляется из списка выбранных
-                for (let i = 0; i < this.select.cNodes.length; i += 1) {
-                    if (this.select.cNodes[i] === cNode) {
-                        this.select.cNodes.splice(i, 1);
-                        break;
-                    }
-                }
-                //снимается подсветка
-                cNode.unselect();
-            } else if(shiftKey){
-
-            } else {
-                if(this.select.cNodes.length > 1){
-                    //текущая нода остаётся выбранной, с остальных выбор снимается
-                    this.unselectAllSelectedNodesExcept(cNode);
-                } else {
-                    this.select.cNodes = [];
-                    cNode.unselect();
-                }
-            }
-        } else {
-            //все ноды возвращаются на свои координаты по Z
-            NodeControl.moveNodesToOriginZ([cNode]);
-            //текущая нода поднимается над всеми остальными
-            cNode.moveToOverAllZ();
-            if(shiftKey || ctrlKey) {
-                this.addCNodeToSelected(cNode);
-            } else {
-                this.unselectAllSelectedNodesExcept(cNode);
-                this.addCNodeToSelected(cNode);
-            }
-            cNode.select();
-        }
-    }
-
-    /**
-     * Обработчик скрытия вотч-поинта
-     * @param instance {WatchPoint}
-     */
-    onWatchPointCloseButtonClick(instance){
-        instance.hide();
-    }
-
-    /**
-     * Обработчик копирования из вотч-поинта
-     * @param instance {WatchPoint}
-     */
-    onWatchPointCopyButtonClick(instance){
-        clog('onWatchPointCopyButtonClick');
-    }
-
-    /**
-     * Обработчик экспорта из вотч поинта
-     * @param instance{WatchPoint}
-     */
-    onWatchPointExportButtonClick(instance){
-        clog('onWatchPointExportButtonClick');
-    }
-
-    /**
-     * Снятие выбора со всех нод за исключением
-     * @param cNode - класс ноды, который нужно проигнорировать при снятии выбора
-     */
-    unselectAllSelectedNodesExcept(cNode){
-        for (let i = 0; i < this.select.cNodes.length; i += 1) {
-            if (this.select.cNodes[i] === cNode) continue;
-            this.select.cNodes[i].unselect();
-            this.select.cNodes.splice(i, 1);
-            i -= 1;
-        }
-    }
-
-    /**
-     * Добавление ноды в список выбранных
-     * @param cNode {Node}
-     */
-    addCNodeToSelected(cNode){
-        const isExist = this.select.cNodes.some(n=>{
-            return n === cNode;
-        });
-
-        if(!isExist) this.select.cNodes.push(cNode);
-    }
-
-    /**
-     * Добавление линии в список выбранных
-     * @param cLine {Line}
-     */
-    addCLineToSelected(cLine){
-        const isExist = this.select.cLines.some(l=>{
-            return l === cLine;
-        });
-
-        if(!isExist) this.select.cLines.push(cLine);
-    }
-
-    /**
-     * Обработка нажатия на линию
-     * @param cLine {Line} - класс линии
-     */
-    onLineClick(cLine){
-        clog('onLineClick');
-        let isSelected = false;
-        for(let i = 0; i < this.select.cLines.length; i += 1){
-            if(this.select.cLines[i] === cLine){
-                isSelected = true;
-                this.select.cLines.splice(i, 1);
-                break;
-            }
-        }
-        if(isSelected){
-            cLine.unselect();
-        } else {
-            this.select.cLines.push(cLine);
-            cLine.select();
-
-        }
-    }
-
-    /**
-     *
-     * @param cLine {Line}
-     */
-    onWatchPointClick(cLine){
-        clog('onWatchPointClick');
-        cLine.showWatchPoint();
-    }
-
-    /**
-     * Скрытие всех активных вотчпоинтов
-     */
-    hideWatchPoints(){
-        LineControl.hideWatchPoints();
-    }
-
-    /**
      * Снятие выделения со всех линий и нод
      */
     unselectAll(){
-        this.unselectAllNodes();
-        this.unselectAllLines();
-    }
-
-    /**
-     * Снятие выделения всех нод
-     */
-    unselectAllNodes(){
-        this.select.cNodes.map(l=>l.unselect());
-        this.select.cNodes = [];
-    }
-
-    /**
-     * Снятие выделения всех линий
-     */
-    unselectAllLines(){
-        this.select.cLines.map(l=>l.unselect());
-        this.select.cLines = [];
-    }
-
-    /**
-     * Установка стиля курсора
-     * @param style {String}
-     */
-    setCursor(style){
-        if(FBS.dom.canvas.style.cursor !== style) FBS.dom.canvas.style.cursor = style;
-    }
-
-    /**
-     * Сброс курсора
-     */
-    resetCursor(){
-        FBS.dom.canvas.style.cursor = 'default';
+        NodeControl.unselectAllNodes();
+        LineControl.unselectAllLines();
     }
 }
+
+const interactive = new Interactive();
+
+export default interactive;

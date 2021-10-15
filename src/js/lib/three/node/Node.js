@@ -70,6 +70,12 @@ export default class{
         indicator.text = this.data.indicator;
         nodeObject.add(indicator);
 
+        //большая подложка. используется для интерактивности ноды(выделение, перемещение и т.д.)
+        const bigMount = Assets3d.bigMount.clone();
+        bigMount.name = 'nodeBigMount';
+        bigMount.position.setZ(C.layers.node.bigMount);
+        nodeObject.add(bigMount);
+
         //обычная подложка
         const regularShield = Assets3d.getRegularShield({
             withCollapseButton: this.data.inputs.length > 1 || this.data.outputs.length > 1
@@ -78,11 +84,6 @@ export default class{
 
         //мини-подложка
         nodeObject.add(Assets3d.getMiniShield().clone());
-
-        //большая подложка. используется для интерактивности ноды(выделение, перемещение и т.д.)
-        const bigMount = Assets3d.bigMount.clone();
-        bigMount.name = 'bigMount';
-        nodeObject.add(bigMount);
 
         //входные порты
         const inputPorts = this.createInputPorts(this.data.inputs);
@@ -99,7 +100,7 @@ export default class{
         nodeObject.position.set(this.data.position.x, this.data.position.y, this.originZ);
 
         //закрепляем за каждым дочерним объектом класс ноды, что бы из сцены получить к нему доступ
-        nodeObject.traverse(o => o.userData.nodeClass = this);
+        nodeObject.traverse(o => o.userData.instance = this);
 
         return nodeObject;
     }
@@ -1383,7 +1384,7 @@ export default class{
      * Изменение размера большой подложки
      */
     scaleBigMount(w, h){
-        const mesh = this.mesh.getObjectByName('bigMount');
+        const mesh = this.mesh.getObjectByName('nodeBigMount');
         mesh.scale.set(w ? w : this.nodeWidth, h ? h : this.nodeHeight, 1);
         mesh.updateWorldMatrix();
     }

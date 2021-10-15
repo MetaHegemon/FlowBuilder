@@ -4,7 +4,6 @@
 import '../../../css/main_window.css';
 import ThemeControl from './../../themes/ThemeControl';
 
-
 export default class {
     constructor(){
         this.window = null;     //ссылка на html контейнер для канваса
@@ -42,6 +41,14 @@ export default class {
 
     getCanvas (){
         return this.canvas;
+    }
+
+    setCursor(style){
+        if(this.canvas.style.cursor !== style) this.canvas.style.cursor = style;
+    }
+
+    resetCursor(){
+        this.canvas.style.cursor = 'default';
     }
 
     updateTheme(){

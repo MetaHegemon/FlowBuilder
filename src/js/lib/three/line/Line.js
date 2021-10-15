@@ -98,7 +98,7 @@ export default class {
         mesh.material = mesh.material.clone();
 
         //запись в 3д-объект ссылки на класс
-        mesh.userData.class = this;
+        mesh.userData.instance = this;
 
         return mesh;
     }
@@ -113,7 +113,7 @@ export default class {
         mesh.material = mesh.material.clone();
 
         //запись в 3д-объект ссылки на класс
-        mesh.userData.class = this;
+        mesh.userData.instance = this;
 
         return mesh;
     }
@@ -435,7 +435,7 @@ export default class {
      */
     createLineMark(){
         const lineMark = Assets3d.getLineMark().clone();
-        lineMark.traverse(o=> o.userData.class = this);
+        lineMark.traverse(o=> o.userData.instance = this);
         const bigMark = lineMark.getObjectByName('lineMarkBig');
         bigMark.material.color.setStyle(this.thinLine.material.color.getStyle());
 

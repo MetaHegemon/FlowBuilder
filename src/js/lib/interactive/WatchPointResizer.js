@@ -20,7 +20,7 @@ export default class{
     enable(resizer){
         this.active = true;
         this.resizer = resizer.parent;
-        this.cWatchPoint = resizer.userData.class;
+        this.cWatchPoint = resizer.userData.instance;
         this.mWatchPoint = this.cWatchPoint.get3dObject();
 
         //возврат всех нод на свои координаты по Z

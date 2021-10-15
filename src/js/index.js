@@ -15,6 +15,6 @@ NodeControl.init();
 NodeControl.buildNodes(flowData.nodes);
 FBS.sceneControl.addObjectsToScene(NodeControl.get3dObjects());
 
-new Interactive();
+Interactive.init()
 
 FBS.sceneControl.run();

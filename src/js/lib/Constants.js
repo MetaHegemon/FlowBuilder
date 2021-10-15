@@ -9,14 +9,15 @@ export default {
     },
     layers: {                               //слои(координаты по Z) для элементов ноды
         nodeStep: 0.01,                      //шаг между нодами
-        backMount: 0,
-        title: 0,
-        indicator: 0.003,
-        frontMount: 0.001,
-        header: 0.002,
         node: {
+            backMount: 0,
+            title: 0,
+            indicator: 0.003,
+            frontMount: 0.001,
             shield: 0,
-            widthResizer: 0.004
+            header: 0.002,
+            widthResizer: 0.004,
+            bigMount: 0.005
         },
         port: {
             self: 0.002,
@@ -37,8 +38,9 @@ export default {
             big: 0,
             small: 0.001
         },
-        watchPoint: {
+        watchPoint: {   //слой от 0 до 0.005
             self: 20,
+            bigMount: 0.005,
             back: 0,
             front: 0.001,
             controlPanelTop: 0.002,

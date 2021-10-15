@@ -40,6 +40,7 @@ export default class{
         //большая подложка. используется для интерактивности ноды(выделение, перемещение и т.д.)
         const bigMount = Assets3d.bigMount.clone();
         bigMount.name = 'watchPointBigMount';
+        bigMount.position.setZ(C.layers.watchPoint.bigMount);
         group.add(bigMount);
 
         //подложка
@@ -52,8 +53,10 @@ export default class{
         //нижняя панель
         group.add(Assets3d.getWatchPointControlPanelBottom().clone());
 
+        //group.add(Assets3d.)
+
         //закрепляем за каждым дочерним объектом на текущий экземпляр класса, что бы из сцены получить к нему доступ
-        group.traverse(o => o.userData.class = this);
+        group.traverse(o => o.userData.instance = this);
         group.visible = false;
         group.position.setZ(C.layers.watchPoint.self);
 

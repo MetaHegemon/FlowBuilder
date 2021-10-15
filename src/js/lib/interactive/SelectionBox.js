@@ -80,7 +80,7 @@ class SelectionBox {
         if ( object.isMesh || object.isLine || object.isPoints ) {
             if (object.geometry.boundingBox === null) object.geometry.computeBoundingBox();
 
-            if (selectNodes && object.name === 'bigMount') {
+            if (selectNodes && object.name === 'nodeBigMount') {
                 boundingBox = new Box3().setFromObject(object.parent);
                 if (frustum.intersectsBox(boundingBox)) {
                     this.collection.push(object);
@@ -130,7 +130,7 @@ class SelectionBox {
         if ( object.isMesh || object.isLine || object.isPoints ) {
             if (object.geometry.boundingBox === null) object.geometry.computeBoundingBox();
 
-            if(object.name === 'bigMount'){
+            if(object.name === 'nodeBigMount'){
                 boundingBox = new Box3().setFromObject(object.parent);
 
                 lt.x = boundingBox.min.x; lt.y = boundingBox.max.y;

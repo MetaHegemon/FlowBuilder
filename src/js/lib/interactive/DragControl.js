@@ -6,7 +6,7 @@
 import Node from '../three/node/Node';
 import WatchPoint from "../three/line/WatchPoint";
 
-export default class{
+class Drag{
     constructor() {
         this.active = false;        //флаг активности перемещения
         this.type = null;           //тип перетаскиваемого элемента node/watchPoint/etc..
@@ -59,3 +59,7 @@ export default class{
     }
 
 }
+
+const drag = new Drag();
+
+export default drag;

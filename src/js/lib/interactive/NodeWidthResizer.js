@@ -21,7 +21,7 @@ export default class{
     enable(resizer){
         this.active = true;
         this.resizer = resizer;
-        this.cNode = resizer.userData.nodeClass;
+        this.cNode = resizer.userData.instance;
         this.mNode = this.cNode.get3dObject();
 
         //возврат всех нод на свои координаты по Z
