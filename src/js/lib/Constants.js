@@ -17,6 +17,7 @@ export default {
             shield: 0,
             header: 0.002,
             widthResizer: 0.004,
+            footerLabel: 0.002,
             bigMount: 0.005
         },
         port: {
@@ -27,7 +28,6 @@ export default {
             markLabel: 0.001,
             label: 0
         },
-        footerLabel: 0.001,
         topForNode: 10,
         line: {
             fat: -1,

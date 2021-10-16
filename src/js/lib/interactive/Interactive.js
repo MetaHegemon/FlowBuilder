@@ -169,7 +169,7 @@ class Interactive{
     }
 
     onPointerMove(e) {
-        this.unhoverObjects();
+        this.unhoverObjects(); //TODO solve this for better performance
         this.screenPos.x = (e.clientX / FBS.dom.canvas.clientWidth) * 2 - 1;
         this.screenPos.y = -(e.clientY / FBS.dom.canvas.clientHeight) * 2 + 1;
 

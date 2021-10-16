@@ -73,17 +73,15 @@ class NodeControl {
             } else if (firstObject.name === 'nodeWidthResizer') {
                 FBS.dom.setCursor('col-resize');
             } else {
-                //this.unhoverObjects(firstObject);
-                //FBS.dom.resetCursor();
+                FBS.dom.resetCursor();
             }
         }
         else if(e.buttons === 1) //левая
         {
-            clog(firstObject.name);
             if (firstObject.name === 'nodeWidthResizer') {
                 //включение изменения ширины ноды
                 NodeResizer.enable(firstObject);
-            } else {
+            } else if (this.isItMoveableElement(firstObject.name)) {
                 //включение начала перемещения ноды
                 if (this.isMoved(pointerPos3d, pointerDownPos)) {
                     const cNode = intersects[0].object.userData.instance;

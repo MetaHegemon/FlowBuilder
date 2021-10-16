@@ -20,7 +20,7 @@ class WatchPointControl{
     }
 
     onPointerDown(e, intersects) {
-        const firstObject = intersects[1];
+        const firstObject = intersects[1].object;
         if (e.buttons === 1) {
             if (this.isItMoveableElement(firstObject.name)) {
                 FBS.dom.setCursor('move');
@@ -40,8 +40,8 @@ class WatchPointControl{
                 this.hovered.push(firstObject);
                 FBS.dom.setCursor('pointer');
             } else {
-                //this.unhoverObjects(firstObject);
-                //FBS.dom.resetCursor();
+
+                FBS.dom.resetCursor();
             }
         }
         else if(e.buttons === 1) //левая
