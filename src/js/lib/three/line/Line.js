@@ -423,10 +423,7 @@ export default class {
         //удаление линии из списка линий в портах
         if(this.cPort1) this.cPort1.removeCLine(this);
         if(this.cPort2) this.cPort2.removeCLine(this);
-
     }
-
-
 
     //LINE MARK
 

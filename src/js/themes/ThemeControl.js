@@ -45,14 +45,19 @@ class ThemeControl {
      * @param sceneControl
      * @param nodeControl
      * @param lineControl
+     * @param watchPointControl
+     * @param nodeMenu
      */
-    update(dom, sceneControl, nodeControl, lineControl){
+    update(dom, sceneControl, nodeControl, lineControl, watchPointControl, nodeMenu){
         dom.updateTheme();
         sceneControl.updateTheme();
         nodeControl.updateTheme();
 
         //т.к. цвет линии по умолчанию - это цвет порта, ноды нужно обновить до линий
         lineControl.updateTheme();
+
+        watchPointControl.updateTheme();
+        nodeMenu.updateTheme();
     }
 }
 

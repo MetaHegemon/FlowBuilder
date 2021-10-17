@@ -1,4 +1,8 @@
 export default {
+    fontPaths: {
+        mainNormal: './fonts/Raleway-Regular.ttf',
+        mainMedium: './fonts/Raleway-Medium.ttf',
+    },
     scene: {
         backgroundColor: '#ffffff'
     },
@@ -31,6 +35,24 @@ export default {
         exportButton: {
             fontColor: '#000000',
             hoverColor: '#2491F6'
+        }
+    },
+    nodeMenu: {
+        back: {
+            backgroundColor: '#D2D2D2'
+        },
+        front: {
+            backgroundColor: '#ffffff'
+        },
+        button: {
+            regular: {
+                color: '#2F2F2F',
+                hoverColor: '#2491F6'
+            },
+            warning: {
+                color: '#DB6F68',
+                hoverColor: '#2491F6'
+            }
         }
     },
     node: {
@@ -93,10 +115,5 @@ export default {
                 markColor: '#b6b6b6'
             }
         }
-    },
-
-    fontPaths: {
-        mainNormal: './fonts/Raleway-Regular.ttf',
-        mainMedium: './fonts/Raleway-Medium.ttf',
     }
 };

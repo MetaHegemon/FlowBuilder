@@ -14,6 +14,7 @@ import TextEditor from "./../three/TextEditor";
 import NodeWidthResizer from './NodeWidthResizer';
 import WatchPointControl from "../three/line/WatchPointControl";
 import WatchPointResizer from "./WatchPointResizer";
+import NodeMenu from './../three/node/Menu/Menu';
 
 //for jsDoc
 import Line from "../three/line/Line";
@@ -32,7 +33,6 @@ class Interactive{
     init(){
         this.raycaster = new THREE.Raycaster();
         this.intersects = [];
-        this.textEditor = new TextEditor();
 
         this.pan = {                            //объект для управления перемещения по сцене
             active: false,
@@ -74,7 +74,7 @@ class Interactive{
      */
     onKeyDown(e){
         //при редактировании текста включается свой обработчик нажатий, этот игнорируется
-        if(this.textEditor.active) return null;
+        if(TextEditor.active) return null;
         if(e.code === 'Space' && !this.pan.spacePressed) {
             //фиксируем нажатие пробела для последующего перемещения по сцене левым поинтером
             this.pan.spacePressed = true;
@@ -83,7 +83,7 @@ class Interactive{
             //смена темы сцены
             if(!e.repeat) {
                 ThemeControl.switch();
-                ThemeControl.update(FBS.dom, FBS.sceneControl, NodeControl, LineControl);
+                ThemeControl.update(FBS.dom, FBS.sceneControl, NodeControl, LineControl, WatchPointControl, NodeMenu);
             }
         } else if(e.code === 'Backspace' || e.code === 'Delete'){
             LineControl.removeSelectedLines();
@@ -97,7 +97,7 @@ class Interactive{
      */
     onKeyUp(e){
         //при редактировании текста включается свой обработчик нажатий, этот игнорируется
-        if(this.textEditor.active) return null;
+        if(TextEditor.active) return null;
         if(e.code === 'Space') {
             //фиксируем отжатие пробела для отключения возможности последующего перемещения по сцене левым поинтером
             this.pan.spacePressed = false;
@@ -118,13 +118,21 @@ class Interactive{
      * @param e
      */
     onPointerDown(e){
-        if(this.textEditor.active)
+        if(TextEditor.active)
         //выключение редактирования, при клике не на заголовок
         {
-            if(this.intersects.length > 0 && this.intersects[0].object.name !== 'title'){
-                this.textEditor.accept();
+            if(this.intersects.length < 1 ||
+                (this.intersects.length > 0 && this.intersects[0].object !== TextEditor.get3dObject())){
+                TextEditor.accept();
             }
         }
+
+        if(NodeMenu.active){
+            if(this.intersects.length < 1 || this.intersects.length > 0 && this.intersects[0].object.name !== 'nodeMenuBigMount') {
+                NodeMenu.hide();
+            }
+        }
+
         //сохранение координаты последнего нажатия поинтера, что бы впоследствии определить сместился ли поинтер
         this.pointerDownPos.x = this.pointerPos3d.x;
         this.pointerDownPos.y = this.pointerPos3d.y;
@@ -263,18 +271,16 @@ class Interactive{
                         NodeControl.onPointerMove(e, this.intersects, NodeResizer, this.pointerDownPos, this.pointerPos3d);
                     } else if (firstObject.name === 'watchPointBigMount') {
                         WatchPointControl.onPointerMove(e, this.intersects, WPResizer,  this.pointerPos3d);
+                    } else if(firstObject.name === 'nodeMenuBigMount'){
+                        NodeMenu.onPointerMove(e, this.intersects);
                     } else if (
                         firstObject.name === 'connector' ||
                         firstObject.name === 'fatLine' ||
                         firstObject.name === 'lineMarkPointer'
                     ) {
                         LineControl.onPointerMove(e, this.intersects);
-                    } else {
-                        //this.unhoverObjects();
-                        //FBS.dom.resetCursor();
                     }
                 } else {
-                    //this.unhoverObjects();
                     FBS.dom.resetCursor();
                 }
             }
@@ -340,6 +346,8 @@ class Interactive{
                         WatchPointControl.onPointerUp(e, this.intersects);
                     } else if(firstObject.name === 'lineMarkPointer' || firstObject.name === 'fatLine'){
                         LineControl.onPointerUp(e, this.intersects);
+                    } else if(firstObject.name === 'nodeMenuBigMount'){
+                        NodeMenu.onPointerUp(e, this.intersects);
                     }
                 }
             }
@@ -353,9 +361,9 @@ class Interactive{
     onDblclick(){
         if(this.intersects.length > 0) {
             const firstObject = this.intersects[0].object;
-            if( firstObject.name === 'title' && !this.textEditor.active){
+            if( firstObject.name === 'title' && !TextEditor.active){
                 //включение редактирование заголовка
-                this.textEditor.enable(firstObject);
+                TextEditor.enable(firstObject);
             } else if(NodeControl.isItMoveableElement(this.intersects[0].object.name)){
                 //разворачивание полностью свёрнутой ноды
                 const cNode = this.intersects[0].object.userData.instance;

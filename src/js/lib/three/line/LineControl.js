@@ -126,7 +126,7 @@ class LineControl{
     removeSelectedLines(){
         //удаление выделенных элементов (линий)
         if(this.select.cLines.length > 0){
-            this.removeLine(this.select.cLines);
+            this.removeLines(this.select.cLines);
             this.select.cLines = [];
         }
     }
@@ -185,7 +185,7 @@ class LineControl{
      */
     disable(){
         this.active = false;
-        this.removeLine([this.cLine]);
+        this.removeLines([this.cLine]);
     }
 
     /**
@@ -316,10 +316,10 @@ class LineControl{
     }
 
     /**
-     * Удаление линии
-     * @param cLines {[]}
+     * Удаление линий
+     * @param cLines {[Line]}
      */
-    removeLine(cLines){
+    removeLines(cLines){
         cLines.map(cL => {
             cL.remove();
             this.removeFromCLinesList(cL);

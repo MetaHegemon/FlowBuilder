@@ -149,6 +149,10 @@ class WatchPointControl{
         clog('onWatchPointExportButtonClick');
     }
 
+    updateTheme(){
+
+    }
+
 }
 
 const watchPointControl = new WatchPointControl();

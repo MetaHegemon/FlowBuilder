@@ -6,6 +6,8 @@ import Node from './Node';
 import C from '../../Constants';
 import FBS from "../../FlowBuilderStore";
 import Drag from './../../interactive/DragControl';
+import NodeMenu from './Menu/Menu';
+import TextEditor from './../TextEditor';
 
 class NodeControl {
     constructor() {
@@ -26,6 +28,7 @@ class NodeControl {
 
             'indicator'
         ];
+
         this.select = {
             cNodes: []
         };
@@ -161,14 +164,54 @@ class NodeControl {
      */
     onPlayButtonClick(mPlay){
         const cNode = mPlay.userData.instance;
-        cNode.play(mPlay);
+        cNode.play();
     }
 
     /**
      * Обработчик нажатия на кнопку управления menu
+     * @param button {Mesh}
+     * @returns {Generator<*, void, *>}
+     * @constructor
      */
-    onMenuButtonClick(){
+    onMenuButtonClick(button) {
+        const cNode = button.userData.instance;
+        const data = [
+            {
+                name: 'Execute',
+                type: 'regular',
+                callback: () => {
+                    cNode.play();
+                    NodeMenu.hide();
+                }
+            },
+            {
+                name: 'Hide',
+                type: 'regular',
+                callback: () => {
+                    cNode.remove();
+                    NodeMenu.hide();
+                }
+            },
+            {
+                name: 'Rename',
+                type: 'regular',
+                callback: () => {
+                    const title = cNode.getTitleMesh();
+                    TextEditor.enable(title);
+                    NodeMenu.hide();
+                }
+            },
+            {
+                name: 'Delete',
+                type: 'warning',
+                callback: () => {
+                    cNode.remove();
+                    NodeMenu.hide();
+                }
+            }
+        ];
 
+        NodeMenu.show(button.parent.localToWorld(button.position.clone()), data);
     }
 
     /**
@@ -310,7 +353,7 @@ class NodeControl {
 
     /**
      * Возвращает список всех 3д-объектов нод
-     * @returns {[]}
+     * @returns {[Group]}
      */
     get3dObjects() {
         return this.mNodes;
@@ -318,17 +361,10 @@ class NodeControl {
 
     /**
      * Возвращает список всех нод
-     * @returns {[]}
+     * @returns {[Node]}
      */
     getCNodes() {
         return this.cNodes;
-    }
-
-    /**
-     *  Обновление темы
-     */
-    updateTheme() {
-        this.cNodes.map(n => n.updateTheme());
     }
 
     /**
@@ -356,6 +392,13 @@ class NodeControl {
             }
         }
         return false;
+    }
+
+    /**
+     *  Обновление темы
+     */
+    updateTheme() {
+        this.cNodes.map(n => n.updateTheme());
     }
 }
 

@@ -106,8 +106,7 @@ class MaterialControl{
                     'watchPointFrontBodyBottom', 'watchPointFrontFooter'
                 ],
                 material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.watchPoint.bottomControlPanel.backgroundColor})
-            },
-
+            }
         ];
 
     }

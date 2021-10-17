@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 import C from './../Constants';
 
-export default class {
+class TextEditor{
     constructor(){
         this.active = false;
         this.textMesh = null;                  //ссылка на редактируемый 3д-объект
@@ -92,6 +92,9 @@ export default class {
      * @param textMesh {Text}
      */
     enable(textMesh) {
+        if(this.active){
+            this.accept();
+        }
         this.active = true;
         this.textMesh = textMesh;
         this.originTextStore = this.textMesh.text;
@@ -231,4 +234,12 @@ export default class {
             })
             .start();
     }
+
+    get3dObject(){
+        return this.textMesh;
+    }
 }
+
+const textEditor = new TextEditor();
+
+export default textEditor;

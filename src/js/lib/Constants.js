@@ -53,6 +53,13 @@ export default {
                 text: 0,
                 reactor: 0.001
             }
+        },
+        nodeMenu: {
+            self: 24,
+            bigMount: 0.005,
+            back: 0,
+            front: 0.001,
+            container: 0.002
         }
     },
     //смещение на которое нужно сдвинуть поинтер после нажатия, что бы зафиксировать движение с зажатой клавишей
@@ -205,9 +212,22 @@ export default {
                 letterSpacing: 0.032
             }
         },
+
         widthResizer: {
             width: 4                            //ширина ресайзера
         }
+    },
+    nodeMenu: {
+        backRadius: 7,
+        borderSize: 1,
+        fontSize: 18,
+        buttonHeight: 29.1,
+        paddingTop: 14.5,
+        paddingBottom: 12,
+        paddingLeft: 17,
+        paddingRight: 67,
+        positionOffsetTop: 25.6,
+        positionOffsetLeft: -6.3
     },
     three: {
         zoom: {
@@ -218,6 +238,9 @@ export default {
             default: 1200,                      //зум по умолчанию
             min: 1550,                          //максимальное отдаление
             max: 930,                           //максимальное приближение
+            /*default: 700,                      //зум по умолчанию
+            min: 1550,                          //максимальное отдаление
+            max: 700,                           //максимальное приближение*/
             damping: 0.7,                       //коэффициент инерции
             speed: 5,                           //скорость зума
             fullCollapseBorder: 1450,           //граница зума за которой ноды схлопываются

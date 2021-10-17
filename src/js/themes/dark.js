@@ -1,4 +1,8 @@
 export default {
+    fontPaths: {
+        mainNormal: './fonts/OpenSans-Regular.ttf',
+        mainMedium: './fonts/OpenSans-Medium.ttf',
+    },
     scene: {
         backgroundColor: '#7c7c7c'
     },
@@ -31,6 +35,24 @@ export default {
         exportButton: {
             fontColor: '#000000',
             hoverColor: '#2491F6'
+        }
+    },
+    nodeMenu: {
+        back: {
+            backgroundColor: '#f8bd59'
+        },
+        front: {
+            backgroundColor: '#525252'
+        },
+        button: {
+            regular: {
+                color: '#ffffff',
+                hoverColor: '#2491F6'
+            },
+            warning: {
+                color: '#DB6F68',
+                hoverColor: '#2491F6'
+            }
         }
     },
     node: {
@@ -93,9 +115,5 @@ export default {
                 markColor: '#dadada'
             }
         }
-    },
-    fontPaths: {
-        mainNormal: './fonts/OpenSans-Regular.ttf',
-        mainMedium: './fonts/OpenSans-Medium.ttf',
     }
 };

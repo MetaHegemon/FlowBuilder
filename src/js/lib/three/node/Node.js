@@ -315,9 +315,9 @@ export default class{
 
     /**
      * Обработка нажатия кнопки play
-     * @param mPlay {Text}
      */
-    play(mPlay){
+    play(){
+        const mPlay = this.mesh.getObjectByName('playButton');
         if(this.playing){
             this.playing = false;
             mPlay.text = '';
@@ -376,6 +376,10 @@ export default class{
      */
     get3dObject(){
         return this.mesh;
+    }
+
+    getTitleMesh(){
+        return this.mesh.getObjectByName('title');
     }
 
     /**
@@ -1495,6 +1499,20 @@ export default class{
         this.mesh.position.setZ(this.originZ);
     }
 
+    remove(){
+        this.removeAllLines();
+        this.mesh.removeFromParent();
+        //TODO dispose all
+    }
+
+    removeAllLines(){
+        const cPorts = this.getAllVisibleCPorts();
+        cPorts.map(p => {
+            const cLines = p.cLines;
+            LineControl.removeLines(cLines);
+        });
+    }
+
     /**
      * Обновление темы ноды
      */
@@ -1547,7 +1565,6 @@ export default class{
             m.color = ThemeControl.theme.node.footer.label.color;
             m.font = ThemeControl.theme.fontPaths.mainNormal;
         }
-
 
         m = this.mesh.getObjectByName('backBody');
         if(m) m.material.color.setStyle(ThemeControl.theme.node.mount.back.color);

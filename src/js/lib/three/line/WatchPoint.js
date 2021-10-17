@@ -15,8 +15,6 @@ export default class{
         this.width = C.watchPoint.defaultWidth;
         this.height = C.watchPoint.defaultHeight;
 
-        this.select = false;
-
         this.wpPosition = null;
         this.lineMarkPosition = null;               //Vector3 позиция маркера на линии
 
