@@ -5,10 +5,10 @@
  */
 
 import * as THREE from 'three';
-import C from "../../Constants";
-import Assets3d from '../Assets3d';
-import FBS from "../../FlowBuilderStore";
-import ThemeControl from "../../../themes/ThemeControl";
+import C from "../../../Constants";
+import Assets3d from './Assets3d';
+import FBS from "../../../FlowBuilderStore";
+import ThemeControl from "../../../../themes/ThemeControl";
 
 export default class{
     constructor() {
@@ -26,12 +26,16 @@ export default class{
             bottom: null
         };
 
-        this.mesh = this.createWindow();
+        this.mesh = this.create();
         this.scaleWatchPoint();
         this.calcEdgePositions();
     }
 
-    createWindow() {
+    /**
+     * Создаёт 3д-объект вотчпоинта
+     * @returns {Group}
+     */
+    create() {
         const group = new THREE.Group();
         group.name = 'watchPoint';
 
@@ -42,40 +46,43 @@ export default class{
         group.add(bigMount);
 
         //подложка
-        const shield = Assets3d.getWatchPointShield().clone();
+        const shield = Assets3d.getShield().clone();
         group.add(shield);
 
         //верхняя панель
-        group.add(Assets3d.getWatchPointControlPanelTop().clone());
+        group.add(Assets3d.getControlPanelTop().clone());
 
         //нижняя панель
-        group.add(Assets3d.getWatchPointControlPanelBottom().clone());
+        group.add(Assets3d.getControlPanelBottom().clone());
 
         //group.add(Assets3d.)
 
         //закрепляем за каждым дочерним объектом на текущий экземпляр класса, что бы из сцены получить к нему доступ
         group.traverse(o => o.userData.instance = this);
-        group.visible = false;
         group.position.setZ(C.layers.watchPoint.self);
 
         return group;
     }
 
+    /**
+     * Добавляет вотчпоинт на сцену
+     * @param lineMarkPosition {THREE.Vector3}
+     */
     show(lineMarkPosition){
         if(!this.wpPosition){
             this.lineMarkPosition = lineMarkPosition;
-            this.wpPosition = this.mesh.position;
             //TODO найти место для вотчпоинта
-            const p = lineMarkPosition;
-            this.wpPosition.set(p.x, p.y, this.wpPosition.z);
+            this.wpPosition.set(lineMarkPosition.x, lineMarkPosition.y, this.wpPosition.z);
             this.line = this.createLine();
         }
-        this.mesh.visible = true;
-        this.line.visible = true;
         this.updateLine();
         FBS.sceneControl.addObjectsToScene([this.mesh, this.line]);
     }
 
+    /**
+     * Создаёт линию
+     * @returns {Line}
+     */
     createLine(){
         const material = new THREE.LineBasicMaterial({color: 0x0000ff});
         const points = [new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, 0 )];
@@ -87,6 +94,9 @@ export default class{
         return mesh;
     }
 
+    /**
+     * Обновляет координаты линии
+     */
     updateLine(){
         //ищем ближайшую точку на грани
         const distances = {
@@ -111,11 +121,17 @@ export default class{
         this.line.geometry.setFromPoints([this.lineMarkPosition, endPoint]);
     }
 
+    /**
+     * Убирает вотчпоинт и линию во сцены
+     */
     hide(){
         this.mesh.removeFromParent();
         this.line.removeFromParent();
     }
 
+    /**
+     * Удаляет вотчпоинт и линию со сцены и освобождает память
+     */
     remove(){
         this.hide();
 
@@ -147,6 +163,9 @@ export default class{
         this.height = value;
     }
 
+    /**
+     * Изменение размеров окна вотчпоинта
+     */
     scaleWatchPoint(){
         this.scaleBigMount();
         this.scaleBackBody();
@@ -155,43 +174,54 @@ export default class{
         this.scaleControlPanelBottom();
     }
 
+    /**
+     * Изменяет размер большой подложки
+     * @param w
+     * @param h
+     */
     scaleBigMount(w, h){
         const mesh = this.mesh.getObjectByName('watchPointBigMount');
         mesh.scale.set(w ? w : this.width, h ? h : this.height, 1);
         mesh.updateWorldMatrix();
     }
 
+    /**
+     * Изменяет размер задней подложки
+     */
     scaleBackBody(){
-        const top = this.mesh.getObjectByName('watchPointBackTop');
-        const topBody = top.getObjectByName('watchPointBackBodyTop');
+        const top = this.mesh.getObjectByName('backTop');
+        const topBody = top.getObjectByName('backBodyTop');
         topBody.scale.set(this.width - C.watchPoint.backRadius * 2, 1, 1);
         topBody.position.setX(this.width/2);
-        const topRightCorner = top.getObjectByName('watchPointBackCornerTopRight');
+        const topRightCorner = top.getObjectByName('backCornerTopRight');
         topRightCorner.position.setX(this.width - C.watchPoint.backRadius);
 
-        const body = this.mesh.getObjectByName('watchPointBackBody');
+        const body = this.mesh.getObjectByName('backBody');
         body.scale.set( this.width, this.height - C.watchPoint.backRadius * 2, 1);
         body.position.set(this.width/2, -this.height/2, body.position.z);
 
-        const bottom = this.mesh.getObjectByName('watchPointBackBottom');
+        const bottom = this.mesh.getObjectByName('backBottom');
         bottom.position.setY(-this.height);
-        const bottomBody = bottom.getObjectByName('watchPointBackBodyBottom');
+        const bottomBody = bottom.getObjectByName('backBodyBottom');
         bottomBody.scale.set(this.width - C.watchPoint.backRadius * 2, 1, 1);
         bottomBody.position.setX(this.width/2);
-        const bottomRightCorner = bottom.getObjectByName('watchPointBackCornerBottomRight');
+        const bottomRightCorner = bottom.getObjectByName('backCornerBottomRight');
         bottomRightCorner.position.setX(this.width - C.watchPoint.backRadius);
     }
 
+    /**
+     * Изменяет размер передней подложки
+     */
     scaleFrontBody(){
-        const front = this.mesh.getObjectByName('watchPointFrontMount');
+        const front = this.mesh.getObjectByName('frontMount');
         front.position.set(C.watchPoint.borderSize, -C.watchPoint.borderSize, front.position.z);
-        const topBody = front.getObjectByName('watchPointFrontBodyTop');
+        const topBody = front.getObjectByName('frontBodyTop');
         topBody.scale.set(this.width - C.watchPoint.backRadius * 2, 1, 1);
         topBody.position.setX((this.width - C.watchPoint.borderSize*2) / 2);
 
-        const topRightCorner = front.getObjectByName('watchPointFrontCornerTopRight');
+        const topRightCorner = front.getObjectByName('frontCornerTopRight');
         topRightCorner.position.setX(this.width - C.watchPoint.backRadius - C.watchPoint.borderSize);
-        const header = front.getObjectByName('watchPointFrontHeader');
+        const header = front.getObjectByName('frontHeader');
         header.scale.setX(this.width - C.watchPoint.borderSize * 2);
         header.position.set(
             (this.width - C.watchPoint.borderSize*2)/2,
@@ -199,7 +229,7 @@ export default class{
             header.position.z);
 
         const bodyHeight = this.height - C.watchPoint.backRadius * 2 - C.watchPoint.topControlPanelHeight - C.watchPoint.bottomControlPanelHeight;
-        const body = this.mesh.getObjectByName('watchPointFrontBody');
+        const body = this.mesh.getObjectByName('frontBody');
         body.scale.set(this.width - C.watchPoint.borderSize * 2, bodyHeight, 1);
         body.position.set(
             (this.width - C.watchPoint.borderSize*2)/2,
@@ -207,31 +237,36 @@ export default class{
             body.position.z
         );
 
-        const bottom = front.getObjectByName('watchPointFrontBottom');
+        const bottom = front.getObjectByName('frontBottom');
         bottom.position.set(0, -this.height + C.watchPoint.borderSize*2, bottom.position.z);
-        const frontFooter = bottom.getObjectByName('watchPointFrontFooter');
+        const frontFooter = bottom.getObjectByName('frontFooter');
         frontFooter.scale.setX(this.width - C.watchPoint.borderSize * 2);
         frontFooter.position.set(
             (this.width - C.watchPoint.borderSize*2)/2,
             C.watchPoint.bottomControlPanelHeight/2 + C.watchPoint.backRadius - C.watchPoint.borderSize,
             frontFooter.position.z
         );
-        const bottomBody = bottom.getObjectByName('watchPointFrontBodyBottom');
+        const bottomBody = bottom.getObjectByName('frontBodyBottom');
         bottomBody.scale.setX(this.width - C.watchPoint.backRadius * 2);
         bottomBody.position.setX((this.width - C.watchPoint.borderSize*2)/2);
-        const bottomRightCorner = bottom.getObjectByName('watchPointFrontCornerBottomRight');
+        const bottomRightCorner = bottom.getObjectByName('frontCornerBottomRight');
         bottomRightCorner.position.setX(this.width - C.watchPoint.backRadius - C.watchPoint.borderSize);
     }
 
+    /**
+     * Изменяет размер верхней панели инструментов
+     */
     scaleControlPanelTop(){
-        const controlPanel = this.mesh.getObjectByName('watchPointControlPanelTop');
-
+        const controlPanel = this.mesh.getObjectByName('controlPanelTop');
         const closeButton = controlPanel.getObjectByName('closeButton');
         closeButton.position.set(this.width - C.watchPoint.closeButton.marginRight, -C.watchPoint.closeButton.marginTop, closeButton.position.z);
     }
 
+    /**
+     * Изменяет размер нижней панели инструментов
+     */
     scaleControlPanelBottom(){
-        const controlPanel = this.mesh.getObjectByName('watchPointControlPanelBottom');
+        const controlPanel = this.mesh.getObjectByName('controlPanelBottom');
         controlPanel.position.setY(-this.height + C.watchPoint.backRadius + C.watchPoint.bottomControlPanelHeight);
         const cornerResize = controlPanel.getObjectByName('iconCornerResize');
         cornerResize.position.set(
@@ -246,6 +281,9 @@ export default class{
         exportButton.position.set(C.watchPoint.exportButton.leftMargin, -C.watchPoint.exportButton.topMargin, C.layers.watchPoint.exportButton);
     }
 
+    /**
+     * Находит координаты на гранях вотчпоинта
+     */
     calcEdgePositions(){
         const localLeft = new THREE.Vector3(0, -this.height/2, C.layers.watchPoint.self);
         const localRight = new THREE.Vector3(this.width, -this.height/2, C.layers.watchPoint.self);
@@ -280,7 +318,32 @@ export default class{
         return this.mesh;
     }
 
+    /**
+     * Обновляет тему элемента
+     */
     updateTheme(){
+        let m = this.mesh.getObjectByName('backBody');
+        if(m) m.material.color.setStyle(ThemeControl.theme.watchPoint.back.backgroundColor);
 
+        m = this.mesh.getObjectByName('frontBody');
+        if(m) m.material.color.setStyle(ThemeControl.theme.watchPoint.front.backgroundColor);
+
+        m = this.mesh.getObjectByName('frontBodyTop');
+        if(m) m.material.color.setStyle(ThemeControl.theme.watchPoint.topControlPanel.backgroundColor);
+
+        m = this.mesh.getObjectByName('frontBodyBottom');
+        if(m) m.material.color.setStyle(ThemeControl.theme.watchPoint.bottomControlPanel.backgroundColor);
+
+        m = this.mesh.getObjectByName('copyButton');
+        if(m) m.color = ThemeControl.theme.watchPoint.copyButton.fontColor;
+
+        m = this.mesh.getObjectByName('exportButton');
+        if(m) m.color = ThemeControl.theme.watchPoint.exportButton.fontColor;
+
+        m = this.mesh.getObjectByName('iconCornerResize');
+        if(m) m.color = ThemeControl.theme.watchPoint.cornerResize.fontColor;
+
+        m = this.mesh.getObjectByName('closeButton');
+        if(m) m.color = ThemeControl.theme.watchPoint.closeButton.fontColor;
     }
 }

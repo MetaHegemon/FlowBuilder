@@ -15,6 +15,9 @@ export default {
         back: {
             backgroundColor: '#D2D2D2'
         },
+        front: {
+            backgroundColor: '#ffffff'
+        },
         topControlPanel: {
             backgroundColor: '#F3F3F3'
         },

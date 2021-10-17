@@ -13,33 +13,36 @@ export default {
     },
     watchPoint: {
         back: {
-            backgroundColor: '#D2D2D2'
+            backgroundColor: '#ffffff'
+        },
+        front: {
+            backgroundColor: '#525252'
         },
         topControlPanel: {
-            backgroundColor: '#EEEFF2'
+            backgroundColor: '#f8bd59'
         },
         bottomControlPanel: {
-            backgroundColor: '#EEEFF2'
+            backgroundColor: '#f8bd59'
         },
         cornerResize: {
-            fontColor: '#5F5F5F'
+            fontColor: '#ffffff'
         },
         closeButton: {
-            fontColor: '#2F2F2F',
+            fontColor: '#ffffff',
             hoverColor: '#2491F6'
         },
         copyButton: {
-            fontColor: '#000000',
+            fontColor: '#ffffff',
             hoverColor: '#2491F6'
         },
         exportButton: {
-            fontColor: '#000000',
+            fontColor: '#ffffff',
             hoverColor: '#2491F6'
         }
     },
     nodeMenu: {
         back: {
-            backgroundColor: '#f8bd59'
+            backgroundColor: '#ffffff'
         },
         front: {
             backgroundColor: '#525252'

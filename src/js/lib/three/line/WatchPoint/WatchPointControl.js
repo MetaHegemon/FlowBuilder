@@ -3,20 +3,18 @@
  *
  */
 import {Object3D} from "three";
-import FBS from './../../FlowBuilderStore';
-import Drag from './../../interactive/DragControl';
+import FBS from '../../../FlowBuilderStore';
+import Drag from '../../../interactive/DragControl';
 
 //for jsDoc
 import WatchPoint from "./WatchPoint";
 
 class WatchPointControl{
     constructor() {
-        //список имён элементов вотчпоинта, за который вотчпоинт можно таскать
-        this.moveableElements = [
-            'watchPointFrontCornerTopLeft', 'watchPointFrontCornerTopRight',
-            'watchPointFrontBodyTop', 'watchPointFrontHeader'
-        ];
-        this.hovered = [];                          //контейнер для хранения всех подсвеченных объектов
+        //список имён элементов вотчпоинта, за который вотчпоинт можно перетаскивать
+        this.moveableElements = ['frontCornerTopLeft', 'frontCornerTopRight', 'frontBodyTop', 'frontHeader'];
+        //контейнер для хранения всех подсвеченных объектов
+        this.hovered = [];
     }
 
     onPointerDown(e, intersects) {
@@ -32,7 +30,7 @@ class WatchPointControl{
         const firstObject = intersects[1].object;
         if(e.buttons === 0) //без нажатия
         {
-            if (firstObject.name === 'watchPointCornerResizeReactor') { //rename to simple name
+            if (firstObject.name === 'cornerResizeReactor') { //rename to simple name
                 FBS.dom.setCursor('nwse-resize');
             } else if (firstObject.name === 'copyButton' || firstObject.name === 'exportButton' || firstObject.name === 'closeButton') {
                 const instance = firstObject.userData.instance;
@@ -48,7 +46,7 @@ class WatchPointControl{
         {
             if (this.isItMoveableElement(firstObject.name)) {
                 Drag.enable('watchPoint', [firstObject.userData.instance], pointerPos3d);
-            } else if (firstObject.name === 'watchPointCornerResizeReactor') {//rename to simple name
+            } else if (firstObject.name === 'cornerResizeReactor') {//rename to simple name
                 WPResizer.enable(firstObject); //move to this
             }
         }
@@ -148,11 +146,6 @@ class WatchPointControl{
     onWatchPointExportButtonClick(instance){
         clog('onWatchPointExportButtonClick');
     }
-
-    updateTheme(){
-
-    }
-
 }
 
 const watchPointControl = new WatchPointControl();

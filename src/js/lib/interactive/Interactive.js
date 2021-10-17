@@ -12,7 +12,7 @@ import LineControl from '../three/line/LineControl';
 import FBS from './../FlowBuilderStore';
 import TextEditor from "./../three/TextEditor";
 import NodeWidthResizer from './NodeWidthResizer';
-import WatchPointControl from "../three/line/WatchPointControl";
+import WatchPointControl from "../three/line/WatchPoint/WatchPointControl";
 import WatchPointResizer from "./WatchPointResizer";
 import NodeMenu from './../three/node/Menu/Menu';
 
@@ -83,7 +83,7 @@ class Interactive{
             //смена темы сцены
             if(!e.repeat) {
                 ThemeControl.switch();
-                ThemeControl.update(FBS.dom, FBS.sceneControl, NodeControl, LineControl, WatchPointControl, NodeMenu);
+                ThemeControl.update(FBS.dom, FBS.sceneControl, NodeControl, LineControl, NodeMenu);
             }
         } else if(e.code === 'Backspace' || e.code === 'Delete'){
             LineControl.removeSelectedLines();

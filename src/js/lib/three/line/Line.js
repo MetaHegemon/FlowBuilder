@@ -7,7 +7,7 @@ import C from '../../Constants';
 import ThemeControl from '../../../themes/ThemeControl';
 import Assets3d from '../Assets3d';
 import FBS from "../../FlowBuilderStore";
-import WatchPoint from "./WatchPoint";
+import WatchPoint from "./WatchPoint/WatchPoint";
 
 export default class {
     constructor(){
@@ -548,6 +548,10 @@ export default class {
         if(this.lineMark) {
             const markSmall = this.lineMark.getObjectByName('lineMarkSmall');
             markSmall.material.color.setStyle(ThemeControl.theme.scene.backgroundColor);
+        }
+
+        if(this.watchPoint){
+            this.watchPoint.updateTheme();
         }
 
     }

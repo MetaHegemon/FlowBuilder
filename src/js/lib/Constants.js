@@ -1,4 +1,5 @@
 export default {
+    //TODO dive this and move to each component
     defaultTheme: 'light',
     animation:{
         nodeCollapseTime: 150,              //milliseconds

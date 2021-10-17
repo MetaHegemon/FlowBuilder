@@ -16,7 +16,6 @@ class NodeMenuAssets {
         //materials
         this.backMaterial = new THREE.MeshBasicMaterial({color: ThemeControl.theme.nodeMenu.back.backgroundColor});
         this.frontMaterial = new THREE.MeshBasicMaterial({color: ThemeControl.theme.nodeMenu.front.backgroundColor});
-        this.buttonMaterial = new THREE.MeshBasicMaterial({color: ThemeControl.theme.nodeMenu.button.fontColor});
 
         //elements
         this.bigMount = this.createBigMount();
