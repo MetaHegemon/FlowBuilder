@@ -245,6 +245,14 @@ export default class{
     }
 
     /**
+     * Возврат состояние окна вывода сообщения. Свёрнуто или нет.
+     * @returns {boolean|*}
+     */
+    isMessageWrapped(){
+        return this.wrappedMessage;
+    }
+
+    /**
      * Метод обновления темы
      */
     updateTheme(){

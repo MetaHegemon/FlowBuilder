@@ -7,6 +7,7 @@ import FBS from "../../../FlowBuilderStore";
 
 //for jsDoc
 import Notice from "./Notice";
+import {Object3D} from 'three';
 
 class NoticeControl {
     constructor() {
@@ -49,7 +50,8 @@ class NoticeControl {
 
     /**
      * Снятие подсветки со всех объектов, кроме аргумента
-     * @param exceptObject - 3д-объект, который надо исключить
+     * @param exceptObject {Object3D} - 3д-объект, который надо исключить
+     *
      */
     unhoverObjects(exceptObject){
         for(let i = 0; i < this.hovered.length; i += 1) {
@@ -64,11 +66,11 @@ class NoticeControl {
     }
 
     /**
-     *
+     * Нажатие на кнопку разворота окна уведомлений
      * @param cNotice {Notice}
      */
     onUnwrapButtonClick(cNotice){
-        if(cNotice.wrappedMessage){
+        if(cNotice.isMessageWrapped()){
             cNotice.unwrapMessage();
         } else {
             cNotice.wrapMessage();
