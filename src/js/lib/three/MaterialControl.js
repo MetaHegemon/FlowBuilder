@@ -60,8 +60,8 @@ class MaterialControl{
                 material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.watchPoint.cornerResize.fontColor})
             },
             {
-                names: ['footerLabel'],
-                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.footer.label.color})
+                names: ['learnMoreButton'],
+                material: new THREE.MeshBasicMaterial({color: ThemeControl.theme.node.footer.learnMoreButton.color})
             },
             {
                 names: ['title'],

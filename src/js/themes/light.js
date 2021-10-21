@@ -58,6 +58,21 @@ export default {
             }
         }
     },
+    nodeNotice: {
+        back: {
+            backgroundColor: '#FFC5C5',
+        },
+        front: {
+            backgroundColor: '#FFEBEB',
+        },
+        message: {
+            fontColor: '#ff0000'
+        },
+        unwrapButton: {
+            color: '#000000',
+            hoverColor: '#2491F6',
+        }
+    },
     node: {
         title: {
             fontColor: '#000000',
@@ -87,8 +102,12 @@ export default {
         },
         footer: {
             color: '#F2EFEE',
-            label: {
+            learnMoreButton: {
                 color: '#000000',
+                hoverColor: '#2491F6',
+            },
+            noticeButton: {
+                color: '#ec4040',
                 hoverColor: '#2491F6',
             }
         },

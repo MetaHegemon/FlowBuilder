@@ -8,10 +8,11 @@
 import * as THREE from 'three';
 import ThemeControl from './../../../../themes/ThemeControl';
 import C from "../../../Constants";
+import Layers from "../../../Layers";
 import {Text} from "troika-three-text";
 import MaterialControl from './../../MaterialControl';
 
-class NodeAssets{
+class Assets3d{
     constructor() {
         //materials
         this.backMaterial = new THREE.MeshBasicMaterial({color: ThemeControl.theme.watchPoint.back.backgroundColor});
@@ -194,7 +195,6 @@ class NodeAssets{
     createWatchPointIconCornerResize(){
         const group = new THREE.Group();
         group.name = 'iconCornerResize';
-        const material = MaterialControl.getMaterial(group.name);
 
         const w = C.watchPoint.cornerResize.width;
         const h = C.watchPoint.cornerResize.height;
@@ -206,7 +206,7 @@ class NodeAssets{
         longLine.color = ThemeControl.theme.watchPoint.cornerResize.fontColor;
         longLine.anchorX = 'center';
         longLine.anchorY = 'middle';
-        longLine.position.set(0, -h/6, C.layers.watchPoint.iconCornerResize.text);
+        longLine.position.set(0, -h/6, Layers.watchPoint.iconCornerResize.text);
         longLine.scale.setX(1.15);
         group.add(longLine);
 
@@ -217,7 +217,7 @@ class NodeAssets{
         shortLine.color = ThemeControl.theme.watchPoint.cornerResize.fontColor;
         shortLine.anchorX = 'center';
         shortLine.anchorY = 'middle';
-        shortLine.position.set(0,-h/3, C.layers.watchPoint.iconCornerResize.text);
+        shortLine.position.set(0,-h/3, Layers.watchPoint.iconCornerResize.text);
         shortLine.scale.setX(0.6);
         group.add(shortLine);
 
@@ -236,7 +236,7 @@ class NodeAssets{
 
         reactor.rotateZ(Math.PI/4*3);
         reactor.name = 'cornerResizeReactor';
-        reactor.position.setZ(C.layers.watchPoint.iconCornerResize.reactor);
+        reactor.position.setZ(Layers.watchPoint.iconCornerResize.reactor);
         group.add(reactor);
 
         group.rotateZ(Math.PI/4);
@@ -307,7 +307,7 @@ class NodeAssets{
             if (o.isMesh) o.material = o.material.clone();
         });
 
-        group.position.setZ(C.layers.watchPoint.back);
+        group.position.setZ(Layers.watchPoint.back);
 
         return group;
     }
@@ -346,7 +346,7 @@ class NodeAssets{
 
         group.name = name;
 
-        group.position.setZ(C.layers.watchPoint.front);
+        group.position.setZ(Layers.watchPoint.front);
 
         return group;
     }
@@ -358,7 +358,7 @@ class NodeAssets{
         group.add(this.closeButton.clone());
 
         group.name = name;
-        group.position.setZ(C.layers.watchPoint.controlPanelTop);
+        group.position.setZ(Layers.watchPoint.controlPanelTop);
 
         return group;
     }
@@ -372,7 +372,7 @@ class NodeAssets{
         group.add(this.exportButton.clone());
 
         group.name = name;
-        group.position.setZ(C.layers.watchPoint.controlPanelBottom);
+        group.position.setZ(Layers.watchPoint.controlPanelBottom);
 
         return group;
     }
@@ -388,6 +388,6 @@ class NodeAssets{
     }
 }
 
-const nodeAssets = new NodeAssets();
+const assets3d = new Assets3d();
 
-export default nodeAssets;
+export default assets3d;

@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import C from "../../../Constants";
+import Layers from '../../../Layers';
 import ThemeControl from '../../../../themes/ThemeControl';
 import Assets3d from './Assets3d';
 import FBS from "../../../FlowBuilderStore";
@@ -32,7 +33,7 @@ class Menu{
         //большая подложка. используется для интерактивности ноды(выделение, перемещение и т.д.)
         const bigMount = Assets3d.bigMount;
         bigMount.name = 'nodeMenuBigMount';
-        bigMount.position.setZ(C.layers.nodeMenu.bigMount);
+        bigMount.position.setZ(Layers.nodeMenu.bigMount);
         group.add(bigMount);
 
         //подложка
@@ -45,7 +46,7 @@ class Menu{
 
         //закрепляем за каждым дочерним объектом на текущий экземпляр класса, что бы из сцены получить к нему доступ
         group.traverse(o => o.userData.instance = this);
-        group.position.setZ(C.layers.nodeMenu.self);
+        group.position.setZ(Layers.nodeMenu.self);
 
         return group;
     }
@@ -134,7 +135,6 @@ class Menu{
      */
     scaleBigMount(){
         const mesh = this.menu.getObjectByName('nodeMenuBigMount');
-        mesh.scale.set(10, 10, 1);
         mesh.scale.set(this.width, this.height, 1);
         mesh.updateWorldMatrix();
     }
@@ -200,7 +200,7 @@ class Menu{
      */
     setButtonsPosition(){
         const container = this.menu.getObjectByName('container');
-        container.position.setZ(C.layers.nodeMenu.container);
+        container.position.setZ(Layers.nodeMenu.container);
         let currentPosY = -C.nodeMenu.paddingTop - C.nodeMenu.buttonHeight/2;
         container.children.map(b => {
             b.position.set(C.nodeMenu.paddingLeft, currentPosY, b.position.z);

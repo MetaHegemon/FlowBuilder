@@ -1,11 +1,13 @@
 import * as THREE from "three";
-import Port from './Port';
-import PseudoPort from "./PseudoPort";
+import Port from './Port/Port';
+import PseudoPort from "./Port/PseudoPort";
 import C from "../../Constants";
+import Layers from '../../Layers';
 import ThemeControl from '../../../themes/ThemeControl';
-import Assets3d from '../Assets3d';
+import Assets3d from './Assets3d';
 import FBS from "../../FlowBuilderStore";
 import LineControl from "../line/LineControl";
+import Notice from './Notice/Notice';
 
 export default class{
     constructor(data, originZ){
@@ -14,6 +16,9 @@ export default class{
         this.selected = false;                      //флаг выбрана ли нода
         this.nodeHeight = 0;                        //высота ноды
         this.nodeWidth = C.nodeMesh.mount.width;    //ширина ноды
+
+        this.notice = null;
+
         this.middleCollapse = {                     //объект для контроля за средним сворачиванием ноды
             isCollapsed: false,
             isPseudoInputExist: false,
@@ -24,7 +29,8 @@ export default class{
             storeCLinesOutput: []
         };
 
-        this.fullCollapse = {                       //объект для контроля за полным сворачиванием ноды
+        //объект для контроля за полным сворачиванием ноды
+        this.fullCollapse = {
             isCollapsed: false,
             isPseudoInputExist: false,
             isPseudoOutputExist: false,
@@ -48,8 +54,8 @@ export default class{
         this.mesh = this.create();                  //создание 3д-объекта ноды
         this.calcNodeHeight();                      //расчёт высоты ноды
         this.scaleNode();                           //расстановка элементов ноды в правильные позиции в соответствии с высотой и шириной
-        this.setPositionsForInputPorts(this.calcPositionsForInputPorts());  //расстановка входных портов на свои позиции
-        this.setPositionsForOutputPorts(this.calcPositionsForOutputPorts());//расстановка выходных портов на свои позиции
+        this.setPositionsForInputPorts(this.calcPositionsForInputPorts());      //расстановка входных портов на свои позиции
+        this.setPositionsForOutputPorts(this.calcPositionsForOutputPorts());    //расстановка выходных портов на свои позиции
     }
 
     /**
@@ -73,7 +79,7 @@ export default class{
         //большая подложка. используется для интерактивности ноды(выделение, перемещение и т.д.)
         const bigMount = Assets3d.bigMount.clone();
         bigMount.name = 'nodeBigMount';
-        bigMount.position.setZ(C.layers.node.bigMount);
+        bigMount.position.setZ(Layers.node.bigMount);
         nodeObject.add(bigMount);
 
         //обычная подложка
@@ -300,31 +306,17 @@ export default class{
     /**
      * Подсветка при наведении на подпись подвала
      */
-    hoverFooterLabel(){
-        const footerLabel = this.mesh.getObjectByName('footerLabel');
-        footerLabel.color = ThemeControl.theme.node.footer.label.hoverColor;
+    hoverLearnMoreButton(){
+        const learnMoreButton = this.mesh.getObjectByName('learnMoreButton');
+        learnMoreButton.color = ThemeControl.theme.node.footer.learnMoreButton.hoverColor;
     }
 
     /**
      * Снятие подсветки при наведении на подпись подвала
      */
-    unhoverFooterLabel(){
-        const footerLabel = this.mesh.getObjectByName('footerLabel');
-        footerLabel.color = ThemeControl.theme.node.footer.label.color;
-    }
-
-    /**
-     * Обработка нажатия кнопки play
-     */
-    play(){
-        const mPlay = this.mesh.getObjectByName('playButton');
-        if(this.playing){
-            this.playing = false;
-            mPlay.text = '';
-        } else {
-            this.playing = true;
-            mPlay.text = '';
-        }
+    unhoverLearnMoreButton(){
+        const learnMoreButton = this.mesh.getObjectByName('learnMoreButton');
+        learnMoreButton.color = ThemeControl.theme.node.footer.learnMoreButton.color;
     }
 
     /**
@@ -407,6 +399,7 @@ export default class{
      * Частичное схлопывание ноды в результате остаются видны 1 порт слева, 1 порт справа, кнопки управления и подвал
      */
     middleCollapseNode(){
+        this.hideNotice();
         if(!this.middleCollapse.isCollapsed) //COLLAPSE
         {
             this.middleCollapse.isCollapsed = true;
@@ -607,6 +600,7 @@ export default class{
      * @returns {null}
      */
     fullCollapseNode(isNeedCollapse){
+        this.hideNotice();
         //Ниже система очередей, если анимация не завершена и поступила другая задача,
         //то новая задача встаёт в очередь и выполняется после текущей
         if(this.fullCollapse.state === 'inProcess'){
@@ -853,7 +847,7 @@ export default class{
      */
     animateShowMiniMount(callback){
         const mini = this.mesh.getObjectByName('miniMount');
-        mini.position.setZ(C.layers.node.shield);
+        mini.position.setZ(Layers.node.self);
         mini.visible = true;
         new FBS.tween.Tween(mini.scale)
             .to( {x: 1, y: 1, z: 1}, C.animation.nodeCollapseTime )
@@ -868,7 +862,7 @@ export default class{
      */
     animateHideRegularMount(callback){
         const regular = this.mesh.getObjectByName('regularMount');
-        regular.position.setZ(regular.position.z - C.layers.nodeStep);
+        regular.position.setZ(regular.position.z - Layers.nodeStep);
         new FBS.tween.Tween(regular.scale)
             .to( {x: 0, y: 0, z: 1}, C.animation.nodeCollapseTime )
             .easing( FBS.tween.Easing.Exponential.InOut )
@@ -904,7 +898,7 @@ export default class{
      */
     animateHideMiniMount(callback){
         const mini = this.mesh.getObjectByName('miniMount');
-        mini.position.setZ(mini.position.z - C.layers.nodeStep);
+        mini.position.setZ(mini.position.z - Layers.nodeStep);
         new FBS.tween.Tween(mini.scale)
             .to( {x: 0, y: 0, z: 1}, C.animation.nodeCollapseTime )
             .easing( FBS.tween.Easing.Exponential.InOut )
@@ -921,7 +915,7 @@ export default class{
      */
     animateShowRegularMount(callback){
         const regular = this.mesh.getObjectByName('regularMount');
-        regular.position.setZ(C.layers.node.shield);
+        regular.position.setZ(Layers.node.self);
         regular.visible = true;
         new FBS.tween.Tween(regular.scale)
             .to( {x: 1, y: 1, z: 1}, C.animation.nodeCollapseTime )
@@ -1455,6 +1449,9 @@ export default class{
         bottomBody.position.setX(this.nodeWidth/2 - C.nodeMesh.mount.borderSize);
         const bottomRightCorner = bottom.getObjectByName('frontCornerBottomRight');
         bottomRightCorner.position.setX(this.nodeWidth - C.nodeMesh.mount.roundCornerRadius - C.nodeMesh.mount.borderSize);
+
+        const noticeButton = bottom.getObjectByName('noticeButton');
+        noticeButton.position.setX(this.nodeWidth - C.nodeMesh.footer.noticeButton.rightMargin);
     }
 
     /**
@@ -1489,7 +1486,7 @@ export default class{
      * Подъём ноды на верхний уровень по Z (над всеми остальными)
      */
     moveToOverAllZ(){
-        this.mesh.position.setZ(C.layers.topForNode);
+        this.mesh.position.setZ(Layers.topForNode);
     }
 
     /**
@@ -1511,6 +1508,67 @@ export default class{
             const cLines = p.cLines;
             LineControl.removeLines(cLines);
         });
+    }
+
+    /**
+     * Обработка нажатия кнопки play
+     */
+    play(){
+        const mPlay = this.mesh.getObjectByName('playButton');
+        if(this.playing){
+            this.playing = false;
+            mPlay.text = '';
+            this.hideNoticeButton();
+        } else {
+            this.playing = true;
+            mPlay.text = '';
+            this.showNoticeButton();
+        }
+    }
+
+    showNoticeButton(){
+        const noticeButton = this.mesh.getObjectByName('noticeButton');
+        noticeButton.text = 'Error (2)';
+        noticeButton.layers.enable(0);
+    }
+
+    hideNoticeButton(){
+        const noticeButton = this.mesh.getObjectByName('noticeButton');
+        noticeButton.layers.disable(0);
+    }
+
+    onNoticeButtonClick(){
+        if(!this.notice){
+            this.notice = new Notice();
+        }
+        this.notice.setWidth(this.nodeWidth);
+        const text = '404 [error] Executing link = SIGN-OFF not found. Alarm! Alarm! We need a doctor and some more text';
+        this.notice.setData(text);
+        this.notice.setPosition(-this.nodeHeight);
+        this.notice.show(this.mesh);
+        //this.mesh.add(this.notice.get3dObject());
+    }
+
+    hideNotice(){
+        if(this.notice && this.notice.active){
+            this.notice.hide();
+        }
+    }
+
+    /**
+     * Подсветка при наведении на подпись
+     */
+    hoverNoticeButton(){
+        const noticeButton = this.mesh.getObjectByName('noticeButton');
+        noticeButton.color = ThemeControl.theme.node.footer.noticeButton.hoverColor;
+    }
+
+    /**
+     * Снятие подсветки при наведении на подпись
+     */
+    unhoverNoticeButton(){
+        const noticeButton = this.mesh.getObjectByName('noticeButton');
+        noticeButton.color = ThemeControl.theme.node.footer.noticeButton.color;
     }
 
     /**
@@ -1560,9 +1618,9 @@ export default class{
             }
         }
 
-        m = this.mesh.getObjectByName('footerLabel');
+        m = this.mesh.getObjectByName('learnMoreButton');
         if(m) {
-            m.color = ThemeControl.theme.node.footer.label.color;
+            m.color = ThemeControl.theme.node.footer.learnMoreButton.color;
             m.font = ThemeControl.theme.fontPaths.mainNormal;
         }
 
@@ -1601,5 +1659,9 @@ export default class{
 
         const cPseudoPortOutput = this.getPseudoPort('output');
         if(cPseudoPortOutput) cPseudoPortOutput.updateTheme();
+
+        if(this.notice){
+            this.notice.updateTheme();
+        }
     }
 }

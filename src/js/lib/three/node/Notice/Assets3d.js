@@ -8,38 +8,46 @@
 import * as THREE from 'three';
 import ThemeControl from './../../../../themes/ThemeControl';
 import C from "./../../../Constants";
-import Layers from '../../../Layers';
+import Layers from './../../../Layers';
 import {Text} from "troika-three-text";
 import MaterialControl from './../../MaterialControl';
 
 class Assets3d{
     constructor() {
         //materials
-        this.backMaterial = new THREE.MeshBasicMaterial({color: ThemeControl.theme.nodeMenu.back.backgroundColor});
-        this.frontMaterial = new THREE.MeshBasicMaterial({color: ThemeControl.theme.nodeMenu.front.backgroundColor});
+        const backMaterial = new THREE.MeshBasicMaterial({
+            color: ThemeControl.theme.nodeNotice.back.backgroundColor
+        });
+        const frontMaterial = new THREE.MeshBasicMaterial({
+            color: ThemeControl.theme.nodeNotice.front.backgroundColor
+        });
 
         //elements
         this.bigMount = this.createBigMount();
 
-        this.container = this.createContainer();
+        this.message = this.createMessage();
+        this.unwrapButton = this.createUnwrapButton();
 
-        const br = C.nodeMenu.backRadius;
-        this.backCornerTopLeft = this.createCornerTopLeft('backCornerTopLeft', br, this.backMaterial);
-        this.backCornerTopRight = this.createCornerTopRight('backCornerTopRight', br, this.backMaterial);
-        this.backCornerBottomLeft = this.createCornerBottomLeft('backCornerBottomLeft', br, this.backMaterial);
-        this.backCornerBottomRight = this.createCornerBottomRight('backCornerBottomRight', br, this.backMaterial);
-        this.backBodyTop = this.createBodyTop('backBodyTop', br, this.backMaterial);
-        this.backBodyBottom = this.createBodyBottom('backBodyBottom', br, this.backMaterial);
-        this.backBody = this.createBody('backBody', this.backMaterial);
+        const br = C.nodeNotice.backRadius;
+        this.backCornerTopLeft = this.createCornerTopLeft('backCornerTopLeft', br, backMaterial);
+        this.backCornerTopRight = this.createCornerTopRight('backCornerTopRight', br, backMaterial);
+        this.backCornerBottomLeft = this.createCornerBottomLeft('backCornerBottomLeft', br, backMaterial);
+        this.backCornerBottomRight = this.createCornerBottomRight('backCornerBottomRight', br, backMaterial);
+        this.backBodyTop = this.createBodyTop('backBodyTop', br, backMaterial);
+        this.backBodyBottom = this.createBodyBottom('backBodyBottom', br, backMaterial);
+        this.backBody = this.createBody('backBody', backMaterial);
 
-        const fr = C.nodeMenu.backRadius - C.nodeMenu.borderSize;
-        this.frontCornerTopLeft = this.createCornerTopLeft('frontCornerTopLeft', fr, this.frontMaterial);
-        this.frontCornerTopRight = this.createCornerTopRight('frontCornerTopRight', fr, this.frontMaterial);
-        this.frontCornerBottomLeft = this.createCornerBottomLeft('frontCornerBottomLeft', fr, this.frontMaterial);
-        this.frontCornerBottomRight = this.createCornerBottomRight('frontCornerBottomRight', fr, this.frontMaterial);
-        this.frontBodyTop = this.createBodyTop('frontBodyTop', fr, this.frontMaterial);
-        this.frontBodyBottom = this.createBodyBottom('frontBodyBottom', fr, this.frontMaterial);
-        this.frontBody = this.createBody('frontBody', this.frontMaterial);
+        const fr = C.nodeNotice.backRadius - C.nodeNotice.borderSize;
+        this.frontCornerTopLeft = this.createCornerTopLeft('frontCornerTopLeft', fr, frontMaterial);
+        this.frontCornerTopRight = this.createCornerTopRight('frontCornerTopRight', fr, frontMaterial);
+        this.frontCornerBottomLeft = this.createCornerBottomLeft('frontCornerBottomLeft', fr, frontMaterial);
+        this.frontCornerBottomRight = this.createCornerBottomRight('frontCornerBottomRight', fr, frontMaterial);
+        this.frontBodyTop = this.createBodyTop('frontBodyTop', fr, frontMaterial);
+        this.frontBodyBottom = this.createBodyBottom('frontBodyBottom', fr, frontMaterial);
+        this.frontBody = this.createBody('frontBody', frontMaterial);
+
+        this.backArrow = this.createArrowBack('backArrow', backMaterial);
+        this.frontArrow = this.createArrowFront('frontArrow', frontMaterial);
     }
 
     /**
@@ -47,7 +55,7 @@ class Assets3d{
      * @returns {Mesh}
      */
     createBigMount(){
-        const name = 'nodeMenuBigMount';
+        const name = 'nodeNoticeBigMount';
         const material = MaterialControl.getMaterial('transparent');
 
         const r = C.nodeMesh.bigMount.radius;
@@ -67,27 +75,32 @@ class Assets3d{
 
         const mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), material);
         mesh.name = name;
+        mesh.position.setZ(Layers.nodeNotice.bigMount);
 
         return mesh;
     }
 
-    createContainer(){
-        const group = new THREE.Group();
-        group.name = 'container';
+    createMessage(){
+        const mesh = new Text();
+        mesh.text = '';
+        mesh.name = 'message';
+        mesh.font = ThemeControl.theme.fontPaths.mainMedium;
+        mesh.fontSize = C.nodeNotice.message.fontSize;
+        mesh.anchorX = 'left';
+        mesh.anchorY = 'top';
+        mesh.lineHeight = C.nodeNotice.message.lineHeight;
 
-        return group;
+        return mesh;
     }
 
-    createButton(text, callbackOnComplete){
+    createUnwrapButton(){
         const mesh = new Text();
-        mesh.text = text;
-        mesh.name = text;
+        mesh.text = '';
+        mesh.name = 'unwrapButton';
         mesh.font = ThemeControl.theme.fontPaths.mainMedium;
-        mesh.fontSize = C.nodeMenu.fontSize;
+        mesh.fontSize = C.nodeNotice.unwrapButton.fontSize;
         mesh.anchorX = 'left';
-        mesh.anchorY = 'middle';
-        mesh.addEventListener('synccomplete', callbackOnComplete);
-        mesh.userData.type = 'button';
+        mesh.anchorY = 'bottom';
 
         return mesh;
     }
@@ -171,7 +184,76 @@ class Assets3d{
         return mesh;
     }
 
+    //ARROW
+    createArrowBack(name, material){
+        const width = C.nodeNotice.arrow.back.width;
+        const height = C.nodeNotice.arrow.back.height;
+
+        const shape = new THREE.Shape();
+        shape.moveTo( 0, 0 );
+        shape.quadraticCurveTo(width * 0.1388, 0, width * 0.2777, height * 0.3571);
+        shape.lineTo(width * 0.4166, height * 0.7142);
+        shape.quadraticCurveTo(width * 0.5, height, width * 0.5833, height * 0.7142);
+        shape.lineTo(width * 0.7222, height * 0.3571);
+        shape.quadraticCurveTo(width * 0.8611, 0, width, 0);
+        shape.lineTo(width, 0);
+
+        const mesh = new THREE.Mesh(
+            new THREE.ShapeGeometry(shape),
+            material
+            );
+        mesh.name = name;
+
+        mesh.position.set(0, 0, Layers.nodeNotice.arrow.back);
+
+        return mesh;
+    }
+
+    createArrowFront(name, material){
+
+        const width = C.nodeNotice.arrow.front.width;
+        const height = C.nodeNotice.arrow.front.height;
+
+        const shape = new THREE.Shape();
+        shape.moveTo( 0, 0 );
+        shape.quadraticCurveTo(width * 0.1388, 0, width * 0.2777, height * 0.3571);
+        shape.lineTo(width * 0.5, height);
+        shape.lineTo(width * 0.7222, height * 0.3571);
+        shape.quadraticCurveTo(width * 0.8611, 0, width, 0);
+        shape.lineTo(width, 0);
+
+        const mesh = new THREE.Mesh(
+            new THREE.ShapeGeometry(shape),
+            material
+        );
+        mesh.name = name;
+        mesh.position.set((C.nodeNotice.arrow.back.width - C.nodeNotice.arrow.front.width)/2, -C.nodeNotice.borderSize, Layers.nodeNotice.arrow.front);
+
+        return mesh;
+    }
+
     //COMPILE
+
+    getArrow(){
+        const group = new THREE.Group();
+        group.add(this.backArrow);
+        group.add(this.frontArrow);
+
+        group.name = 'arrow';
+
+        group.position.setZ(Layers.nodeNotice.arrow.self);
+
+        return group;
+    }
+
+    getContainer(){
+        const group = new THREE.Group();
+        group.add(this.message);
+        group.add(this.unwrapButton);
+        group.name = 'container';
+
+        return group;
+    }
 
     getBackBottom() {
         const group = new THREE.Group();
@@ -194,7 +276,7 @@ class Assets3d{
 
         group.name = name;
 
-        group.position.setZ(Layers.nodeMenu.front);
+        group.position.setZ(Layers.nodeNotice.front);
 
         return group;
     }
@@ -230,7 +312,7 @@ class Assets3d{
 
         group.name = name;
 
-        group.position.setZ(Layers.nodeMenu.back);
+        group.position.setZ(Layers.nodeNotice.back);
 
         return group;
     }
@@ -252,6 +334,7 @@ class Assets3d{
 
         group.add(this.getBackMount());
         group.add(this.getFrontMount());
+        group.add(this.getArrow());
 
         return group;
     }

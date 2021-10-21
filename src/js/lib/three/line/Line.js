@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import C from '../../Constants';
 import ThemeControl from '../../../themes/ThemeControl';
-import Assets3d from '../Assets3d';
+import Assets3d from './Assets3d';
 import FBS from "../../FlowBuilderStore";
 import WatchPoint from "./WatchPoint/WatchPoint";
 

@@ -24,6 +24,8 @@ export default class{
         this.cNode = resizer.userData.instance;
         this.mNode = this.cNode.get3dObject();
 
+        //скрываем окно уведомлений
+        this.cNode.hideNotice();
         //возврат всех нод на свои координаты по Z
         NodeControl.moveNodesToOriginZ();
         //поднятие изменяемой ноды на верхний уровень по Z

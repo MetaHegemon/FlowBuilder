@@ -6,14 +6,13 @@
  */
 //TODO add 'Node' to node component names
 import * as THREE from 'three';
-import ThemeControl from './../../themes/ThemeControl';
-import C from "../Constants";
+import ThemeControl from './../../../themes/ThemeControl';
+import C from "../../Constants";
+import Layers from '../../Layers';
 import {Text} from "troika-three-text";
-import MaterialControl from './MaterialControl';
-import {LineGeometry} from "three/examples/jsm/lines/LineGeometry";
-import {Line2} from "three/examples/jsm/lines/Line2";
+import MaterialControl from './../MaterialControl';
 
-class NodeAssets{
+class Assets3d{
     constructor() {
         //elements
         this.bigMount = this.createBigMount();
@@ -47,7 +46,8 @@ class NodeAssets{
 
         this.frontHeader = this.createHeader('frontHeader', C.nodeMesh.mount.front.headHeight);
         this.frontFooter = this.createFooter('frontFooter', C.nodeMesh.footer.height);
-        this.footerLabel = this.createFooterLabel();
+        this.learnMoreButton = this.createLearnMoreButton();
+        this.noticeButton = this.createNoticeButton();
 
         //MINI
         this.miniBack = this.createMiniBack();
@@ -61,12 +61,6 @@ class NodeAssets{
         this.collapseButton = this.createCollapseButton();
         this.menuButton = this.createMenuButton();
         this.playButton = this.createPlayButton();
-
-        //LINE
-        this.line = {
-            thin: this.createThinLine(),
-            fat: this.createFatLine()
-        }
     }
 
     /**
@@ -112,7 +106,7 @@ class NodeAssets{
         group.traverse(o => {
             if (o.isMesh) o.material = material;
         });
-        group.position.setZ(C.layers.node.backMount);
+        group.position.setZ(Layers.node.backMount);
 
         return group;
     }
@@ -273,7 +267,8 @@ class NodeAssets{
         group.add(this.frontCornerBottomLeft);
         group.add(this.frontBodyBottom);
         group.add(this.frontFooter);
-        group.add(this.footerLabel);
+        group.add(this.learnMoreButton);
+        group.add(this.noticeButton);
         group.add(this.frontCornerBottomRight);
 
         group.name = 'frontBottom';
@@ -281,17 +276,36 @@ class NodeAssets{
         return group;
     }
 
-    createFooterLabel() {
+    createLearnMoreButton() {
         const mesh = new Text();
-        mesh.name = 'footerLabel';
+        mesh.name = 'learnMoreButton';
         mesh.text = 'Learn more';
         mesh.font = ThemeControl.theme.fontPaths.mainNormal;
-        mesh.fontSize = C.nodeMesh.footer.label.fontSize;
+        mesh.fontSize = C.nodeMesh.footer.learnMoreButton.fontSize;
         mesh.material = MaterialControl.getMaterial(mesh.name);
-        mesh.letterSpacing = C.nodeMesh.footer.label.letterSpacing;
+        mesh.letterSpacing = C.nodeMesh.footer.learnMoreButton.letterSpacing;
         mesh.anchorX = 'left';
         mesh.anchorY = 'bottom';
-        mesh.position.set(C.nodeMesh.footer.label.leftMargin, C.nodeMesh.footer.label.bottomMargin, C.layers.node.footerLabel);
+        mesh.position.set(C.nodeMesh.footer.learnMoreButton.leftMargin, C.nodeMesh.footer.learnMoreButton.bottomMargin, Layers.node.learnMoreButton);
+
+        return mesh;
+    }
+
+    createNoticeButton(){
+        const mesh = new Text();
+        mesh.name = 'noticeButton';
+        mesh.text = 'Error';
+        mesh.font = ThemeControl.theme.fontPaths.mainNormal;
+        mesh.fontSize = C.nodeMesh.footer.noticeButton.fontSize;
+        mesh.color = ThemeControl.theme.node.footer.noticeButton.color;
+        mesh.anchorX = 'right';
+        mesh.anchorY = 'bottom';
+        mesh.position.setY(C.nodeMesh.footer.noticeButton.bottomMargin);
+        mesh.position.setZ(Layers.node.noticeButton);
+        //mesh.layers.set(2);
+        mesh.layers.disable(0);
+        //mesh.layers.enable(1);
+        console.log(mesh);
 
         return mesh;
     }
@@ -304,7 +318,7 @@ class NodeAssets{
 
         group.name = 'frontMount';
 
-        group.position.set(C.nodeMesh.mount.borderSize, -C.nodeMesh.mount.borderSize, C.layers.node.frontMount);
+        group.position.set(C.nodeMesh.mount.borderSize, -C.nodeMesh.mount.borderSize, Layers.node.frontMount);
 
         return group;
     }
@@ -364,7 +378,7 @@ class NodeAssets{
         group.add(this.playButton);
         group.add(this.menuButton);
 
-        group.position.set(0, -C.nodeMesh.header.height / 2, C.layers.node.header);
+        group.position.set(0, -C.nodeMesh.header.height / 2, Layers.node.header);
 
         return group;
     }
@@ -380,7 +394,7 @@ class NodeAssets{
         mesh.material = MaterialControl.getMaterial(mesh.name);
         mesh.anchorX = 'left';
         mesh.anchorY = 'bottom';
-        mesh.position.set(C.nodeMesh.title.leftMargin, C.nodeMesh.title.bottomMargin, C.layers.node.title);
+        mesh.position.set(C.nodeMesh.title.leftMargin, C.nodeMesh.title.bottomMargin, Layers.node.title);
 
         return mesh;
     }
@@ -394,7 +408,7 @@ class NodeAssets{
         mesh.material = MaterialControl.getMaterial(mesh.name);
         mesh.anchorX = 'center';
         mesh.anchorY = 'middle';
-        mesh.position.setZ(C.layers.node.indicator);
+        mesh.position.setZ(Layers.node.indicator);
 
         return mesh;
     }
@@ -404,7 +418,7 @@ class NodeAssets{
         const material = MaterialControl.getMaterial(name);
         const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(C.nodeMesh.widthResizer.width, 1), material);
         mesh.name = name;
-        mesh.position.setZ(C.layers.node.widthResizer);
+        mesh.position.setZ(Layers.node.widthResizer);
 
         return mesh;
     }
@@ -416,7 +430,7 @@ class NodeAssets{
         group.add(this.getFrontMount());
         group.add(this.widthResizer);
         group.add(this.getControlPanel(options.withCollapseButton));
-        group.position.setZ(C.layers.node.shield);
+        group.position.setZ(Layers.node.self);
 
         group.name = 'regularMount';
 
@@ -554,7 +568,7 @@ class NodeAssets{
         mesh.position.set(
             C.miniNodeMesh.width / 2,
             -C.miniNodeMesh.height + (C.miniNodeMesh.footerHeight + C.miniNodeMesh.roundCornerRadius) / 2,
-            C.layers.node.footerLabel
+            Layers.node.miniMenuButton
         );
 
         return mesh;
@@ -573,233 +587,12 @@ class NodeAssets{
 
         group.visible = false;
         group.scale.set(0, 0, 1);
-        group.position.setZ(C.layers.node.shield);
-
-        return group;
-    }
-
-    //PORT
-    createPortConnectorMagnet(direction) {
-        const name = 'connectorMagnet';
-        const material = MaterialControl.getMaterial(name);
-
-        const w = C.nodeMesh.port.magnet.width;
-        const h = C.nodeMesh.port.height;
-
-        const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(w, h), material);
-        mesh.name = name;
-
-        if (direction === 'output') {
-            mesh.position.setX(w / 2);
-        } else {
-            mesh.position.setX(-w / 2);
-        }
-
-        mesh.position.setZ(C.layers.port.magnet);
-
-        return mesh;
-    }
-
-    createPortConnector(type, direction) {
-        const material = MaterialControl.getPortConnectorMaterial(type);
-
-        const w = C.nodeMesh.port.connector.width;
-        const h = C.nodeMesh.port.connector.height;
-        const r = C.nodeMesh.port.connector.cornerRadius;
-
-        const shape = new THREE.Shape()
-            .moveTo(0, h / 2 - r)
-            .lineTo(0, -h / 2 + r)
-            .quadraticCurveTo(0, -h / 2, r, -h / 2)
-            .lineTo(w, -h / 2)
-            .lineTo(w, h / 2)
-            .lineTo(r, h / 2)
-            .quadraticCurveTo(0, h / 2, 0, h / 2 - r);
-
-        const mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), material);
-        mesh.name = 'connector';
-
-        if (direction === 'output') {
-            mesh.rotateZ(Math.PI);
-            mesh.position.setX(w);
-        } else {
-            mesh.position.setX(-w);
-        }
-        mesh.position.setZ(C.layers.port.connector);
-
-        return mesh;
-    }
-
-    createPortLabel(name, type, direction, mark) {
-        const mesh = new Text();
-        mesh.text = name;
-        mesh.name = 'portLabelText';
-        mesh.font = ThemeControl.theme.fontPaths.mainNormal;
-        mesh.fontSize = C.nodeMesh.port.label.fontSize;
-        mesh.material = MaterialControl.getPortLabelMaterial(type);
-        mesh.anchorX = direction === 'input' ? 'left' : 'right';
-        mesh.anchorY = 'bottom';
-        mesh.letterSpacing = C.nodeMesh.port.label.letterSpacing;
-
-        const posX = mark ? C.nodeMesh.port.label.leftMargin : C.nodeMesh.port.label.pseudoLeftMargin;
-        mesh.position.set(
-            direction === 'input' ? posX : -posX,
-            -C.nodeMesh.port.label.topMargin,
-            C.layers.port.label
-        );
-
-        return mesh;
-    }
-
-    createPortMarkMount(type) {
-        const material = MaterialControl.getPortMarkMountMaterial(type);
-        const w = C.nodeMesh.port.mark.width;
-        const h = C.nodeMesh.port.mark.height;
-        const r = C.nodeMesh.port.mark.cornerRadius;
-
-        const shape = new THREE.Shape()
-            .moveTo(0, h / 2 - r)
-            .quadraticCurveTo(0, h / 2, r, h / 2)
-            .lineTo(w - r, h / 2)
-            .quadraticCurveTo(w, h / 2, w, h / 2 - r)
-            .lineTo(w, -h / 2 + r)
-            .quadraticCurveTo(w, -h / 2, w - r, -h / 2)
-            .lineTo(r, -h / 2, 0, -h / 2 + r)
-            .quadraticCurveTo(0, -h / 2, 0, -h / 2 + r)
-            .lineTo(0, h / 2 - r);
-        const mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), material);
-        mesh.position.setZ(C.layers.port.markMount)
-        mesh.name = 'mark';
-
-        return mesh;
-    }
-
-    createPortMarkLabel(type, text) {
-        const mesh = new Text();
-        mesh.text = text;
-        mesh.name = 'markLabel';
-        mesh.font = ThemeControl.theme.fontPaths.mainNormal;
-        mesh.fontSize = C.nodeMesh.port.mark.fontSize;
-        mesh.material = MaterialControl.getPortMarkLabelMaterial(type);
-        mesh.anchorX = 'center';
-        mesh.anchorY = 'middle';
-        mesh.position.set(
-            C.nodeMesh.port.mark.width / 2 + C.nodeMesh.port.mark.label.leftMargin,
-            C.nodeMesh.port.mark.label.topMargin,
-            C.layers.port.markLabel
-        );
-
-        return mesh;
-    }
-
-    getPortMark(type, direction, mark) {
-        const markObject = new THREE.Group();
-
-        markObject.add(this.createPortMarkMount(type));
-        markObject.add(this.createPortMarkLabel(type, mark));
-
-        const posX = direction === 'input' ? C.nodeMesh.port.mark.leftMargin : -C.nodeMesh.port.mark.leftMargin - C.nodeMesh.port.mark.width
-        const posY = C.nodeMesh.port.height / 2 - C.nodeMesh.port.mark.topMargin;
-        markObject.position.set(posX, posY, 0);
-
-        return markObject;
-    }
-
-    getPort(name, type, direction, mark) {
-        const group = new THREE.Group();
-        group.name = 'port';
-
-        group.add(this.createPortConnectorMagnet(direction));
-
-        group.add(this.createPortConnector(type, direction));
-
-        if (mark) {
-            group.add(this.getPortMark(type, direction, mark));
-        }
-
-        group.add(this.createPortLabel(name, type, direction, mark));
-
-        group.position.setZ(C.layers.port.self);
-
-        return group;
-    }
-
-    //LINE
-
-    createThinLine() {
-        const geometry = new LineGeometry();
-        const material = MaterialControl.getThinLineMaterial();
-
-        const mesh = new Line2(geometry, material);
-        mesh.name = 'thinLine';
-        mesh.position.setZ(C.layers.line.thin);
-
-        return mesh;
-    }
-
-    createFatLine() {
-        const geometry = new LineGeometry();
-        const material = MaterialControl.getFatLineMaterial();
-
-        const mesh = new Line2(geometry, material);
-        mesh.name = 'fatLine';
-        mesh.position.setZ(C.layers.line.fat);
-
-        return mesh;
-    }
-
-    /**
-     * Объект для расширения области наведения поинтером
-     */
-    createLineMarkPointerCircle(){
-        const name = 'lineMarkPointer';
-        const material = MaterialControl.getMaterial(name);
-        const mesh = new THREE.Mesh(
-            new THREE.CircleBufferGeometry(C.lines.mark.pointerRadius, 32),
-            material
-        );
-        mesh.name = name;
-        mesh.position.setZ(C.layers.lineMark.pointer);
-
-        return mesh;
-    }
-
-    createLineMarkBigCircle(){
-        const name = 'lineMarkBig';
-        const mesh = new THREE.Mesh(
-            new THREE.CircleBufferGeometry(C.lines.mark.bigCircleRadius, 32),
-            MaterialControl.getMaterial('default').clone()
-        );
-        mesh.name = name;
-        mesh.position.setZ(C.layers.lineMark.big);
-
-        return mesh;
-    }
-
-    createLineMarkSmallCircle(){
-        const name = 'lineMarkSmall';
-        const mesh = new THREE.Mesh(
-            new THREE.CircleBufferGeometry(C.lines.mark.smallCircleRadius, 32),
-            MaterialControl.getMaterial(name)
-        );
-        mesh.name = name;
-        mesh.position.setZ(C.layers.lineMark.small);
-
-        return mesh;
-    }
-
-    getLineMark(){
-        const group = new THREE.Group();
-        group.name = 'lineMark';
-
-        group.add(this.createLineMarkPointerCircle());
-        group.add(this.createLineMarkBigCircle());
-        group.add(this.createLineMarkSmallCircle());
+        group.position.setZ(Layers.node.self);
 
         return group;
     }
 }
 
-const nodeAssets = new NodeAssets();
+const assets3d = new Assets3d();
 
-export default nodeAssets;
+export default assets3d;

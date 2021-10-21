@@ -28,7 +28,7 @@ class WatchPointControl{
 
     onPointerMove(e, intersects, WPResizer, pointerPos3d){
         const firstObject = intersects[1].object;
-        if(e.buttons === 0) //без нажатия
+        if(e.buttons === 0) //без нажатияf
         {
             if (firstObject.name === 'cornerResizeReactor') { //rename to simple name
                 FBS.dom.setCursor('nwse-resize');

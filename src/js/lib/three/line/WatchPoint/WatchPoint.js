@@ -6,6 +6,7 @@
 
 import * as THREE from 'three';
 import C from "../../../Constants";
+import Layers from '../../../Layers';
 import Assets3d from './Assets3d';
 import FBS from "../../../FlowBuilderStore";
 import ThemeControl from "../../../../themes/ThemeControl";
@@ -42,7 +43,7 @@ export default class{
         //большая подложка. используется для интерактивности ноды(выделение, перемещение и т.д.)
         const bigMount = Assets3d.bigMount.clone();
         bigMount.name = 'watchPointBigMount';
-        bigMount.position.setZ(C.layers.watchPoint.bigMount);
+        bigMount.position.setZ(Layers.watchPoint.bigMount);
         group.add(bigMount);
 
         //подложка
@@ -59,7 +60,7 @@ export default class{
 
         //закрепляем за каждым дочерним объектом на текущий экземпляр класса, что бы из сцены получить к нему доступ
         group.traverse(o => o.userData.instance = this);
-        group.position.setZ(C.layers.watchPoint.self);
+        group.position.setZ(Layers.watchPoint.self);
 
         return group;
     }
@@ -72,7 +73,10 @@ export default class{
         if(!this.wpPosition){
             this.lineMarkPosition = lineMarkPosition;
             //TODO найти место для вотчпоинта
-            this.wpPosition.set(lineMarkPosition.x, lineMarkPosition.y, this.wpPosition.z);
+            this.wpPosition = this.mesh.position;
+            this.wpPosition.setX(lineMarkPosition.x);
+            this.wpPosition.setY(lineMarkPosition.y);
+
             this.line = this.createLine();
         }
         this.updateLine();
@@ -272,23 +276,23 @@ export default class{
         cornerResize.position.set(
             this.width - C.watchPoint.cornerResize.marginRight,
             - C.watchPoint.bottomControlPanelHeight - C.watchPoint.backRadius + C.watchPoint.cornerResize.marginBottom,
-            C.layers.watchPoint.iconCornerResize.self
+            Layers.watchPoint.iconCornerResize.self
         );
 
         const copyButton = controlPanel.getObjectByName('copyButton');
-        copyButton.position.set(C.watchPoint.copyButton.leftMargin, -C.watchPoint.copyButton.topMargin, C.layers.watchPoint.copyButton);
+        copyButton.position.set(C.watchPoint.copyButton.leftMargin, -C.watchPoint.copyButton.topMargin, Layers.watchPoint.copyButton);
         const exportButton = controlPanel.getObjectByName('exportButton');
-        exportButton.position.set(C.watchPoint.exportButton.leftMargin, -C.watchPoint.exportButton.topMargin, C.layers.watchPoint.exportButton);
+        exportButton.position.set(C.watchPoint.exportButton.leftMargin, -C.watchPoint.exportButton.topMargin, Layers.watchPoint.exportButton);
     }
 
     /**
      * Находит координаты на гранях вотчпоинта
      */
     calcEdgePositions(){
-        const localLeft = new THREE.Vector3(0, -this.height/2, C.layers.watchPoint.self);
-        const localRight = new THREE.Vector3(this.width, -this.height/2, C.layers.watchPoint.self);
-        const localTop = new THREE.Vector3(this.width/2, 0, C.layers.watchPoint.self);
-        const localBottom = new THREE.Vector3(this.width/2, -this.height, C.layers.watchPoint.self);
+        const localLeft = new THREE.Vector3(0, -this.height/2, Layers.watchPoint.self);
+        const localRight = new THREE.Vector3(this.width, -this.height/2, Layers.watchPoint.self);
+        const localTop = new THREE.Vector3(this.width/2, 0, Layers.watchPoint.self);
+        const localBottom = new THREE.Vector3(this.width/2, -this.height, Layers.watchPoint.self);
 
         this.edgePositions.left = this.mesh.localToWorld(localLeft);
         this.edgePositions.right = this.mesh.localToWorld(localRight);

@@ -15,6 +15,7 @@ import NodeWidthResizer from './NodeWidthResizer';
 import WatchPointControl from "../three/line/WatchPoint/WatchPointControl";
 import WatchPointResizer from "./WatchPointResizer";
 import NodeMenu from './../three/node/Menu/Menu';
+import NodeNoticeControl from './../three/node/Notice/NoticeControl';
 
 //for jsDoc
 import Line from "../three/line/Line";
@@ -264,9 +265,9 @@ class Interactive{
             } else {
                 //получаем список пересечений
                 this.intersects = this.raycaster.intersectObjects(FBS.sceneControl.scene.children, true);
-
                 if (this.intersects.length > 0) {
                     const firstObject = this.intersects[0].object;
+                    clog(firstObject.name);
                     if (firstObject.name === 'nodeBigMount') {
                         NodeControl.onPointerMove(e, this.intersects, NodeResizer, this.pointerDownPos, this.pointerPos3d);
                     } else if (firstObject.name === 'watchPointBigMount') {
@@ -279,6 +280,8 @@ class Interactive{
                         firstObject.name === 'lineMarkPointer'
                     ) {
                         LineControl.onPointerMove(e, this.intersects);
+                    } else if(firstObject.name === 'nodeNoticeBigMount'){
+                        NodeNoticeControl.onPointerMove(e, this.intersects);
                     }
                 } else {
                     FBS.dom.resetCursor();
@@ -348,6 +351,8 @@ class Interactive{
                         LineControl.onPointerUp(e, this.intersects);
                     } else if(firstObject.name === 'nodeMenuBigMount'){
                         NodeMenu.onPointerUp(e, this.intersects);
+                    } else if(firstObject.name === 'nodeNoticeBigMount'){
+                        NodeNoticeControl.onPointerUp(e, this.intersects);
                     }
                 }
             }
@@ -381,6 +386,7 @@ class Interactive{
         NodeControl.unhoverObjects();
         LineControl.unhoverObjects();
         WatchPointControl.unhoverObjects();
+        NodeNoticeControl.unhoverObjects();
     }
 
     /**

@@ -7,6 +7,7 @@ import C from './../Constants';
 import ThemeControl from './../../themes/ThemeControl';
 import FBS from "../FlowBuilderStore";
 import Stats from 'stats.js';
+import {Text} from "troika-three-text";
 
 //ФПС-метр
 const stats = new Stats();
@@ -43,7 +44,7 @@ export default class {
     /**
      * Первоначальная настройка сцены
      */
-    setScene(){
+    init(){
         this.canvas = FBS.dom.getCanvas();
         this.renderer = new THREE.WebGLRenderer({
             canvas: this.canvas,
@@ -132,24 +133,38 @@ export default class {
         clog({scene: this.scene});
         this.renderResize();
         this.render();
+        //this.addDebugText();
         //this.addDebugPlane();
     }
 
-    addDebugPlane(){
+    addDebugCube(){
         const debugMesh = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(100,100),
+            new THREE.BoxBufferGeometry(100,100, 100),
             new THREE.MeshBasicMaterial({color: 'red'})
         );
-        const debugMesh1 = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(50,50),
-            new THREE.MeshBasicMaterial({color: 'blue'})
-        );
-        debugMesh1.position.setZ(1);
-        //debugMesh.scale.set(0.5,0.5);
-        //debugMesh.position.set(0,0,20);
-        //debugMesh.rotateX(Math.PI/2);
+
+        //debugMesh.position.set(pos.x,pos.y,pos.z);
+
         this.scene.add(debugMesh);
-        this.scene.add(debugMesh1);
+    }
+
+    addDebugText(){
+        const mesh = new Text();
+        mesh.text = 'Перерасчёт настроек рендера и камеры, при изменении размера окна Перерасчёт настроек рендера и ' +
+            'камеры, при изменении размера окна Перерасчёт настроек рендера и камеры, при изменении размера окна ' +
+            'Перерасчёт настроек рендера и камеры, при изменении размера окна';
+        mesh.font = ThemeControl.theme.fontPaths.mainMedium;
+        mesh.fontSize = C.nodeNotice.message.fontSize;
+        mesh.anchorX = 'left';
+        mesh.anchorY = 'bottom';
+        mesh.color = '#000000';
+        mesh.maxWidth = 300;
+        mesh.clipRect = [0, 0, 200, 200];
+
+        //mesh.position.set(10, 10, 10)
+        clog(mesh);
+
+        this.scene.add(mesh);
     }
 
     /**

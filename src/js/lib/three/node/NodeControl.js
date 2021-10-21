@@ -4,10 +4,14 @@
 
 import Node from './Node';
 import C from '../../Constants';
+import Layers from '../../Layers';
 import FBS from "../../FlowBuilderStore";
 import Drag from './../../interactive/DragControl';
 import NodeMenu from './Menu/Menu';
 import TextEditor from './../TextEditor';
+
+//for jsDoc
+import * as THREE from 'three';
 
 class NodeControl {
     constructor() {
@@ -39,12 +43,17 @@ class NodeControl {
         this.setEvents();
     }
 
+    /**
+     * Установка обработчиков событий
+     */
     setEvents(){
+        //событие изменения зума, что бы понять когда нужно коллапсировать ноды
         FBS.dom.canvas.addEventListener('zoomChange', e => this.listenZoom(e.detail.frustumSize));
     }
 
     onPointerDown(e, intersects){
         const firstObject = intersects[1].object;
+        if(!firstObject) return null;
         if (e.buttons === 1) {
             if (this.isItMoveableElement(firstObject.name)) {
                 FBS.dom.setCursor('move'); //когда скажут, что нужно переделать обратно, просто скопируй туда где Drag.enable
@@ -54,7 +63,8 @@ class NodeControl {
 
     onPointerMove(e, intersects, NodeResizer, pointerDownPos, pointerPos3d){
         const firstObject = intersects[1].object;
-
+        if(!firstObject) return null;
+        //clog(firstObject.name);
         if(e.buttons === 0) //без нажатия
         {
             if (firstObject.name === 'portLabelText') {
@@ -62,9 +72,14 @@ class NodeControl {
                 cPort.hoverLabel();
                 this.hovered.push(firstObject);
                 FBS.dom.setCursor('pointer');
-            } else if (firstObject.name === 'footerLabel') {
+            } else if (firstObject.name === 'learnMoreButton') {
                 const cNode = firstObject.userData.instance;
-                cNode.hoverFooterLabel();
+                cNode.hoverLearnMoreButton();
+                this.hovered.push(firstObject);
+                FBS.dom.setCursor('pointer');
+            } else if(firstObject.name === 'noticeButton'){
+                const cNode = firstObject.userData.instance;
+                cNode.hoverNoticeButton();
                 this.hovered.push(firstObject);
                 FBS.dom.setCursor('pointer');
             } else if (firstObject.name === 'collapseButton') {
@@ -111,6 +126,7 @@ class NodeControl {
 
     onPointerUp(e, intersects){
         const firstObject = intersects[1].object;
+        if(!firstObject) return null;
         if (e.button === 0) {
             //обработка нажатия на разные элементы сцены
             if (firstObject.name === 'collapseButton') {
@@ -121,6 +137,8 @@ class NodeControl {
                 this.onMenuButtonClick(firstObject);
             } else if(firstObject.name === 'portLabelText'){
                 this.onPortLabelClick(firstObject);
+            } else if(firstObject.name === 'noticeButton'){
+                this.onNoticeButtonClick(firstObject);
             } else if(this.isItMoveableElement(firstObject.name)){
                 const cNode = firstObject.userData.instance;
                 this.onNodeClick(cNode, e.shiftKey, e.ctrlKey);
@@ -132,7 +150,7 @@ class NodeControl {
 
     /**
      * Снятие подсветки со всех объектов, кроме аргумента
-     * @param exceptObject - 3д-объект, который надо исключить
+     * @param exceptObject {THREE.Object3D} - 3д-объект, который надо исключить
      */
     unhoverObjects(exceptObject){
         for(let i = 0; i < this.hovered.length; i += 1) {
@@ -140,9 +158,12 @@ class NodeControl {
             if (this.hovered[i].name === 'portLabelText') {
                 const cPort = this.hovered[i].userData.portInstance;
                 cPort.unhoverLabel();
-            } else if (this.hovered[i].name === 'footerLabel') {
+            } else if (this.hovered[i].name === 'learnMoreButton') {
                 const cNode = this.hovered[i].userData.instance;
-                cNode.unhoverFooterLabel();
+                cNode.unhoverLearnMoreButton();
+            } else if(this.hovered[i].name === 'noticeButton'){
+                const cNode = this.hovered[i].userData.instance;
+                cNode.unhoverNoticeButton();
             }
             this.hovered.splice(i, 1);
             i -= 1;
@@ -151,7 +172,7 @@ class NodeControl {
 
     /**
      * Обработчик кнопки управления сворачиванием ноды
-     * @param mCollapse  - 3д-объект кнопки
+     * @param mCollapse {THREE.Object3D} - 3д-объект кнопки
      */
     onCollapseButtonClick(mCollapse){
         const cNode = mCollapse.userData.instance;
@@ -160,7 +181,7 @@ class NodeControl {
 
     /**
      * Обработчик нажатия на кнопку управления play
-     * @param mPlay
+     * @param mPlay {THREE.Object3D}
      */
     onPlayButtonClick(mPlay){
         const cNode = mPlay.userData.instance;
@@ -216,7 +237,7 @@ class NodeControl {
 
     /**
      * Обработчик клика на подпись порта
-     * @param mPort - 3д-объект порта
+     * @param mPort {THREE.Group} - 3д-объект порта
      */
     onPortLabelClick(mPort){
         const cPort = mPort.userData.portInstance;
@@ -228,8 +249,17 @@ class NodeControl {
     }
 
     /**
+     *
+     * @param mButton {Text}
+     */
+    onNoticeButtonClick(mButton){
+        const cNode = mButton.userData.instance;
+        cNode.onNoticeButtonClick();
+    }
+
+    /**
      *  Обработчик нажатия на ноду
-     * @param cNode {Object} - класс ноды
+     * @param cNode {Node} - класс ноды
      * @param shiftKey  {Boolean}
      * @param ctrlKey   {Boolean}
      */
@@ -277,13 +307,16 @@ class NodeControl {
         this.select.cNodes = [];
     }
 
+    /**
+     * Подсветка выбранных нод
+     */
     highlightSelectedNodes(){
         this.select.cNodes.map(cN => cN.select());
     }
 
     /**
      * Снятие выбора со всех нод за исключением
-     * @param cNode - класс ноды, который нужно проигнорировать при снятии выбора
+     * @param cNode {Node} - класс ноды, который нужно проигнорировать при снятии выбора
      */
     unselectAllSelectedNodesExcept(cNode){
         for (let i = 0; i < this.select.cNodes.length; i += 1) {
@@ -345,7 +378,7 @@ class NodeControl {
      */
     buildNodes(data) {
         for (let i = 0; i < data.length; i += 1) {
-            const cNode = new Node(data[i], i * C.layers.nodeStep);
+            const cNode = new Node(data[i], i * Layers.nodeStep);
             this.mNodes.push(cNode.get3dObject());
             this.cNodes.push(cNode);
         }

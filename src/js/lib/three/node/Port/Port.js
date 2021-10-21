@@ -1,8 +1,8 @@
 import * as THREE from "three";
-import ThemeControl from '../../../themes/ThemeControl';
-import Assets3d from '../Assets3d';
-import FBS from "../../FlowBuilderStore";
-import C from "../../Constants";
+import ThemeControl from '../../../../themes/ThemeControl';
+import Assets3d from './Assets3d';
+import FBS from "../../../FlowBuilderStore";
+import C from "../../../Constants";
 
 export default class {
     constructor(direction, data, cNode) {
@@ -121,7 +121,7 @@ export default class {
 
     /**
      * Возвращает список классов линий, присоединённых к этому порту
-     * @returns {[]|*}
+     * @returns {[{Line}]}
      */
     getCLines(){
         return this.cLines;

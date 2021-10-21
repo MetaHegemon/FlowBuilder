@@ -8,61 +8,6 @@ export default {
         caretBlinkingTime: 300,             //время мигания каретки
         failEditingTextTime: 300,           //время мигания красным при неудачном вводе текста
     },
-    layers: {                               //слои(координаты по Z) для элементов ноды
-        nodeStep: 0.01,                      //шаг между нодами
-        node: {
-            backMount: 0,
-            title: 0,
-            indicator: 0.003,
-            frontMount: 0.001,
-            shield: 0,
-            header: 0.002,
-            widthResizer: 0.004,
-            footerLabel: 0.002,
-            bigMount: 0.005
-        },
-        port: {
-            self: 0.002,
-            magnet: 0,
-            connector: 0.01,
-            markMount: 0,
-            markLabel: 0.001,
-            label: 0
-        },
-        topForNode: 10,
-        line: {
-            fat: -1,
-            thin: -1.001
-        },
-        lineMark: {
-            pointer: 0.002,
-            big: 0,
-            small: 0.001
-        },
-        watchPoint: {   //слой от 0 до 0.005
-            self: 20,
-            bigMount: 0.005,
-            back: 0,
-            front: 0.001,
-            controlPanelTop: 0.002,
-            controlPanelBottom: 0.002,
-            copyButton: 0,
-            exportButton: 0,
-            closeButton: 0,
-            iconCornerResize: {
-                self: 0,
-                text: 0,
-                reactor: 0.001
-            }
-        },
-        nodeMenu: {
-            self: 24,
-            bigMount: 0.005,
-            back: 0,
-            front: 0.001,
-            container: 0.002
-        }
-    },
     //смещение на которое нужно сдвинуть поинтер после нажатия, что бы зафиксировать движение с зажатой клавишей
     deltaOnPointerInteractive: 0.5,
     fontPaths: {
@@ -206,14 +151,18 @@ export default {
         },
         footer: {
             height: 26,                         //высота подвала без радиуса
-            label: {
+            learnMoreButton: {
                 fontSize: 15,
                 leftMargin: 12,
                 bottomMargin: 5.1,
                 letterSpacing: 0.032
+            },
+            noticeButton: {
+                fontSize: 17,
+                rightMargin: 22.3,
+                bottomMargin: 3.5
             }
         },
-
         widthResizer: {
             width: 4                            //ширина ресайзера
         }
@@ -230,18 +179,52 @@ export default {
         positionOffsetTop: 25.6,
         positionOffsetLeft: -6.3
     },
+    nodeNotice: {
+        backRadius: 7,
+        borderSize: 1,
+        maxHeight: 500,
+        minHeight: 97,
+        marginTop: 8,
+        arrow: {
+            back: {
+                width: 16,
+                height: 7
+            },
+            front: {
+                width: 16,
+                height: 6,
+            },
+            marginLeft: 51
+        },
+        unwrapButton: {
+            fontSize: 17,
+            marginLeft: 10,
+            marginBottom: 11,
+        },
+        message: {
+            fontSize: 18,
+            marginLeft: 10,
+            marginRight: 10,
+            marginTop: 3,
+            lineHeight: 1.5
+        }
+    },
     three: {
         zoom: {
             /**
              * frustum 700 = 242% figma
              * 100% figma = 289.26 frustum
              */
+
             default: 1200,                      //зум по умолчанию
             min: 1550,                          //максимальное отдаление
             max: 930,                           //максимальное приближение
-            /*default: 700,                      //зум по умолчанию
-            min: 1550,                          //максимальное отдаление
-            max: 700,                           //максимальное приближение*/
+
+/*
+            default: 700,
+            min: 1550,
+            max: 0,
+*/
             damping: 0.7,                       //коэффициент инерции
             speed: 5,                           //скорость зума
             fullCollapseBorder: 1450,           //граница зума за которой ноды схлопываются

@@ -9,7 +9,7 @@ import flowData from './InputData';
 //
 FBS.dom.createWindow(document.documentElement.clientWidth, document.documentElement.clientHeight);
 document.body.append(FBS.dom.getWindow());
-FBS.sceneControl.setScene();
+FBS.sceneControl.init();
 
 NodeControl.init();
 NodeControl.buildNodes(flowData.nodes);
